@@ -99,13 +99,13 @@ def stop_tornado(config):
     # TODO: close all websocket connections (required?)
     ioloop = tornado.ioloop.IOLoop.current()
     ioloop.add_callback(ioloop.stop)
-    if config.APP_DEBUG:
+    if config['APP_DEBUG']:
         print("Asked Tornado to exit")
 
 def main(config):
     server = start_app(config=config)
     tornado.ioloop.IOLoop.current().start()
-    if config.APP_DEBUG:
+    if config['APP_DEBUG']:
         print("Tornado finished")
     server.stop()
     
