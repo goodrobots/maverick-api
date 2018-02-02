@@ -170,7 +170,7 @@ class GQLSubscriptionHandler(websocket.WebSocketHandler):
     def on_start(self, op_id, params):
         try:
             execution_result = graphql(
-                self.schema, **params, allow_subscriptions=True
+                self.schema, allow_subscriptions=True, **params
             )
             assert isinstance(
                 execution_result, Observable), "A subscription must return an observable"
