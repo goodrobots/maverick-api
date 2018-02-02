@@ -1,7 +1,7 @@
 {
     "APP_DEBUG": true, 
-    "APP_PREFIX": "", 
+    "APP_PREFIX": "/maverick-api", 
     "SERVER_INTERFACE": "0.0.0.0", 
-    "SERVER_PORT": 8888, 
+    "SERVER_PORT": 6795, 
     "APP_SECRET_KEY": "super_s3cret"
 }

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 '''
 Tornado server for maverick-api
 Samuel Dudley
@@ -7,7 +9,7 @@ https://github.com/goodrobots/maverick-api
 VERSION = "v0.1"
 
 # TODO: setup tests and flake8
-import future
+import __future__
 import tornado.web
 import logging
 
