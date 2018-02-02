@@ -3,10 +3,14 @@ from __future__ import absolute_import
 human_data = {}
 droid_data = {}
 
+telem_data = {}
 
 def setup():
     from .schema import Human, Droid
+    from .schema import StateMessage
     global human_data, droid_data
+    global telem_data
+    
     luke = Human(
         id='1000',
         name='Luke Skywalker',
@@ -75,6 +79,23 @@ def setup():
         '2000': c3po,
         '2001': r2d2,
     }
+    
+    state_message = StateMessage(
+        id='State',
+        seq = None, # graphene.Int()
+        secs = None, # graphene.Int()
+        nsecs = None, # graphene.Int()
+        frame_id = '', # graphene.String()
+        connected = None, # graphene.Boolean()
+        armed = None, # graphene.Boolean()
+        guided = None, # graphene.Boolean()
+        mode = None, # graphene.String()
+        system_status = None, # graphene.Int()
+    )
+    
+    telem_data = {
+        'State': state_message
+    }
 
 
 def get_character(id):
@@ -83,7 +104,6 @@ def get_character(id):
 
 def get_friends(character):
     return map(get_character, character.friends)
-
 
 def get_hero(episode):
     if episode == 5:
@@ -95,3 +115,9 @@ def get_human(id):
 
 def get_droid(id):
     return droid_data.get(id)
+    
+def get_state_message(id):
+    return telem_data.get(id)
+    
+def set_state_message(id, data):
+    telem_data[id] = data

@@ -9,21 +9,34 @@ https://github.com/goodrobots/maverick-api
 VERSION = "v0.1"
 
 # TODO: setup tests and flake8
-import __future__
-import tornado.web
-import logging
 
+# std lib imports
+import __future__
+import logging
 import os, json, sys, select, signal, threading
 import time
 from uuid import uuid4 # used to generate unique IDs
 
-# zeroconf placeholder
-# from zeroconf import ServiceInfo, Zeroconf # advertise available websockets to browser
+# tornado imports
+import tornado.web
 
+# tornadoql imports
 from tornadoql.graphql_handler import GQLHandler
 from tornadoql.subscription_handler import GQLSubscriptionHandler
 
+# schema imports
 from api.schema import schema
+
+# ROS imports
+import rospy
+import mavros
+import mavros.utils
+from std_msgs.msg import String
+from sensor_msgs.msg import Imu, NavSatFix
+from mavros_msgs.msg import State
+
+# zeroconf placeholder
+# from zeroconf import ServiceInfo, Zeroconf # advertise available websockets to browser
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 APP_STATIC = os.path.join(APP_ROOT, 'static')
@@ -74,15 +87,14 @@ class TornadoQL(tornado.web.Application):
         # TODO: roll settings into config
         args = dict(opts=SETTINGS)
         handlers = [
-            (r'/{0}subscriptions'.format(config['APP_PREFIX']) , GraphQLSubscriptionHandler, args),
-            (r'/{0}graphql'.format(config['APP_PREFIX']), GraphQLHandler),
-            (r'/{0}graphiql'.format(config['APP_PREFIX']), GraphiQLHandler)
+            (r'/subscriptions', GraphQLSubscriptionHandler, args),
+            (r'/graphql', GraphQLHandler),
+            (r'/graphiql', GraphiQLHandler)
         ]
         
         settings = dict(
             cookie_secret = config['APP_SECRET_KEY'],
             static_path = APP_STATIC,
-            static_url_prefix = '/{0}static/'.format(config['APP_PREFIX']),
             xsrf_cookies = False,
         )
         TornadoQL.schema = schema
@@ -130,16 +142,40 @@ class Server(object):
 
     def main_loop(self):
         '''main loop of the api server'''
+        # setup the connection to ROS
+        self.connection = Connection(callback=self.callback)
         while not self.exit:
-            self.process_connection_in() # any down time occurs here (ideally we can block on connection read)
+            time.sleep(0.1)
         print('Server finished')
         
     def process_connection_in(self):
         '''process data connection(s)'''
-        data = None
-        # TODO: Replace with abstracted mavros interface
-        data = {"data_type":"mavlink", "version":2.0, "system_id":123, "payload":str(uuid4())}
-        time.sleep(0.05) # TODO: remove this when we are actually reading something! Ideally callback driven
+        pass
+        
+    def callback(self, data):
+        #TODO: this is shocking... must find a way to generate queries from dicts or similar...
+        print(dir(data))
+        print(data)
+        test_query = 'mutation test {updateStateMessage('+'id:"State",seq:{0},frameId:"{1}",guided:{2},nsecs:{3},systemStatus:{4},secs:{5},connected:{6},mode:"{7}",armed:{8})'.format(
+            data.header.seq,
+            data.header.frame_id,
+            self.bool_to_str(data.guided),
+            data.header.stamp.nsecs,
+            data.system_status,
+            data.header.stamp.secs,
+            self.bool_to_str(data.connected),
+            data.mode,
+            self.bool_to_str(data.armed)) +'{ok}}'
+        print(test_query)
+        result = schema.execute(test_query)
+        print(result.data, result.errors)
+        print('')
+        
+    def bool_to_str(self, b):
+        if b:
+            return 'true'
+        else:
+            return 'false'
         
     def exit_gracefully(self, signum, frame):
         '''called on sigterm'''
@@ -148,11 +184,43 @@ class Server(object):
             # attempt to shutdown the tornado server
             stop_tornado(self.config)
             self.server_thread.join(timeout=10)
+            
+class Connection(object):
+    def __init__(self, callback = None):
+        if callback:
+            # we pass in an optional external fn to run on data recv and store it locally
+            self.callback = callback
+        else:
+            # just run the local callback
+            self.callback = self._callback
+        self.connect()
+        self.topics()
+        self.listener()
+        
+    def _callback(self, data):
+        rospy.loginfo("=====================\n" + rospy.get_caller_id() + "\n%s\n\n", data)
+        
+    def connect(self):
+        # In ROS, nodes are uniquely named. If two nodes with the same
+        # node are launched, the previous one is kicked off. The
+        # anonymous=True flag means that rospy will choose a unique
+        # name for our 'listener' node so that multiple listeners can
+        # run simultaneously.
+        rospy.init_node('listener', anonymous=True)
+    
+    def listener(self):
+        rospy.Subscriber("mavros/state", State, self.callback)
+        #rospy.Subscriber("mavros/global_position/global", NavSatFix, self.callback)
+    
+    def topics(self):
+        topics = rospy.get_published_topics()
+        for topic in topics:
+            print(topic)
         
 if __name__ == '__main__':
     from optparse import OptionParser
     from config import Configuration
-    parser = OptionParser('maverick_api_server.py [options]')
+    parser = OptionParser('maverick-api [options]')
     
     parser.add_option("--configuration", dest="configuration", type='str',
                       help="configuration file name", default="config.json")
