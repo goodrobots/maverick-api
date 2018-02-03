@@ -26,6 +26,7 @@ from tornadoql.subscription_handler import GQLSubscriptionHandler
 
 # schema imports
 from api.schema import schema
+from api.schema import UpdateStateMessage
 
 # ROS imports
 import rospy
@@ -143,7 +144,7 @@ class Server(object):
     def main_loop(self):
         '''main loop of the api server'''
         # setup the connection to ROS
-        self.connection = Connection(callback=self.callback)
+        self.connection = Connection()
         while not self.exit:
             time.sleep(0.1)
         print('Server finished')
@@ -151,31 +152,6 @@ class Server(object):
     def process_connection_in(self):
         '''process data connection(s)'''
         pass
-        
-    def callback(self, data):
-        #TODO: this is shocking... must find a way to generate queries from dicts or similar...
-        print(dir(data))
-        print(data)
-        test_query = 'mutation test {updateStateMessage('+'id:"State",seq:{0},frameId:"{1}",guided:{2},nsecs:{3},systemStatus:{4},secs:{5},connected:{6},mode:"{7}",armed:{8})'.format(
-            data.header.seq,
-            data.header.frame_id,
-            self.bool_to_str(data.guided),
-            data.header.stamp.nsecs,
-            data.system_status,
-            data.header.stamp.secs,
-            self.bool_to_str(data.connected),
-            data.mode,
-            self.bool_to_str(data.armed)) +'{ok}}'
-        print(test_query)
-        result = schema.execute(test_query)
-        print(result.data, result.errors)
-        print('')
-        
-    def bool_to_str(self, b):
-        if b:
-            return 'true'
-        else:
-            return 'false'
         
     def exit_gracefully(self, signum, frame):
         '''called on sigterm'''
@@ -186,18 +162,12 @@ class Server(object):
             self.server_thread.join(timeout=10)
             
 class Connection(object):
-    def __init__(self, callback = None):
-        if callback:
-            # we pass in an optional external fn to run on data recv and store it locally
-            self.callback = callback
-        else:
-            # just run the local callback
-            self.callback = self._callback
+    def __init__(self):
         self.connect()
         self.topics()
         self.listener()
         
-    def _callback(self, data):
+    def statecallback(self, data):
         rospy.loginfo("=====================\n" + rospy.get_caller_id() + "\n%s\n\n", data)
         
     def connect(self):
@@ -209,13 +179,19 @@ class Connection(object):
         rospy.init_node('listener', anonymous=True)
     
     def listener(self):
-        rospy.Subscriber("mavros/state", State, self.callback)
+        rospy.Subscriber("mavros/state", State, self.state_callback)
         #rospy.Subscriber("mavros/global_position/global", NavSatFix, self.callback)
     
     def topics(self):
         topics = rospy.get_published_topics()
         for topic in topics:
             print(topic)
+    
+    def state_callback(self, data):
+        kwargs = {'seq':data.header.seq,'frame_id':data.header.frame_id,'guided':data.guided,
+               'nsecs':data.header.stamp.nsecs,'system_status':data.system_status,'secs':data.header.stamp.secs,
+               'connected':data.connected,'mode':data.mode,'armed':data.armed}
+        res = UpdateStateMessage().mutate(**kwargs)
         
 if __name__ == '__main__':
     from optparse import OptionParser
