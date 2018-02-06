@@ -33,7 +33,6 @@ class StateMessage(graphene.ObjectType):
         StreamState.stream[_id] = state_message
         return state_message
     
-
 class UpdateStateMessage(graphene.Mutation):
     class Arguments:
         id = graphene.ID()
@@ -55,7 +54,6 @@ class UpdateStateMessage(graphene.Mutation):
         ok = True
         # notify subscribers of an update
         Subscriptions.stream['State'].on_next(state_message)
-        
         return UpdateStateMessage(state_message=state_message, ok=ok)
 
 
@@ -74,7 +72,6 @@ class Subscription(graphene.ObjectType):
     state_message = graphene.Field(StateMessage)
 
     def resolve_state_message(self, info):
-        # return the Subject for this message type
         return Subscriptions.stream['State']
 
 schema = graphene.Schema(query=Query, mutation=Mutation, subscription=Subscription)

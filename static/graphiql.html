@@ -68,14 +68,14 @@
         }
       }
 
-      var subscriptionsClient = new window.SubscriptionsTransportWs.SubscriptionClient('ws://dev.maverick.one:6795/subscriptions', {
+      var subscriptionsClient = new window.SubscriptionsTransportWs.SubscriptionClient('ws://dev.maverick.one/maverick-api/subscriptions', {
         reconnect: true
       });
 
       var graphQLWSFetcher = subscriptionsClient.request.bind(subscriptionsClient);
 
       // We don't use safe-serialize for location, because it's not client input.
-      var fetchURL = locationQuery(otherParams, '/graphql');
+      var fetchURL = locationQuery(otherParams, 'graphql');
 
       // Defines a GraphQL fetcher using the fetch API.
       function graphQLHttpFetcher(graphQLParams) {
