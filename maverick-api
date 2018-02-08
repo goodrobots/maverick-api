@@ -26,15 +26,18 @@ from tornadoql.subscription_handler import GQLSubscriptionHandler
 
 # schema imports
 from api.schema import schema
-from api.schema import UpdateStateMessage
+from api.schema import UpdateStateMessage, UpdateVFRHUDMessage
+from api.schema import UpdatePoseStampedMessage, UpdateNavSatFixMessage
+from api.schema import UpdateImuMessage
 
 # ROS imports
 import rospy
 import mavros
 import mavros.utils
 from std_msgs.msg import String
-from sensor_msgs.msg import Imu, NavSatFix
-from mavros_msgs.msg import State
+from mavros_msgs.msg import State, VFR_HUD
+from sensor_msgs.msg import NavSatFix, Imu
+from geometry_msgs.msg import PoseStamped
 
 # zeroconf placeholder
 # from zeroconf import ServiceInfo, Zeroconf # advertise available websockets to browser
@@ -82,6 +85,15 @@ class GraphiQLHandler(tornado.web.RequestHandler):
     def get(self):
         self.render(os.path.join(APP_STATIC, 'graphiql.html'))
 
+class SchemaHandler(tornado.web.RequestHandler):
+    '''introspection of the api schema'''
+    
+    @tornado.web.asynchronous
+    def get(self):
+        introspection_dict = TornadoQL.schema.introspect()
+        self.write(json.dumps(introspection_dict, indent=4, sort_keys=True))
+        self.finish()
+
 # Adapted from https://github.com/IlyaRadinsky/tornadoql under MIT license
 class TornadoQL(tornado.web.Application):
     def __init__(self, config):
@@ -90,7 +102,8 @@ class TornadoQL(tornado.web.Application):
         handlers = [
             (r'/subscriptions', GraphQLSubscriptionHandler, args),
             (r'/graphql', GraphQLHandler),
-            (r'/graphiql', GraphiQLHandler)
+            (r'/graphiql', GraphiQLHandler),
+            (r'/schema', SchemaHandler)
         ]
         
         settings = dict(
@@ -146,7 +159,7 @@ class Server(object):
         # setup the connection to ROS
         self.connection = Connection()
         while not self.exit:
-            time.sleep(0.1)
+            time.sleep(1.0)
         print('Server finished')
         
     def process_connection_in(self):
@@ -166,21 +179,16 @@ class Connection(object):
         self.connect()
         self.topics()
         self.listener()
-        
-    def statecallback(self, data):
-        rospy.loginfo("=====================\n" + rospy.get_caller_id() + "\n%s\n\n", data)
-        
+
     def connect(self):
-        # In ROS, nodes are uniquely named. If two nodes with the same
-        # node are launched, the previous one is kicked off. The
-        # anonymous=True flag means that rospy will choose a unique
-        # name for our 'listener' node so that multiple listeners can
-        # run simultaneously.
         rospy.init_node('listener', anonymous=True)
     
     def listener(self):
-        rospy.Subscriber("mavros/state", State, self.state_callback)
-        #rospy.Subscriber("mavros/global_position/global", NavSatFix, self.callback)
+        rospy.Subscriber("/mavros/state", State, self.state_callback)
+        rospy.Subscriber("/mavros/vfr_hud", VFR_HUD, self.vfr_hud_callback)
+        rospy.Subscriber("/mavros/global_position/global", NavSatFix, self.nav_sat_fix_callback)
+        rospy.Subscriber("/mavros/local_position/pose", PoseStamped, self.pose_stamped_callback)
+        rospy.Subscriber("/mavros/imu/data", Imu, self.imu_callback)
     
     def topics(self):
         topics = rospy.get_published_topics()
@@ -193,6 +201,33 @@ class Connection(object):
                'connected':data.connected,'mode':data.mode,'armed':data.armed}
         res = UpdateStateMessage().mutate(**kwargs)
         
+    def vfr_hud_callback(self, data):
+        kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
+               'airspeed':data.airspeed, 'groundspeed':data.groundspeed, 'heading':data.heading,
+               'throttle':data.throttle, 'altitude':data.altitude, 'climb':data.climb}
+        res = UpdateVFRHUDMessage().mutate(**kwargs)
+    
+    def nav_sat_fix_callback(self, data):
+        kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
+            'status_status':data.status.status, 'status_service':data.status.service, 'latitude':data.latitude, 'longitude':data.longitude,
+            'altiude':data.altitude, 'position_covariance_type':data.position_covariance_type}
+        res = UpdateNavSatFixMessage().mutate(**kwargs)
+        
+
+    def pose_stamped_callback(self, data):
+        kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
+            'pose_position_x':data.pose.position.x,  'pose_position_y':data.pose.position.y,  'pose_position_z':data.pose.position.z,
+            'pose_orientation_x':data.pose.orientation.x,  'pose_orientation_y':data.pose.orientation.y,  'pose_orientation_z':data.pose.orientation.z, 'pose_orientation_w':data.pose.orientation.w}
+        res = UpdatePoseStampedMessage().mutate(**kwargs)
+    
+    def imu_callback(self, data):
+        kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
+            'orientation_x':data.orientation.x, 'orientation_y':data.orientation.y, 'orientation_z':data.orientation.z, 'orientation_w':data.orientation.w,
+            'angular_velocity_x':data.angular_velocity.x, 'angular_velocity_y':data.angular_velocity.y, 'angular_velocity_z':data.angular_velocity.z,
+            'linear_acceleration_x':data.linear_acceleration.x, 'linear_acceleration_y':data.linear_acceleration.y, 'linear_acceleration_z':data.linear_acceleration.z}
+        res = UpdateImuMessage().mutate(**kwargs)
+        
+
 if __name__ == '__main__':
     from optparse import OptionParser
     from config import Configuration
