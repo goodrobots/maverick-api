@@ -210,7 +210,7 @@ class Connection(object):
     def nav_sat_fix_callback(self, data):
         kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
             'status_status':data.status.status, 'status_service':data.status.service, 'latitude':data.latitude, 'longitude':data.longitude,
-            'altiude':data.altitude, 'position_covariance_type':data.position_covariance_type}
+            'altitude':data.altitude, 'position_covariance_type':data.position_covariance_type}
         res = UpdateNavSatFixMessage().mutate(**kwargs)
         
 

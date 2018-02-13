@@ -7,6 +7,43 @@ class StreamState:
 
 class Subscriptions:
     stream={} # this dict holds Subject() for each message type
+    
+class Parameters:
+    params={}
+    
+
+class ParameterBase(graphene.Interface):
+    id = graphene.ID()
+    
+class ParameterFloat(graphene.ObjectType):
+    class Meta:
+        interfaces = (ParameterBase, )
+    value = graphene.Float()
+    
+    @classmethod
+    def create(cls, id, value):
+        _id = 'State'
+        param_float = cls(id=id, value=value)
+        # update the local storage content
+        Parameters.params[id] = param_float
+        return param_float
+
+class ParameterInt(graphene.ObjectType):
+    class Meta:
+        interfaces = (ParameterBase, )
+    value = graphene.Int()
+    
+    @classmethod
+    def create(cls, id, value):
+        _id = 'State'
+        param_int = cls(id=id, value=value)
+        # update the local storage content
+        Parameters.params[id] = param_int
+        return param_int
+        
+class ParameterCollection(graphene.ObjectType):
+    params = graphene.List(ParameterBase)
+
 
 class TelemMessage(graphene.Interface):
     id = graphene.ID()
@@ -221,15 +258,15 @@ class NavSatFixMessage(graphene.ObjectType):
     status_service = graphene.Int()
     latitude = graphene.Float()
     longitude = graphene.Float()
-    altiude = graphene.Float()
+    altitude = graphene.Float()
     # TODO: position_covariance array
     position_covariance_type = graphene.Int()
     
     @classmethod
-    def create(cls, seq, secs, nsecs, frame_id, status_status, status_service, latitude, longitude, altiude, position_covariance_type):
+    def create(cls, seq, secs, nsecs, frame_id, status_status, status_service, latitude, longitude, altitude, position_covariance_type):
         _id = 'NavSatFix'
         pose_stamped_message = cls(id=_id, seq = seq, secs = secs, nsecs = nsecs, frame_id = frame_id, status_status = status_status, status_service = status_service,
-        latitude = latitude, longitude = longitude, altiude = altiude, position_covariance_type = position_covariance_type)
+        latitude = latitude, longitude = longitude, altitude = altitude, position_covariance_type = position_covariance_type)
         # update the local storage content
         StreamState.stream[_id] = pose_stamped_message
         return pose_stamped_message
@@ -245,7 +282,7 @@ class UpdateNavSatFixMessage(graphene.Mutation):
         status_service = graphene.Int()
         latitude = graphene.Float()
         longitude = graphene.Float()
-        altiude = graphene.Float()
+        altitude = graphene.Float()
         # TODO: position_covariance array
         position_covariance_type = graphene.Int()
 
@@ -273,6 +310,12 @@ class Query(graphene.ObjectType):
     pose_stamped_message = graphene.Field(PoseStampedMessage)
     nav_sat_fixed_message = graphene.Field(NavSatFixMessage)
     imu_message = graphene.Field(ImuMessage)
+    
+    params = graphene.List(ParameterBase)
+    def resolve_params(self, info):
+        tmp =[Parameters.params['testing'],Parameters.params['abcd']]
+        print tmp
+        return tmp
     
     def resolve_state_message(self, info):
         return StreamState.stream['State']
@@ -313,7 +356,7 @@ class Subscription(graphene.ObjectType):
         return Subscriptions.stream['Imu']
         
 
-schema = graphene.Schema(query=Query, mutation=Mutation, subscription=Subscription)
+schema = graphene.Schema(query=Query, mutation=Mutation, subscription=Subscription, types=[ParameterFloat, ParameterInt])
 
 state_message = StateMessage(
     id='State',
@@ -367,7 +410,7 @@ nav_sat_fixed_message = NavSatFixMessage(
     status_service = None, # graphene.Int()
     latitude = None, # graphene.Float()
     longitude = None, # graphene.Float()
-    altiude = None, # graphene.Float()
+    altitude = None, # graphene.Float()
     position_covariance_type = None, # graphene.Int()
 )
 
@@ -389,7 +432,9 @@ imu_message = ImuMessage(
     linear_acceleration_z = None, # graphene.Float()
 )
 
- 
+ParameterFloat().create('testing', 123.45)
+ParameterInt().create('abcd', 100001)
+
 # init the state message
 StreamState.stream['State'] = state_message
 # init the VFR_HUD message
