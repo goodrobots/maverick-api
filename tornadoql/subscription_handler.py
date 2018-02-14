@@ -10,12 +10,13 @@ from tornado.log import app_log
 from rx import Observer, Observable
 
 import logging
+from logging.handlers import RotatingFileHandler
 logger = logging.getLogger('websocket')
-hdlr = logging.FileHandler('tornado_ws.log')
+hdlr = RotatingFileHandler('tornado_ws.log', mode='a', maxBytes=5*1024*1024, backupCount=2, encoding=None, delay=0)
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr) 
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO) # set to DEBUG to enable send and recv ws msgs
 
 
 GRAPHQL_WS = 'graphql-ws'
