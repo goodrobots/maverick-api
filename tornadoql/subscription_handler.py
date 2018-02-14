@@ -9,6 +9,14 @@ from tornado.escape import json_decode, json_encode
 from tornado.log import app_log
 from rx import Observer, Observable
 
+import logging
+logger = logging.getLogger('websocket')
+hdlr = logging.FileHandler('tornado_ws.log')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr) 
+logger.setLevel(logging.DEBUG)
+
 
 GRAPHQL_WS = 'graphql-ws'
 WS_PROTOCOL = GRAPHQL_WS
@@ -77,7 +85,13 @@ class GQLSubscriptionHandler(websocket.WebSocketHandler):
 
         assert message, "You need to send at least one thing"
         json_message = json_encode(message)
+        
+        # log the outgoing ws data to file
+        logger.debug('send ws: ID: {0}, TYPE: {1}, PAYLOAD: {2}'.format( op_id, op_type, payload))
+        
         return self.write_message(json_message)
+        
+
 
     def send_error(self, op_id, error, error_type=None):
         if error_type is None:
@@ -136,6 +150,9 @@ class GQLSubscriptionHandler(websocket.WebSocketHandler):
         op_id = parsed_message.get('id')
         op_type = parsed_message.get('type')
         payload = parsed_message.get('payload')
+        
+        # log the incoming ws data to file
+        logger.debug('rec ws: ID: {0}, TYPE: {1}, PAYLOAD: {2}'.format( op_id, op_type, payload))
 
         if op_type == GQL_CONNECTION_INIT:
             return self.on_connection_init(op_id, payload)

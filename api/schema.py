@@ -91,7 +91,8 @@ class UpdateStateMessage(graphene.Mutation):
         state_message = StateMessage.create(**kwargs)
         ok = True
         # notify subscribers of an update
-        Subscriptions.stream['State'].on_next(state_message)
+        # Attempted bug fix: this needs to occur in the server IO loop, push this to the server
+        Subscriptions.stream['State'].on_next(state_message) 
         return UpdateStateMessage(state_message=state_message, ok=ok)
 ### end State Message
 
