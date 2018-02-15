@@ -96,8 +96,8 @@ class UpdateStateMessage(graphene.Mutation):
         return UpdateStateMessage(state_message=state_message, ok=ok)
 ### end State Message
 
-### start VFR_HUD Message
-class VFRHUDMessage(graphene.ObjectType):
+### start VfrHud Message
+class VfrHudMessage(graphene.ObjectType):
     class Meta:
         interfaces = (TelemMessage, )
     airspeed = graphene.Float()
@@ -109,14 +109,14 @@ class VFRHUDMessage(graphene.ObjectType):
     
     @classmethod
     def create(cls, seq, secs, nsecs, frame_id, airspeed, groundspeed, heading, throttle, altitude, climb):
-        _id = 'VFR_HUD'
+        _id = 'VfrHud'
         vfr_hud_message = cls(id=_id, seq = seq, secs = secs, nsecs = nsecs, frame_id = frame_id, 
             airspeed = airspeed, groundspeed = groundspeed, heading = heading, throttle = throttle, altitude = altitude, climb = climb)
         # update the local storage content
         StreamState.stream[_id] = vfr_hud_message
         return vfr_hud_message
     
-class UpdateVFRHUDMessage(graphene.Mutation):
+class UpdateVfrHudMessage(graphene.Mutation):
     class Arguments:
         id = graphene.ID()
         seq = graphene.Int()
@@ -131,15 +131,15 @@ class UpdateVFRHUDMessage(graphene.Mutation):
         climb = graphene.Float()
 
     ok = graphene.Boolean()
-    vfr_hud_message = graphene.Field(lambda: VFRHUDMessage)
+    vfr_hud_message = graphene.Field(lambda: VfrHudMessage)
     
     def mutate(self, info = None, **kwargs):
-        vfr_hud_message = VFRHUDMessage.create(**kwargs)
+        vfr_hud_message = VfrHudMessage.create(**kwargs)
         ok = True
         # notify subscribers of an update
-        Subscriptions.stream['VFR_HUD'].on_next(vfr_hud_message)
-        return UpdateVFRHUDMessage(vfr_hud_message=vfr_hud_message, ok=ok)
-### end VFR_HUD Message
+        Subscriptions.stream['VfrHud'].on_next(vfr_hud_message)
+        return UpdateVfrHudMessage(vfr_hud_message=vfr_hud_message, ok=ok)
+### end VfrHud Message
 
 ### start PoseStamped Message
 class PoseStampedMessage(graphene.ObjectType):
@@ -288,28 +288,28 @@ class UpdateNavSatFixMessage(graphene.Mutation):
         position_covariance_type = graphene.Int()
 
     ok = graphene.Boolean()
-    nav_sat_fixed_message = graphene.Field(lambda: NavSatFixMessage)
+    nav_sat_fix_message = graphene.Field(lambda: NavSatFixMessage)
     
     def mutate(self, info = None, **kwargs):
-        nav_sat_fixed_message = NavSatFixMessage.create(**kwargs)
+        nav_sat_fix_message = NavSatFixMessage.create(**kwargs)
         ok = True
         # notify subscribers of an update
-        Subscriptions.stream['NavSatFix'].on_next(nav_sat_fixed_message)
-        return UpdateNavSatFixMessage(nav_sat_fixed_message=nav_sat_fixed_message, ok=ok)
+        Subscriptions.stream['NavSatFix'].on_next(nav_sat_fix_message)
+        return UpdateNavSatFixMessage(nav_sat_fix_message=nav_sat_fix_message, ok=ok)
 ### end NavSatFix Message
 
 class Mutation(graphene.ObjectType):
     update_state_message = UpdateStateMessage.Field()
-    update_vfr_hud_message = UpdateVFRHUDMessage.Field()
+    update_vfr_hud_message = UpdateVfrHudMessage.Field()
     update_pose_stamped_message = UpdatePoseStampedMessage.Field()
-    update_nav_sat_fixed_message = UpdateNavSatFixMessage.Field()
+    update_nav_sat_fix_message = UpdateNavSatFixMessage.Field()
     update_imu_message = UpdateImuMessage.Field()
 
 class Query(graphene.ObjectType):
     state_message = graphene.Field(StateMessage)
-    vfr_hud_message = graphene.Field(VFRHUDMessage)
+    vfr_hud_message = graphene.Field(VfrHudMessage)
     pose_stamped_message = graphene.Field(PoseStampedMessage)
-    nav_sat_fixed_message = graphene.Field(NavSatFixMessage)
+    nav_sat_fix_message = graphene.Field(NavSatFixMessage)
     imu_message = graphene.Field(ImuMessage)
     
     params = graphene.List(ParameterBase)
@@ -322,12 +322,12 @@ class Query(graphene.ObjectType):
         return StreamState.stream['State']
         
     def resolve_vfr_hud_message(self, info):
-        return StreamState.stream['VFR_HUD']
+        return StreamState.stream['VfrHud']
         
     def resolve_pose_stamped_message(self, info):
         return StreamState.stream['PoseStamped']
     
-    def resolve_nav_sat_fixed_message(self, info):
+    def resolve_nav_sat_fix_message(self, info):
         return StreamState.stream['NavSatFix']
     
     def resolve_imu_message(self, info):
@@ -336,21 +336,21 @@ class Query(graphene.ObjectType):
   
 class Subscription(graphene.ObjectType):
     state_message = graphene.Field(StateMessage)
-    vfr_hud_message = graphene.Field(VFRHUDMessage)
+    vfr_hud_message = graphene.Field(VfrHudMessage)
     pose_stamped_message = graphene.Field(PoseStampedMessage)
-    nav_sat_fixed_message = graphene.Field(NavSatFixMessage)
+    nav_sat_fix_message = graphene.Field(NavSatFixMessage)
     imu_message = graphene.Field(ImuMessage)
 
     def resolve_state_message(self, info):
         return Subscriptions.stream['State']
     
     def resolve_vfr_hud_message(self, info):
-        return Subscriptions.stream['VFR_HUD']
+        return Subscriptions.stream['VfrHud']
         
     def resolve_pose_stamped_message(self, info):
         return Subscriptions.stream['PoseStamped']
     
-    def resolve_nav_sat_fixed_message(self, info):
+    def resolve_nav_sat_fix_message(self, info):
         return Subscriptions.stream['NavSatFix']
         
     def resolve_imu_message(self, info):
@@ -372,8 +372,8 @@ state_message = StateMessage(
     system_status = None, # graphene.Int()
 )
 
-vfr_hud_message = VFRHUDMessage(
-    id = 'VFR_HUD',
+vfr_hud_message = VfrHudMessage(
+    id = 'VfrHud',
     seq = None, # graphene.Int()
     secs = None, # graphene.Int()
     nsecs = None, # graphene.Int()
@@ -401,7 +401,7 @@ pose_stamped_message = PoseStampedMessage(
     pose_orientation_w = None, #  graphene.Float()
 )
 
-nav_sat_fixed_message = NavSatFixMessage(
+nav_sat_fix_message = NavSatFixMessage(
     id = 'NavSatFix',
     seq = None, # graphene.Int()
     secs = None, # graphene.Int()
@@ -438,18 +438,18 @@ ParameterInt().create('abcd', 100001)
 
 # init the state message
 StreamState.stream['State'] = state_message
-# init the VFR_HUD message
-StreamState.stream['VFR_HUD'] = vfr_hud_message
+# init the VfrHud message
+StreamState.stream['VfrHud'] = vfr_hud_message
 # init the pose stamped message
 StreamState.stream['PoseStamped'] = pose_stamped_message
-# init the nav sat fixed message
-StreamState.stream['NavSatFix'] = nav_sat_fixed_message
+# init the nav sat fix message
+StreamState.stream['NavSatFix'] = nav_sat_fix_message
 # init the imu message
 StreamState.stream['Imu'] = imu_message
 
 # add Subjects for all message types
 Subscriptions.stream['State'] = Subject()
-Subscriptions.stream['VFR_HUD'] = Subject()
+Subscriptions.stream['VfrHud'] = Subject()
 Subscriptions.stream['PoseStamped'] = Subject()
 Subscriptions.stream['NavSatFix'] = Subject()
 Subscriptions.stream['Imu'] = Subject()
