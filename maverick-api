@@ -32,7 +32,7 @@ from tornadoql.subscription_handler import GQLSubscriptionHandler
 
 # schema imports
 from api.schema import schema
-from api.schema import UpdateStateMessage, UpdateVFRHUDMessage
+from api.schema import UpdateStateMessage, UpdateVfrHudMessage
 from api.schema import UpdatePoseStampedMessage, UpdateNavSatFixMessage
 from api.schema import UpdateImuMessage
 
@@ -125,57 +125,56 @@ class TornadoQL(tornado.web.Application):
 
 class Client():
     def __init__(self):
-        pass
+        self.exit = False
+    
+    def stop(self):
+        self.exit = True
 
     @tornado.gen.coroutine
     def watch_queue(self):
-        while True: # TODO: exit this loop on server shutdown
-            (msg,data)= (yield executor.submit(que.get))
-            if msg == 'vfr':
-                kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
-                         'airspeed':data.airspeed, 'groundspeed':data.groundspeed, 'heading':data.heading,
-                         'throttle':data.throttle, 'altitude':data.altitude, 'climb':data.climb}
-                # yield executor.submit(UpdateVFRHUDMessage().mutate, **kwargs)
-                UpdateVFRHUDMessage().mutate(**kwargs)
-                # print 'vfr'
-
-                
-            elif msg == 'state':
-                kwargs = {'seq':data.header.seq,'frame_id':data.header.frame_id,'guided':data.guided,
-                         'nsecs':data.header.stamp.nsecs,'system_status':data.system_status,'secs':data.header.stamp.secs,
-                         'connected':data.connected,'mode':data.mode,'armed':data.armed}
-                # yield executor.submit(UpdateStateMessage().mutate, **kwargs)
-                UpdateStateMessage().mutate(**kwargs)
-                # print 'state'
-                
-            elif msg == 'nav':
-                kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
-                         'status_status':data.status.status, 'status_service':data.status.service, 'latitude':data.latitude, 'longitude':data.longitude,
-                         'altitude':data.altitude, 'position_covariance_type':data.position_covariance_type}
-                # yield executor.submit(UpdateNavSatFixMessage().mutate, **kwargs)
-                UpdateNavSatFixMessage().mutate(**kwargs)
-                # print 'nav'
+        while not self.exit: # TODO: exit this loop on server shutdown
+            try:
+                (msg,data)= (yield executor.submit(que.get))
             
-            elif msg == 'imu':
-                kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
-                             'orientation_x':data.orientation.x, 'orientation_y':data.orientation.y, 'orientation_z':data.orientation.z, 'orientation_w':data.orientation.w,
-                             'angular_velocity_x':data.angular_velocity.x, 'angular_velocity_y':data.angular_velocity.y, 'angular_velocity_z':data.angular_velocity.z,
-                             'linear_acceleration_x':data.linear_acceleration.x, 'linear_acceleration_y':data.linear_acceleration.y, 'linear_acceleration_z':data.linear_acceleration.z}
-                # yield executor.submit(UpdateImuMessage().mutate, **kwargs)
-                UpdateImuMessage().mutate(**kwargs)
-                # print 'imu'
-
-            elif msg == 'pose':
-                kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
-                             'pose_position_x':data.pose.position.x,  'pose_position_y':data.pose.position.y,  'pose_position_z':data.pose.position.z,
-                             'pose_orientation_x':data.pose.orientation.x,  'pose_orientation_y':data.pose.orientation.y,  'pose_orientation_z':data.pose.orientation.z, 'pose_orientation_w':data.pose.orientation.w}
-                # yield executor.submit(UpdatePoseStampedMessage().mutate, **kwargs)
-                UpdatePoseStampedMessage().mutate(**kwargs)
-                # print 'pose'
-
-            # else:
-            #     print 'none'
+                if msg == 'vfr':
+                    kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
+                             'airspeed':data.airspeed, 'groundspeed':data.groundspeed, 'heading':data.heading,
+                             'throttle':data.throttle, 'altitude':data.altitude, 'climb':data.climb}
+                    UpdateVfrHudMessage().mutate(**kwargs)
+                    # print 'vfr'
+    
+                    
+                elif msg == 'state':
+                    kwargs = {'seq':data.header.seq,'frame_id':data.header.frame_id,'guided':data.guided,
+                             'nsecs':data.header.stamp.nsecs,'system_status':data.system_status,'secs':data.header.stamp.secs,
+                             'connected':data.connected,'mode':data.mode,'armed':data.armed}
+                    UpdateStateMessage().mutate(**kwargs)
+                    # print 'state'
+                    
+                elif msg == 'nav':
+                    kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
+                             'status_status':data.status.status, 'status_service':data.status.service, 'latitude':data.latitude, 'longitude':data.longitude,
+                             'altitude':data.altitude, 'position_covariance_type':data.position_covariance_type}
+                    UpdateNavSatFixMessage().mutate(**kwargs)
+                    # print 'nav'
                 
+                elif msg == 'imu':
+                    kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
+                                 'orientation_x':data.orientation.x, 'orientation_y':data.orientation.y, 'orientation_z':data.orientation.z, 'orientation_w':data.orientation.w,
+                                 'angular_velocity_x':data.angular_velocity.x, 'angular_velocity_y':data.angular_velocity.y, 'angular_velocity_z':data.angular_velocity.z,
+                                 'linear_acceleration_x':data.linear_acceleration.x, 'linear_acceleration_y':data.linear_acceleration.y, 'linear_acceleration_z':data.linear_acceleration.z}
+                    UpdateImuMessage().mutate(**kwargs)
+                    # print 'imu'
+    
+                elif msg == 'pose':
+                    kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
+                                 'pose_position_x':data.pose.position.x,  'pose_position_y':data.pose.position.y,  'pose_position_z':data.pose.position.z,
+                                 'pose_orientation_x':data.pose.orientation.x,  'pose_orientation_y':data.pose.orientation.y,  'pose_orientation_z':data.pose.orientation.z, 'pose_orientation_w':data.pose.orientation.w}
+                    UpdatePoseStampedMessage().mutate(**kwargs)
+                    # print 'pose'
+            except queue.Queue.Empty:
+                pass
+
 
 def start_app(config):
     handler = RotatingFileHandler('tornado.log', mode='a', maxBytes=5*1024*1024, backupCount=2, encoding=None, delay=0)
@@ -212,11 +211,10 @@ def main(config):
     client = Client()
     # Watch the queue for when new items show up
     tornado.ioloop.IOLoop.current().add_callback(client.watch_queue)
-    
-    
     tornado.ioloop.IOLoop.current().start()
     if config['APP_DEBUG']:
         print("Tornado finished")
+    client.stop()
     server.stop()
     
      
@@ -278,41 +276,18 @@ class Connection(object):
             print(topic)
     
     def state_callback(self, data):
-        # kwargs = {'seq':data.header.seq,'frame_id':data.header.frame_id,'guided':data.guided,
-        #  'nsecs':data.header.stamp.nsecs,'system_status':data.system_status,'secs':data.header.stamp.secs,
-        #  'connected':data.connected,'mode':data.mode,'armed':data.armed}
-        # UpdateStateMessage().mutate(**kwargs)
         que.put_nowait(('state',data))
         
     def vfr_hud_callback(self, data):
-        # kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
-        #  'airspeed':data.airspeed, 'groundspeed':data.groundspeed, 'heading':data.heading,
-        #  'throttle':data.throttle, 'altitude':data.altitude, 'climb':data.climb}
-        # UpdateVFRHUDMessage().mutate(**kwargs)
         que.put_nowait(('vfr',data))
-        
-    
+
     def nav_sat_fix_callback(self, data):
-        # kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
-        #  'status_status':data.status.status, 'status_service':data.status.service, 'latitude':data.latitude, 'longitude':data.longitude,
-        #  'altitude':data.altitude, 'position_covariance_type':data.position_covariance_type}
-        # UpdateNavSatFixMessage().mutate(**kwargs)
         que.put_nowait(('nav',data))
-        
 
     def pose_stamped_callback(self, data):
-        # kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
-        #      'pose_position_x':data.pose.position.x,  'pose_position_y':data.pose.position.y,  'pose_position_z':data.pose.position.z,
-        #      'pose_orientation_x':data.pose.orientation.x,  'pose_orientation_y':data.pose.orientation.y,  'pose_orientation_z':data.pose.orientation.z, 'pose_orientation_w':data.pose.orientation.w}
-        # UpdatePoseStampedMessage().mutate(**kwargs)
         que.put_nowait(('pose',data))
     
     def imu_callback(self, data):
-        # kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
-        #      'orientation_x':data.orientation.x, 'orientation_y':data.orientation.y, 'orientation_z':data.orientation.z, 'orientation_w':data.orientation.w,
-        #      'angular_velocity_x':data.angular_velocity.x, 'angular_velocity_y':data.angular_velocity.y, 'angular_velocity_z':data.angular_velocity.z,
-        #      'linear_acceleration_x':data.linear_acceleration.x, 'linear_acceleration_y':data.linear_acceleration.y, 'linear_acceleration_z':data.linear_acceleration.z}
-        # UpdateImuMessage().mutate(**kwargs)
         que.put_nowait(('imu',data))
 
 if __name__ == '__main__':
