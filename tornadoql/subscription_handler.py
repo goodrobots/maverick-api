@@ -5,10 +5,16 @@ from __future__ import absolute_import, division, print_function
 from collections import OrderedDict
 from graphql import graphql, format_error
 from tornado import websocket
+from tornado.util import PY3
 from tornado.escape import json_decode, json_encode
 from tornado.log import app_log
 from rx import Observer, Observable
 
+if PY3:
+    from urllib.parse import urlparse
+else:
+    from urlparse import urlparse
+    
 import logging
 from logging.handlers import RotatingFileHandler
 logger = logging.getLogger('websocket')
@@ -17,7 +23,6 @@ formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr) 
 logger.setLevel(logging.INFO) # set to DEBUG to enable send and recv ws msgs
-
 
 GRAPHQL_WS = 'graphql-ws'
 WS_PROTOCOL = GRAPHQL_WS
@@ -75,6 +80,12 @@ class GQLSubscriptionHandler(websocket.WebSocketHandler):
     def select_subprotocol(self, subprotocols):
         return WS_PROTOCOL
 
+    def check_origin(self, origin):
+        self.CORS_ORIGINS = ['localhost', 'www.example.com']
+        parsed_origin = urlparse(origin)
+        # return parsed_origin.hostname in self.CORS_ORIGINS
+        return True
+    
     def send_message(self, op_id=None, op_type=None, payload=None):
         message = {}
         if op_id is not None:
