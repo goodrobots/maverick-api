@@ -26,7 +26,6 @@ from tornado import gen
 from tornado.log import enable_pretty_logging
 
 from concurrent.futures import ThreadPoolExecutor
-import concurrent
 
 # tornadoql imports
 from tornadoql.graphql_handler import GQLHandler
@@ -51,7 +50,7 @@ from geometry_msgs.msg import PoseStamped
 # from zeroconf import ServiceInfo, Zeroconf # advertise available websockets to browser
 
 external_fn_queue = queue.Queue()
-external_fn_executor = ThreadPoolExecutor()
+external_fn_executor = ThreadPoolExecutor(max_workers=1)
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 APP_STATIC = os.path.join(APP_ROOT, 'static')
@@ -123,18 +122,23 @@ class TornadoQL(tornado.web.Application):
         TornadoQL.schema = schema
         super(TornadoQL, self).__init__(handlers, **settings)
 
-class ExternalFunctionCallback():
+class ExternalFunctionCallback(object):
+    '''runs functions from other threads asynchronously within the ioloop'''
     def __init__(self):
-        self.exit = False
+        tornado.ioloop.IOLoop.current().add_callback(self.watch_queue)
     
     def stop(self):
-        self.exit = True
+        external_fn_queue.put_nowait(None)
 
     @tornado.gen.coroutine
     def watch_queue(self):
-        while not self.exit: # TODO: exit this loop on server shutdown
-            (callback, kwargs) = yield(external_fn_executor.submit(external_fn_queue.get))
-            callback(**kwargs)
+        while True:
+            ret = yield(external_fn_executor.submit(external_fn_queue.get, block=True))
+            if ret:
+                (callback, kwargs) = ret
+                callback(**kwargs)
+            else:
+                break
             
 def setup_logging(config):
     handler = RotatingFileHandler('tornado.log', mode='a', maxBytes=5*1024*1024, backupCount=2, encoding=None, delay=0)
@@ -153,7 +157,6 @@ def setup_logging(config):
     access_log.setLevel(logging.DEBUG)
     
 def start_server(config):
-    setup_logging(config)
     application = TornadoQL(config)
     server = tornado.httpserver.HTTPServer(application)
     server.listen(port = int(config['SERVER_PORT']), address = str(config['SERVER_INTERFACE']))
@@ -161,26 +164,24 @@ def start_server(config):
         print("Starting Maverick-API server: {0}:{1}/{2}".format(config['SERVER_INTERFACE'], config['SERVER_PORT'], config['APP_PREFIX']))
     return server
 
+def main(config):
+    setup_logging(config)
+    external_callback = ExternalFunctionCallback()
+    server = start_server(config)
+    tornado.ioloop.IOLoop.current().start()
+    # this function blocks at this point until the server is asked to exit via request_server_stop()
+    if config['APP_DEBUG']:
+        print("Tornado finished")
+    external_callback.stop()
+    server.stop()
+
 def request_server_stop(config):
     # TODO: close all websocket connections (required?)
     ioloop = tornado.ioloop.IOLoop.current()
     ioloop.add_callback(ioloop.stop)
     if config['APP_DEBUG']:
         print("Asked Tornado to exit")
-
-def main(config):
-    server = start_server(config=config)
-    external_callback = ExternalFunctionCallback()
-    tornado.ioloop.IOLoop.current().add_callback(external_callback.watch_queue)
-    tornado.ioloop.IOLoop.current().start()
-    if config['APP_DEBUG']:
-        print("Tornado finished")
-    external_callback.stop()
-    external_fn_executor._threads.clear()
-    concurrent.futures.thread._threads_queues.clear()
-    server.stop()
     
-     
 class Server(object):
     def __init__(self, optsargs):
         self.exit = False
@@ -228,7 +229,7 @@ class Connection(object):
         rospy.init_node('listener', anonymous=True, disable_signals=True)
         
     def shutdown(self):
-        rospy.signal_shutdown('User request')
+        rospy.signal_shutdown('API Shutdown')
     
     def listener(self):
         rospy.Subscriber("/mavros/state", State, self.state_callback)
