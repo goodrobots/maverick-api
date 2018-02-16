@@ -18,6 +18,7 @@ import os, json, sys, select, signal, threading
 import time
 import queue
 from uuid import uuid4 # used to generate unique IDs
+import datetime
 
 # tornado imports
 import tornado.web
@@ -25,6 +26,7 @@ from tornado import gen
 from tornado.log import enable_pretty_logging
 
 from concurrent.futures import ThreadPoolExecutor
+import concurrent
 
 # tornadoql imports
 from tornadoql.graphql_handler import GQLHandler
@@ -48,8 +50,8 @@ from geometry_msgs.msg import PoseStamped
 # zeroconf placeholder
 # from zeroconf import ServiceInfo, Zeroconf # advertise available websockets to browser
 
-que = queue.Queue()
-executor = ThreadPoolExecutor()
+external_fn_queue = queue.Queue()
+external_fn_executor = ThreadPoolExecutor()
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 APP_STATIC = os.path.join(APP_ROOT, 'static')
@@ -68,7 +70,6 @@ class GraphQLHandler(GQLHandler):
     
 # Taken from https://github.com/IlyaRadinsky/tornadoql under MIT license
 class GraphQLSubscriptionHandler(GQLSubscriptionHandler):
-
     def initialize(self, opts):
         super(GraphQLSubscriptionHandler, self).initialize()
         self.opts = opts
@@ -96,7 +97,6 @@ class GraphiQLHandler(tornado.web.RequestHandler):
 
 class SchemaHandler(tornado.web.RequestHandler):
     '''introspection of the api schema'''
-    
     @tornado.web.asynchronous
     def get(self):
         introspection_dict = TornadoQL.schema.introspect()
@@ -123,7 +123,7 @@ class TornadoQL(tornado.web.Application):
         TornadoQL.schema = schema
         super(TornadoQL, self).__init__(handlers, **settings)
 
-class Client():
+class ExternalFunctionCallback():
     def __init__(self):
         self.exit = False
     
@@ -133,50 +133,10 @@ class Client():
     @tornado.gen.coroutine
     def watch_queue(self):
         while not self.exit: # TODO: exit this loop on server shutdown
-            try:
-                (msg,data)= (yield executor.submit(que.get))
+            (callback, kwargs) = yield(external_fn_executor.submit(external_fn_queue.get))
+            callback(**kwargs)
             
-                if msg == 'vfr':
-                    kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
-                             'airspeed':data.airspeed, 'groundspeed':data.groundspeed, 'heading':data.heading,
-                             'throttle':data.throttle, 'altitude':data.altitude, 'climb':data.climb}
-                    UpdateVfrHudMessage().mutate(**kwargs)
-                    # print 'vfr'
-    
-                    
-                elif msg == 'state':
-                    kwargs = {'seq':data.header.seq,'frame_id':data.header.frame_id,'guided':data.guided,
-                             'nsecs':data.header.stamp.nsecs,'system_status':data.system_status,'secs':data.header.stamp.secs,
-                             'connected':data.connected,'mode':data.mode,'armed':data.armed}
-                    UpdateStateMessage().mutate(**kwargs)
-                    # print 'state'
-                    
-                elif msg == 'nav':
-                    kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
-                             'status_status':data.status.status, 'status_service':data.status.service, 'latitude':data.latitude, 'longitude':data.longitude,
-                             'altitude':data.altitude, 'position_covariance_type':data.position_covariance_type}
-                    UpdateNavSatFixMessage().mutate(**kwargs)
-                    # print 'nav'
-                
-                elif msg == 'imu':
-                    kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
-                                 'orientation_x':data.orientation.x, 'orientation_y':data.orientation.y, 'orientation_z':data.orientation.z, 'orientation_w':data.orientation.w,
-                                 'angular_velocity_x':data.angular_velocity.x, 'angular_velocity_y':data.angular_velocity.y, 'angular_velocity_z':data.angular_velocity.z,
-                                 'linear_acceleration_x':data.linear_acceleration.x, 'linear_acceleration_y':data.linear_acceleration.y, 'linear_acceleration_z':data.linear_acceleration.z}
-                    UpdateImuMessage().mutate(**kwargs)
-                    # print 'imu'
-    
-                elif msg == 'pose':
-                    kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
-                                 'pose_position_x':data.pose.position.x,  'pose_position_y':data.pose.position.y,  'pose_position_z':data.pose.position.z,
-                                 'pose_orientation_x':data.pose.orientation.x,  'pose_orientation_y':data.pose.orientation.y,  'pose_orientation_z':data.pose.orientation.z, 'pose_orientation_w':data.pose.orientation.w}
-                    UpdatePoseStampedMessage().mutate(**kwargs)
-                    # print 'pose'
-            except queue.Queue.Empty:
-                pass
-
-
-def start_app(config):
+def setup_logging(config):
     handler = RotatingFileHandler('tornado.log', mode='a', maxBytes=5*1024*1024, backupCount=2, encoding=None, delay=0)
     enable_pretty_logging()
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
@@ -187,10 +147,13 @@ def start_app(config):
     app_log.addHandler(handler)
     gen_log.addHandler(handler)
     access_log.addHandler(handler)
+    # TODO: log level set by config
     app_log.setLevel(logging.DEBUG)
     gen_log.setLevel(logging.DEBUG)
     access_log.setLevel(logging.DEBUG)
     
+def start_server(config):
+    setup_logging(config)
     application = TornadoQL(config)
     server = tornado.httpserver.HTTPServer(application)
     server.listen(port = int(config['SERVER_PORT']), address = str(config['SERVER_INTERFACE']))
@@ -198,7 +161,7 @@ def start_app(config):
         print("Starting Maverick-API server: {0}:{1}/{2}".format(config['SERVER_INTERFACE'], config['SERVER_PORT'], config['APP_PREFIX']))
     return server
 
-def stop_tornado(config):
+def request_server_stop(config):
     # TODO: close all websocket connections (required?)
     ioloop = tornado.ioloop.IOLoop.current()
     ioloop.add_callback(ioloop.stop)
@@ -206,15 +169,15 @@ def stop_tornado(config):
         print("Asked Tornado to exit")
 
 def main(config):
-    server = start_app(config=config)
-    
-    client = Client()
-    # Watch the queue for when new items show up
-    tornado.ioloop.IOLoop.current().add_callback(client.watch_queue)
+    server = start_server(config=config)
+    external_callback = ExternalFunctionCallback()
+    tornado.ioloop.IOLoop.current().add_callback(external_callback.watch_queue)
     tornado.ioloop.IOLoop.current().start()
     if config['APP_DEBUG']:
         print("Tornado finished")
-    client.stop()
+    external_callback.stop()
+    external_fn_executor._threads.clear()
+    concurrent.futures.thread._threads_queues.clear()
     server.stop()
     
      
@@ -249,9 +212,10 @@ class Server(object):
     def exit_gracefully(self, signum, frame):
         '''called on sigterm'''
         self.exit = True
+        self.connection.shutdown()
         if self.server_thread:
             # attempt to shutdown the tornado server
-            stop_tornado(self.config)
+            request_server_stop(self.config)
             self.server_thread.join(timeout=10)
             
 class Connection(object):
@@ -261,7 +225,10 @@ class Connection(object):
         self.listener()
 
     def connect(self):
-        rospy.init_node('listener', anonymous=True)
+        rospy.init_node('listener', anonymous=True, disable_signals=True)
+        
+    def shutdown(self):
+        rospy.signal_shutdown('User request')
     
     def listener(self):
         rospy.Subscriber("/mavros/state", State, self.state_callback)
@@ -276,19 +243,35 @@ class Connection(object):
             print(topic)
     
     def state_callback(self, data):
-        que.put_nowait(('state',data))
+        kwargs = {'seq':data.header.seq,'frame_id':data.header.frame_id,'guided':data.guided,
+                  'nsecs':data.header.stamp.nsecs,'system_status':data.system_status,'secs':data.header.stamp.secs,
+                  'connected':data.connected,'mode':data.mode,'armed':data.armed}
+        external_fn_queue.put_nowait((UpdateStateMessage().mutate, kwargs))
         
     def vfr_hud_callback(self, data):
-        que.put_nowait(('vfr',data))
+        kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
+                  'airspeed':data.airspeed, 'groundspeed':data.groundspeed, 'heading':data.heading,
+                  'throttle':data.throttle, 'altitude':data.altitude, 'climb':data.climb}
+        external_fn_queue.put_nowait((UpdateVfrHudMessage().mutate, kwargs))
 
     def nav_sat_fix_callback(self, data):
-        que.put_nowait(('nav',data))
+        kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
+                  'status_status':data.status.status, 'status_service':data.status.service, 'latitude':data.latitude, 'longitude':data.longitude,
+                  'altitude':data.altitude, 'position_covariance_type':data.position_covariance_type}
+        external_fn_queue.put_nowait((UpdateNavSatFixMessage().mutate, kwargs))
 
     def pose_stamped_callback(self, data):
-        que.put_nowait(('pose',data))
+        kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
+                  'pose_position_x':data.pose.position.x,  'pose_position_y':data.pose.position.y,  'pose_position_z':data.pose.position.z,
+                  'pose_orientation_x':data.pose.orientation.x,  'pose_orientation_y':data.pose.orientation.y,  'pose_orientation_z':data.pose.orientation.z, 'pose_orientation_w':data.pose.orientation.w}
+        external_fn_queue.put_nowait((UpdatePoseStampedMessage().mutate, kwargs))
     
     def imu_callback(self, data):
-        que.put_nowait(('imu',data))
+        kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
+                  'orientation_x':data.orientation.x, 'orientation_y':data.orientation.y, 'orientation_z':data.orientation.z, 'orientation_w':data.orientation.w,
+                  'angular_velocity_x':data.angular_velocity.x, 'angular_velocity_y':data.angular_velocity.y, 'angular_velocity_z':data.angular_velocity.z,
+                  'linear_acceleration_x':data.linear_acceleration.x, 'linear_acceleration_y':data.linear_acceleration.y, 'linear_acceleration_z':data.linear_acceleration.z}
+        external_fn_queue.put_nowait((UpdateImuMessage().mutate, kwargs))
 
 if __name__ == '__main__':
     from optparse import OptionParser
