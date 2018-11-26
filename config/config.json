@@ -1,0 +1,7 @@
+{
+    "APP_DEBUG": false, 
+    "APP_PREFIX": "wholesale-api/", 
+    "SERVER_INTERFACE": "0.0.0.0", 
+    "SERVER_PORT": 6795, 
+    "APP_SECRET_KEY": "super_s3cret"
+}
