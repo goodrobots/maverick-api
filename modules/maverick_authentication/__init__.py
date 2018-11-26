@@ -30,19 +30,6 @@ class AuthenticationSchema(schemaBase):
             "auth",
             lambda: {
                 "id": GraphQLField(
-                    GraphQLNonNull(GraphQLString), description="The id of the human."
-                ),
-                "userName": GraphQLField(GraphQLString, description="The name of the human."),
-                "password": GraphQLField(
-                    GraphQLString, description="The password of the human."
-                ),
-            },
-        )
-        
-        self.auth_type = GraphQLObjectType(
-            "auth",
-            lambda: {
-                "id": GraphQLField(
                     GraphQLNonNull(GraphQLString), description="The id of user."
                 ),
                 "userName": GraphQLField(GraphQLString, description="The user name associated with the account."),
