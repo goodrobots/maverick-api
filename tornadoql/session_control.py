@@ -70,6 +70,10 @@ class Session(object):
             @wraps(func)
             async def wrapper_authenticated(self, *args, **kwargs):
                 (root, info) = args
+                if ((info is None) and (root is None)):
+                    # the call is being made directly from the api
+                    # authentication is not required
+                    return await func(self, *args, **kwargs)
                 self.session = info.context.get("session")
                 client = info.context.get("db_client")
                 is_authenticated = await self.session.is_authenticated(client)

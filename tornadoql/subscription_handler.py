@@ -45,7 +45,7 @@ class SubscriptionObserver(object):
             except StopAsyncIteration:
                 break
             try:
-                self.send_execution_result(self.op_id, result)
+                await self.send_execution_result(self.op_id, result)
             except tornado.websocket.WebSocketClosedError:
                 break
 
@@ -103,9 +103,9 @@ class GQLSubscriptionHandler(websocket.WebSocketHandler):
         error_payload = {"message": str(error)}
         return self.send_message(op_id, error_type, error_payload)
 
-    def send_execution_result(self, op_id, execution_result):
+    async def send_execution_result(self, op_id, execution_result):
         result = self.execution_result_to_dict(execution_result)
-        return self.send_message(op_id, GQL_DATA, result)
+        return await self.send_message(op_id, GQL_DATA, result)
 
     def execution_result_to_dict(self, execution_result):
         result = OrderedDict()

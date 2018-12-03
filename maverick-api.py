@@ -19,7 +19,7 @@ import json
 import sys
 import signal
 import time
-# import datetime
+import threading
 
 # tornado imports
 import tornado.web
@@ -73,7 +73,7 @@ access_log.setLevel(logging.DEBUG)
 
 # module imports
 import modules # noqa E402
-# from modules import wholesale_authentication  # noqa E402
+from modules.maverick_mavros import MAVROSConnection
 
 # setup mongo database
 db_client = motor.motor_tornado.MotorClient("localhost", 27017)
@@ -157,11 +157,6 @@ class TornadoQL(tornado.web.Application):
         TornadoQL.schema = modules.api_schema
         super(TornadoQL, self).__init__(handlers, **settings)
 
-
-def add_ioloop_callback(method, **kwargs):
-    tornado.ioloop.IOLoop.current().add_callback(method, **kwargs)
-
-
 def start_server(config):
     application = TornadoQL(config)
     server = tornado.httpserver.HTTPServer(application)
@@ -185,7 +180,6 @@ def main(config):
     app_log.debug("Tornado finished")
     server.stop()
 
-
 def request_server_stop(config):
     # TODO: close all websocket connections (required?)
     ioloop = tornado.ioloop.IOLoop.current()
@@ -206,14 +200,14 @@ class Server(object):
         self.config = self.config.get_config()
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
-
+        
+        # setup the connection to ROS
+        loop = tornado.ioloop.IOLoop.current()
+        self.mavros_connection = MAVROSConnection(self.config, loop, modules.module_schema)
+        self.mavros_thread = threading.Thread(target=self.mavros_connection.run)
+        self.mavros_thread.daemon = True
+        self.mavros_thread.start()
         main(self.config)
-
-    def main_loop(self):
-        """main loop of the api server"""
-        while not self.exit:
-            time.sleep(1.0)
-        app_log.info("Server finished")
 
     def exit_gracefully(self, signum, frame):
         """called on sigterm"""

@@ -20,6 +20,9 @@ class schemaBase(object):
         
     def get_mutation_args(self, GraphQLObject):
         return {field: GraphQLObject.fields[field].type for field in GraphQLObject.fields}
+        
+def api_callback(loop, func, **kwargs):
+    loop.spawn_callback(func, None, None, **kwargs)
 
 def check_schema_class(attribute):
     return (inspect.isclass(attribute) and
@@ -43,7 +46,7 @@ def check_schema_attribute(instance):
 def extend_application_schema(name, q, m, s):
     schema_target_attributes = ["q", "m", "s"]
     for schema_target_attribute in schema_target_attributes:
-        schema_attribute = getattr(module_schema[name], schema_target_attribute)
+        schema_attribute = getattr(module_schema[f"{__name__}.{name}"], schema_target_attribute)
         if check_schema_attribute(schema_attribute):
             # Extend the application schema with class schema
             if schema_target_attribute == "m":
@@ -63,12 +66,14 @@ s = dict()
 for (_, name, _) in pkgutil.iter_modules([Path(__file__).parent]):
     # import the module
     imported_module = import_module(f"{__name__}.{name}")
+    # print(f"{__name__}.{name}")
     # search for the schema class
     for i in dir(imported_module):
         attribute = getattr(imported_module, i)
         if check_schema_class(attribute):
             # create an instance of the schema class
-            module_schema[name] = attribute()
+            module_schema[f"{__name__}.{name}"] = attribute()
+            # print(module_schema)
             # add the class schema to the application schema
             (q, m, s)  = extend_application_schema(name, q, m, s)
 

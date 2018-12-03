@@ -21,7 +21,7 @@ from tornadoql.session_control import Session
 
 user1 = dict(id="1", userName="sam", password="password1")
 user2 = dict(id="2", userName="ben", password="password2")
-auth_data = {user1["id"]:user1, user2["id"]:user2["id"]}
+auth_data = {user1["id"]:user1, user2["id"]:user2}
 
 class AuthenticationSchema(schemaBase):
     def __init__(self):
