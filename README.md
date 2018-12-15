@@ -1,4 +1,4 @@
-[![Build Status](http://newdev.maverick.one/jenkins/buildStatus/icon?job=maverick-api-py3/master)](http://newdev.maverick.one/jenkins/job/maverick-api-py3/master)
+[![Build Status](http://newdev.maverick.one/jenkins/buildStatus/icon?job=maverick-api-py3/master)](http://newdev.maverick.one/jenkins/me/my-views/view/all/job/maverick-api-py3/job/master/)
 [![Updates](https://pyup.io/repos/github/APRAND/maverick-api-py3/shield.svg)](https://pyup.io/repos/github/APRAND/maverick-api-py3/)
 [![Python 3](https://pyup.io/repos/github/APRAND/maverick-api-py3/python-3-shield.svg)](https://pyup.io/repos/github/APRAND/maverick-api-py3/)
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
