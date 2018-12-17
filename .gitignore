@@ -1,4 +1,5 @@
-database/
+database/*
+!database/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
