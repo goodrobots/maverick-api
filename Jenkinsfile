@@ -13,8 +13,9 @@ pipeline {
             }
         }
         stage('Deploy') {
+            when { tag "v*" }
             steps {
-                echo 'Deploying'
+                echo 'Deploying only because this commit is tagged...'
             }
         }
     }
