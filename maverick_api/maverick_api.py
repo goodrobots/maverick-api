@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 """
 Tornado server for maverick-api
@@ -74,6 +74,7 @@ access_log.setLevel(logging.DEBUG)
 # module imports
 import modules # noqa E402
 from modules.maverick_mavros import MAVROSConnection
+from modules.maverick_status import StatusModule
 
 # setup mongo database
 db_client = motor.motor_tornado.MotorClient("localhost", 27017)
@@ -207,6 +208,7 @@ class Server(object):
         self.mavros_thread = threading.Thread(target=self.mavros_connection.run)
         self.mavros_thread.daemon = True
         self.mavros_thread.start()
+        self.status_module = StatusModule(self.config, loop, modules.module_schema)
         main(self.config)
 
     def exit_gracefully(self, signum, frame):

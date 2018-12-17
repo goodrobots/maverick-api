@@ -8,6 +8,7 @@ from graphql.subscription import subscribe
 from graphql.language import parse
 import tornado.ioloop
 from tornadoql.session_control import Session
+from urllib.parse import urlparse
 
 GRAPHQL_WS = "graphql-ws"
 WS_PROTOCOL = GRAPHQL_WS
@@ -81,6 +82,12 @@ class GQLSubscriptionHandler(websocket.WebSocketHandler):
     def select_subprotocol(self, subprotocols):
         return WS_PROTOCOL
     
+    def check_origin(self, origin):
+        self.CORS_ORIGINS = ['localhost', 'dev.maverick.one']
+        parsed_origin = urlparse(origin)
+        # return parsed_origin.hostname in self.CORS_ORIGINS
+        return True
+
     async def send_message(self, op_id=None, op_type=None, payload=None):
         message = {}
         if op_id is not None:
@@ -128,7 +135,7 @@ class GQLSubscriptionHandler(websocket.WebSocketHandler):
         params["context_value"]["db_client"] = self.opts["db_client"]
         return params
     
-    @Session.ensure_active_session
+    # @Session.ensure_active_session
     async def open(self):
         app_log.info("open socket %s", self)
         self.sockets.append(self)
@@ -136,7 +143,8 @@ class GQLSubscriptionHandler(websocket.WebSocketHandler):
 
     def on_close(self):
         tornado.ioloop.IOLoop.current().spawn_callback(self.close_subscriptions)
-
+ 
+ 
     async def close_subscriptions(self):
         app_log.info("close socket %s", self)
         for sub in self.subscriptions:
@@ -220,7 +228,3 @@ class GQLSubscriptionHandler(websocket.WebSocketHandler):
         await self.subscriptions[op_id].dispose()
         self.subscriptions = {n: s for n, s in self.subscriptions.items() if s != op_id}
         app_log.debug("subscriptions: %s", self.subscriptions)
-
-    def check_origin(self, origin):
-        # TODO: remove for production
-        return True

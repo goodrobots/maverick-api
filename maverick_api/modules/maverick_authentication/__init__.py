@@ -27,7 +27,7 @@ class AuthenticationSchema(schemaBase):
     def __init__(self):
         super().__init__()
         self.auth_type = GraphQLObjectType(
-            "auth",
+            "Authentication",
             lambda: {
                 "id": GraphQLField(
                     GraphQLNonNull(GraphQLString), description="The id of user."
@@ -40,7 +40,7 @@ class AuthenticationSchema(schemaBase):
         )
         
         self.q = {
-            "AuthMessage": GraphQLField(
+            "Authentication": GraphQLField(
                 self.auth_type,
                 args={
                     "id": GraphQLArgument(
@@ -52,17 +52,15 @@ class AuthenticationSchema(schemaBase):
         }
         
         self.m = {
-            "AuthMessage": GraphQLField(
+            "Authentication": GraphQLField(
                 self.auth_type, args=self.get_mutation_args(self.auth_type), resolve=self.set_auth
             )
         }
         
-        self.s = {"AuthMessage": GraphQLField(self.auth_type, subscribe=self.sub_auth, resolve=None)}
+        self.s = {"Authentication": GraphQLField(self.auth_type, subscribe=self.sub_auth, resolve=None)}
     
     def get_auth(self, root, info, id):
         """Authentication query handler"""
-        print(root, info)
-        
         return auth_data.get(id)
     
     @Session.authenticated
@@ -70,7 +68,7 @@ class AuthenticationSchema(schemaBase):
         """Authentication mutation handler"""
         usr = auth_data.get(kwargs["id"])
         updated_dict = {**usr, **kwargs}
-        self.subscriptions.emit(__name__, {"AuthMessage": updated_dict})
+        self.subscriptions.emit(__name__, {"Authentication": updated_dict})
         auth_data[kwargs["id"]] = updated_dict
         return updated_dict
     

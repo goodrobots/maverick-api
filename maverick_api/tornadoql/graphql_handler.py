@@ -58,6 +58,12 @@ class ExecutionError(Exception):
 
 
 class GQLHandler(web.RequestHandler):
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Credentials", "true")
+        self.set_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
+        self.set_header('Access-Control-Allow-Methods', 'HEAD, PUT, POST, GET, OPTIONS')
+
     def options(self):
         self.set_status(204)
         self.finish()
@@ -90,8 +96,11 @@ class GQLHandler(web.RequestHandler):
 
     async def execute_graphql(self):
         graphql_req = self.graphql_request
+        print(self.graphql_request)
+        # print(graphql_req["context"])
         app_log.debug("graphql request: %s", graphql_req)
         context_value = graphql_req.get("context", {})
+        print("context", context_value)
         context_value["session"] = self.current_user
         context_value["db_client"] = self.opts["db_client"]
         result = await graphql(schema = self.schema,

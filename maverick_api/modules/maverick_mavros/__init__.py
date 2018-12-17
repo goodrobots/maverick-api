@@ -1,5 +1,7 @@
 import logging
+import time
 
+from modules import moduleBase
 from modules import schemaBase
 from modules import api_callback
 
@@ -25,24 +27,24 @@ app_log = logging.getLogger("tornado.application")
 class MAVROSSchema(schemaBase):
     def __init__(self):
         super().__init__()
+        # TODO: port all the old mavros schema to here...
 
-class MAVROSConnection(object):
+
+class MAVROSConnection(moduleBase):
     def __init__(self, config, loop, modules):
+        super().__init__(config, loop, modules)
         # Attributes
-        self.config = config
         self.info = None
         self.meta_string = '' # meta string used to load the correct params
         self.waypoints = None
-        self.loop = loop
-        self.modules = modules
         
     def run(self):
         self.connect()
         # self.topics()
         self.streams()
-        # self.vehicle_info() # work out the autopilot and vehicle type
-        # self.params(meta_string = self.meta_string) # this is called from the IOloop once we know the vehicle type
-        # self.mission_waypoints()
+        self.vehicle_info() # work out the autopilot and vehicle type
+        self.params(meta_string = self.meta_string) # this is called from the IOloop once we know the vehicle type
+        self.mission_waypoints()
         self.listener()
 
     def connect(self):
@@ -94,6 +96,7 @@ class MAVROSConnection(object):
         get_vehicle_info = rospy.ServiceProxy(mavros.get_topic('get_vehicle_info'), VehicleInfo)
         try:
             self.info = get_vehicle_info()
+            print(self.info)
             self.meta_string = get_meta_string(self.info)
             app_log.debug(self.info)
             app_log.info(self.meta_string)
@@ -105,13 +108,14 @@ class MAVROSConnection(object):
         mission.subscribe_waypoints(self.mission_callback)
 
     def listener(self):
-        # rospy.Subscriber("/mavros/state", State, self.state_callback)
-        # rospy.Subscriber("/mavros/vfr_hud", VFR_HUD, self.vfr_hud_callback)
-        # rospy.Subscriber("/mavros/global_position/global", NavSatFix, self.nav_sat_fix_callback)
-        # rospy.Subscriber("/mavros/local_position/pose", PoseStamped, self.pose_stamped_callback)
+        rospy.Subscriber("/mavros/state", State, self.state_callback)
+        rospy.Subscriber("/mavros/vfr_hud", VFR_HUD, self.vfr_hud_callback)
+        rospy.Subscriber("/mavros/global_position/global", NavSatFix, self.nav_sat_fix_callback)
+        rospy.Subscriber("/mavros/local_position/pose", PoseStamped, self.pose_stamped_callback)
         rospy.Subscriber("/mavros/imu/data", Imu, self.imu_callback)
-        # rospy.Subscriber("/mavros/param_value", Param, self.param_callback)
+        rospy.Subscriber("/mavros/param_value", Param, self.param_callback)
         rospy.Subscriber('/rosout', Log, self.statustext_callback)
+    
     
     def topics(self):
         topics = rospy.get_published_topics()
@@ -121,17 +125,17 @@ class MAVROSConnection(object):
     def params(self, meta_string = 'ArduCopter'):
         # TODO: make vehicle dynamic and chosse between px4 and ardupilot
         from param.parse_param_xml import get_param_meta
-        from api.schema import Parameters
+        # from api.schema import Parameters
         from mavros.param import param_get_all
-        Parameters.callback = self.param_set_callback
+        # TODO: UPDATE CALLBACK 
+        # Parameters.callback = self.param_set_callback
         param_received, param_list = param_get_all(False)
         app_log.debug('Parameters received: {0}'.format(param_received))
                 
         param_meta_vehicle = {}
         for param in param_list:
             kwargs = {'id':param.param_id,'value':param.param_value}
-            # external_fn_queue.put_nowait((UpdateParameter().mutate, kwargs))
-            add_ioloop_callback(UpdateParameter().mutate, **kwargs)
+            # add_ioloop_callback(UpdateParameter().mutate, **kwargs)
             
             param_meta_vehicle[param.param_id] = {'group':param.param_id.split('_')[0].strip().rstrip('_').upper()}
             app_log.debug('param get {0}:{1}  {2}'.format(param.param_id, param.param_value, type(param.param_value)))
@@ -145,10 +149,10 @@ class MAVROSConnection(object):
         app_log.debug('finished parameter meta fetch')
         if self.config['APP_DEBUG']:
             app_log.debug('parameter meta fetch took {0}s'.format(time.time() - start_time))
-        Parameters.meta = merge_two_dicts(param_meta_vehicle, param_meta_server)
+        # Parameters.meta = merge_two_dicts(param_meta_vehicle, param_meta_server)
                 
     def param_set_callback(self, param_data):
-        from api.schema import Parameters
+        # from api.schema import Parameters
         # TODO:
         # write unit test
         # clean up logic
@@ -169,60 +173,60 @@ class MAVROSConnection(object):
         # app_log.debug('{0}'.format(ret_param))
         return ret
         
-    # def state_callback(self, data):
-    #     kwargs = {'seq':data.header.seq,'frame_id':data.header.frame_id,'guided':data.guided,
-    #               'nsecs':data.header.stamp.nsecs,'system_status':data.system_status,'secs':data.header.stamp.secs,
-    #               'connected':data.connected,'mode':data.mode,'armed':data.armed}
-    #     self.loop.add_callback(UpdateStateMessage().mutate, **kwargs)
+    def state_callback(self, data):
+        kwargs = {'seq':data.header.seq,'frame_id':data.header.frame_id,'guided':data.guided,
+                  'nsecs':data.header.stamp.nsecs,'system_status':data.system_status,'secs':data.header.stamp.secs,
+                  'connected':data.connected,'mode':data.mode,'armed':data.armed}
+        # api_callback(self.loop, self.modules[__name__].set_state, **kwargs)
 
-    # def vfr_hud_callback(self, data):
-    #     kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
-    #               'airspeed':data.airspeed, 'groundspeed':data.groundspeed, 'heading':data.heading,
-    #               'throttle':data.throttle, 'altitude':data.altitude, 'climb':data.climb}
-    #     self.loop.add_callback(UpdateVfrHudMessage().mutate, **kwargs)
+    def vfr_hud_callback(self, data):
+        kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
+                  'airspeed':data.airspeed, 'groundspeed':data.groundspeed, 'heading':data.heading,
+                  'throttle':data.throttle, 'altitude':data.altitude, 'climb':data.climb}
+        # api_callback(self.loop, self.modules[__name__].set_vfr_hud, **kwargs)
 
-    # def nav_sat_fix_callback(self, data):
-    #     kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
-    #               'status_status':data.status.status, 'status_service':data.status.service, 'latitude':data.latitude, 'longitude':data.longitude,
-    #               'altitude':data.altitude, 'position_covariance_type':data.position_covariance_type}
-    #     self.loop.add_callback(UpdateNavSatFixMessage().mutate, **kwargs)
+    def nav_sat_fix_callback(self, data):
+        kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
+                  'status_status':data.status.status, 'status_service':data.status.service, 'latitude':data.latitude, 'longitude':data.longitude,
+                  'altitude':data.altitude, 'position_covariance_type':data.position_covariance_type}
+        # api_callback(self.loop, self.modules[__name__].set_nav_sat_fix, **kwargs)
 
-    # def pose_stamped_callback(self, data):
-    #     kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
-    #               'pose_position_x':data.pose.position.x,  'pose_position_y':data.pose.position.y,  'pose_position_z':data.pose.position.z,
-    #               'pose_orientation_x':data.pose.orientation.x,  'pose_orientation_y':data.pose.orientation.y,  'pose_orientation_z':data.pose.orientation.z,
-    #               'pose_orientation_w':data.pose.orientation.w}
-    #     self.loop.add_callback(UpdatePoseStampedMessage().mutate, **kwargs)
+    def pose_stamped_callback(self, data):
+        kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
+                  'pose_position_x':data.pose.position.x,  'pose_position_y':data.pose.position.y,  'pose_position_z':data.pose.position.z,
+                  'pose_orientation_x':data.pose.orientation.x,  'pose_orientation_y':data.pose.orientation.y,  'pose_orientation_z':data.pose.orientation.z,
+                  'pose_orientation_w':data.pose.orientation.w}
+        # api_callback(self.loop, self.modules[__name__].set_pose_stamped, **kwargs)
+        # print(kwargs)
 
     def imu_callback(self, data):
         kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id,
                   'orientation_x':data.orientation.x, 'orientation_y':data.orientation.y, 'orientation_z':data.orientation.z, 'orientation_w':data.orientation.w,
                   'angular_velocity_x':data.angular_velocity.x, 'angular_velocity_y':data.angular_velocity.y, 'angular_velocity_z':data.angular_velocity.z,
                   'linear_acceleration_x':data.linear_acceleration.x, 'linear_acceleration_y':data.linear_acceleration.y, 'linear_acceleration_z':data.linear_acceleration.z}
+        # api_callback(self.loop, self.modules[__name__].set_imu, **kwargs)
         user2 = dict(id="2", userName="ben", password="password132")
         api_callback(self.loop, self.modules["modules.maverick_authentication"].set_auth, **user2)
         
-        # the first two None fields allow the api call to bypass the authentication requirements
-            # allowing the data to be modified directly
-            
-        
 
-    # def param_callback(self, data):
-    #     # app_log.debug('param callback data: {0}  value type: {1} '.format(data, type(data.value)))
-    #     kwargs = {'id':data.param_id,'value':param_ret_value(data)}
-    #     self.loop.add_callback(self.schema.update_message, data, **kwargs)
+    def param_callback(self, data):
+        # app_log.debug('param callback data: {0}  value type: {1} '.format(data, type(data.value)))
+        kwargs = {'id':data.param_id,'value':param_ret_value(data)}
+        # api_callback(self.loop, self.modules[__name__].set_param, **kwargs)
+        # print(kwargs)
 
-    # def mission_callback(self, data):
-    #     for seq, waypoint in enumerate(data.waypoints):
-    #         kwargs = {'seq': seq, 'frame': waypoint.frame, 'command': waypoint.command, 'is_current': waypoint.is_current, 'autocontinue': waypoint.autocontinue,
-    #             'param1': waypoint.param1, 'param2': waypoint.param2, 'param3': waypoint.param3, 'param4': waypoint.param4, 'latitude': waypoint.x_lat, 'longitude': waypoint.y_long,
-    #             'altitude': waypoint.z_alt}
-    #         self.loop.add_callback(UpdateWaypoint().mutate, **kwargs)
+    def mission_callback(self, data):
+        for seq, waypoint in enumerate(data.waypoints):
+            kwargs = {'seq': seq, 'frame': waypoint.frame, 'command': waypoint.command, 'is_current': waypoint.is_current, 'autocontinue': waypoint.autocontinue,
+                'param1': waypoint.param1, 'param2': waypoint.param2, 'param3': waypoint.param3, 'param4': waypoint.param4, 'latitude': waypoint.x_lat, 'longitude': waypoint.y_long,
+                'altitude': waypoint.z_alt}
+            # api_callback(self.loop, self.modules[__name__].set_mission, **kwargs)
+            # print(kwargs)
 
     def statustext_callback(self, data):
         if data.name == '/mavros':
             app_log.debug('statustext: {0}:{1}'.format(data.level, data.msg))
             kwargs = {'seq':data.header.seq, 'secs':data.header.stamp.secs, 'nsecs':data.header.stamp.nsecs, 'frame_id':data.header.frame_id, 'level':data.level, 'message':data.msg}
-            # self.loop.add_callback(self.schema.update_message, data, **kwargs)
+            # api_callback(self.loop, self.modules[__name__].set_statustext, **kwargs)
             user2 = dict(id="2", userName="ned", password="password132")
             api_callback(self.loop, self.modules["modules.maverick_authentication"].set_auth, **user2)

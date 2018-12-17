@@ -1,15 +1,22 @@
-# based off https://www.bnmetrics.com/blog/dynamic-import-in-python3
 import sys
 import inspect
 import pkgutil
 from pathlib import Path
 from importlib import import_module
+import tornado.ioloop
 from graphql import (
     GraphQLField,
     GraphQLObjectType,
     GraphQLSchema
     )
 from graphql.pyutils.event_emitter import EventEmitter
+
+class moduleBase(object):
+    def __init__(self, config, loop, modules,):
+        # Attributes
+        self.config = config
+        self.loop = loop
+        self.modules = modules
 
 class schemaBase(object):
     def __init__(self,):

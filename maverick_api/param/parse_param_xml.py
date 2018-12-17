@@ -78,7 +78,7 @@ def save_param_meta(tree, file_name, dir_path = None):
     if not dir_path:
         dir_path = os.path.dirname(os.path.realpath(__file__))
     file_path = os.path.join(dir_path, '{0}.xml'.format(file_name))
-    param_meta_data = ET.tostring(tree)
+    param_meta_data = ET.tostring(tree, encoding="unicode")
     print('Saving meta to {0}'.format(file_path))
     with open(file_path, 'w') as fid:
         fid.write(param_meta_data)
