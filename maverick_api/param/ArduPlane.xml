@@ -379,6 +379,7 @@
 <value code="19">QLOITER</value>
 <value code="20">QLAND</value>
 <value code="21">QRTL</value>
+<value code="22">QAUTOTUNE</value>
 </values>
 </param>
 <param documentation="Flight mode for switch position 2 (1231 to 1360)" humanName="FlightMode2" name="ArduPlane:FLTMODE2" user="Standard">
@@ -402,6 +403,7 @@
 <value code="19">QLOITER</value>
 <value code="20">QLAND</value>
 <value code="21">QRTL</value>
+<value code="22">QAUTOTUNE</value>
 </values>
 </param>
 <param documentation="Flight mode for switch position 3 (1361 to 1490)" humanName="FlightMode3" name="ArduPlane:FLTMODE3" user="Standard">
@@ -425,6 +427,7 @@
 <value code="19">QLOITER</value>
 <value code="20">QLAND</value>
 <value code="21">QRTL</value>
+<value code="22">QAUTOTUNE</value>
 </values>
 </param>
 <param documentation="Flight mode for switch position 4 (1491 to 1620)" humanName="FlightMode4" name="ArduPlane:FLTMODE4" user="Standard">
@@ -448,6 +451,7 @@
 <value code="19">QLOITER</value>
 <value code="20">QLAND</value>
 <value code="21">QRTL</value>
+<value code="22">QAUTOTUNE</value>
 </values>
 </param>
 <param documentation="Flight mode for switch position 5 (1621 to 1749)" humanName="FlightMode5" name="ArduPlane:FLTMODE5" user="Standard">
@@ -471,6 +475,7 @@
 <value code="19">QLOITER</value>
 <value code="20">QLAND</value>
 <value code="21">QRTL</value>
+<value code="22">QAUTOTUNE</value>
 </values>
 </param>
 <param documentation="Flight mode for switch position 6 (1750 to 2049)" humanName="FlightMode6" name="ArduPlane:FLTMODE6" user="Standard">
@@ -494,6 +499,7 @@
 <value code="19">QLOITER</value>
 <value code="20">QLAND</value>
 <value code="21">QRTL</value>
+<value code="22">QAUTOTUNE</value>
 </values>
 </param>
 <param documentation="This selects the mode to start in on boot. This is useful for when you want to start in AUTO mode on boot without a receiver." humanName="Initial flight mode" name="ArduPlane:INITIAL_MODE" user="Advanced">
@@ -517,6 +523,7 @@
 <value code="19">QLOITER</value>
 <value code="20">QLAND</value>
 <value code="21">QRTL</value>
+<value code="22">QAUTOTUNE</value>
 </values>
 </param>
 <param documentation="The maximum commanded bank angle in either direction" humanName="Maximum Bank Angle" name="ArduPlane:LIM_ROLL_CD" user="Standard">
@@ -602,7 +609,7 @@
 <value code="65535">PX4/Pixhawk-Default</value>
 </values>
 </param>
-<param documentation="RC channel to use to reset to last flight mode	after geofence takeover." humanName="Reset Switch Channel" name="ArduPlane:RST_SWITCH_CH" user="Advanced">
+<param documentation="RC channel to use to reset to last flight mode&#09;after geofence takeover." humanName="Reset Switch Channel" name="ArduPlane:RST_SWITCH_CH" user="Advanced">
 </param>
 <param documentation="RC channel to use to reset the mission to the first waypoint. When this channel goes above 1750 the mission is reset. Set RST_MISSION_CH to 0 to disable." humanName="Reset Mission Channel" name="ArduPlane:RST_MISSION_CH" user="Advanced">
 </param>
@@ -731,7 +738,7 @@
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Flight mode specific options" humanName="Flight mode options" name="ArduPlane:FLIGHT_OPTIONS" user="Advanced">
-<field name="Bitmask">0:Rudder mixing in direct flight modes only (Manual, Stabilize, Acro),1:Use centered throttle in Cruise or FBWB to indicate trim airspeed, 2:Disable attitude check for takeoff arming</field>
+<field name="Bitmask">0:Rudder mixing in direct flight modes only (Manual / Stabilize / Acro),1:Use centered throttle in Cruise or FBWB to indicate trim airspeed, 2:Disable attitude check for takeoff arming, 3:Force target airspeed to trim airspeed in Cruise or FBWB</field>
 </param>
 <param documentation="This is the number of acceleration events to require for arming with TKOFF_THR_MINACC. The default is 1, which means a single forward acceleration above TKOFF_THR_MINACC will arm. By setting this higher than 1 you can require more forward/backward movements to arm." humanName="Takeoff throttle acceleration count" name="ArduPlane:TKOFF_ACCEL_CNT" user="User">
 <field name="Range">1 10</field>
@@ -1215,6 +1222,7 @@
 <value code="7">SMBus-Maxell</value>
 <value code="8">UAVCAN-BatteryInfo</value>
 <value code="9">BLHeli ESC</value>
+<value code="10">SumOfFollowing</value>
 </values>
 <field name="RebootRequired">True</field>
 </param>
@@ -1330,6 +1338,7 @@
 <value code="7">SMBus-Maxell</value>
 <value code="8">UAVCAN-BatteryInfo</value>
 <value code="9">BLHeli ESC</value>
+<value code="10">SumOfFollowing</value>
 </values>
 <field name="RebootRequired">True</field>
 </param>
@@ -1445,6 +1454,7 @@
 <value code="7">SMBus-Maxell</value>
 <value code="8">UAVCAN-BatteryInfo</value>
 <value code="9">BLHeli ESC</value>
+<value code="10">SumOfFollowing</value>
 </values>
 <field name="RebootRequired">True</field>
 </param>
@@ -1560,6 +1570,7 @@
 <value code="7">SMBus-Maxell</value>
 <value code="8">UAVCAN-BatteryInfo</value>
 <value code="9">BLHeli ESC</value>
+<value code="10">SumOfFollowing</value>
 </values>
 <field name="RebootRequired">True</field>
 </param>
@@ -1675,6 +1686,7 @@
 <value code="7">SMBus-Maxell</value>
 <value code="8">UAVCAN-BatteryInfo</value>
 <value code="9">BLHeli ESC</value>
+<value code="10">SumOfFollowing</value>
 </values>
 <field name="RebootRequired">True</field>
 </param>
@@ -1790,6 +1802,7 @@
 <value code="7">SMBus-Maxell</value>
 <value code="8">UAVCAN-BatteryInfo</value>
 <value code="9">BLHeli ESC</value>
+<value code="10">SumOfFollowing</value>
 </values>
 <field name="RebootRequired">True</field>
 </param>
@@ -1905,6 +1918,7 @@
 <value code="7">SMBus-Maxell</value>
 <value code="8">UAVCAN-BatteryInfo</value>
 <value code="9">BLHeli ESC</value>
+<value code="10">SumOfFollowing</value>
 </values>
 <field name="RebootRequired">True</field>
 </param>
@@ -2020,6 +2034,7 @@
 <value code="7">SMBus-Maxell</value>
 <value code="8">UAVCAN-BatteryInfo</value>
 <value code="9">BLHeli ESC</value>
+<value code="10">SumOfFollowing</value>
 </values>
 <field name="RebootRequired">True</field>
 </param>
@@ -2135,6 +2150,7 @@
 <value code="7">SMBus-Maxell</value>
 <value code="8">UAVCAN-BatteryInfo</value>
 <value code="9">BLHeli ESC</value>
+<value code="10">SumOfFollowing</value>
 </values>
 <field name="RebootRequired">True</field>
 </param>
@@ -2551,15 +2567,15 @@
 <field name="Units">deg</field>
 <field name="UnitText">degrees</field>
 </param>
-<param documentation="pin number to use for save accurate camera feedback messages. If set to -1 then don't use a pin flag for this, otherwise this is a pin number which if held high after a picture trigger order, will save camera messages when camera really takes a picture. A universal camera hot shoe is needed. The pin should be held high for at least 2 milliseconds for reliable trigger detection. See also the CAM_FEEDBACK_POL option. If using AUX4 pin on a Pixhawk then a fast capture method is used that allows for the trigger time to be as short as one microsecond." humanName="Camera feedback pin" name="CAM_FEEDBACK_PIN" user="Standard">
+<param documentation="pin number to use for save accurate camera feedback messages. If set to -1 then don't use a pin flag for this, otherwise this is a pin number which if held high after a picture trigger order, will save camera messages when camera really takes a picture. A universal camera hot shoe is needed. The pin should be held high for at least 2 milliseconds for reliable trigger detection. See also the CAM_FEEDBACK_POL option." humanName="Camera feedback pin" name="CAM_FEEDBACK_PIN" user="Standard">
 <values>
 <value code="-1">Disabled</value>
-<value code="50">PX4 AUX1</value>
-<value code="51">PX4 AUX2</value>
-<value code="52">PX4 AUX3</value>
-<value code="53">PX4 AUX4(fast capture)</value>
-<value code="54">PX4 AUX5</value>
-<value code="55">PX4 AUX6</value>
+<value code="50">AUX1</value>
+<value code="51">AUX2</value>
+<value code="52">AUX3</value>
+<value code="53">AUX4</value>
+<value code="54">AUX5</value>
+<value code="55">AUX6</value>
 </values>
 <field name="RebootRequired">True</field>
 </param>
@@ -3753,14 +3769,17 @@
 <field name="Increment">1</field>
 </param>
 <param documentation="X position of the optical flow sensor focal point in body frame. Positive X is forward of the origin." humanName=" X position offset" name="FLOW_POS_X" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Y position of the optical flow sensor focal point in body frame. Positive Y is to the right of the origin." humanName="Y position offset" name="FLOW_POS_Y" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Z position of the optical flow sensor focal point in body frame. Positive Z is down from the origin." humanName="Z position offset" name="FLOW_POS_Z" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
@@ -4007,26 +4026,32 @@
 <field name="UnitText">milliseconds</field>
 </param>
 <param documentation="X position of the first GPS antenna in body frame. Positive X is forward of the origin. Use antenna phase centroid location if provided by the manufacturer." humanName="Antenna X position offset" name="GPS_POS1_X" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Y position of the first GPS antenna in body frame. Positive Y is to the right of the origin. Use antenna phase centroid location if provided by the manufacturer." humanName="Antenna Y position offset" name="GPS_POS1_Y" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Z position of the first GPS antenna in body frame. Positive Z is down from the origin. Use antenna phase centroid location if provided by the manufacturer." humanName="Antenna Z position offset" name="GPS_POS1_Z" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="X position of the second GPS antenna in body frame. Positive X is forward of the origin. Use antenna phase centroid location if provided by the manufacturer." humanName="Antenna X position offset" name="GPS_POS2_X" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Y position of the second GPS antenna in body frame. Positive Y is to the right of the origin. Use antenna phase centroid location if provided by the manufacturer." humanName="Antenna Y position offset" name="GPS_POS2_Y" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Z position of the second GPS antenna in body frame. Positive Z is down from the origin. Use antenna phase centroid location if provided by the manufacturer." humanName="Antenna Z position offset" name="GPS_POS2_Z" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
@@ -4316,38 +4341,47 @@
 </values>
 </param>
 <param documentation="X position of the first IMU Accelerometer in body frame. Positive X is forward of the origin. Attention: The IMU should be located as close to the vehicle c.g. as practical so that the value of this parameter is minimised. Failure to do so can result in noisy navigation velocity measurements due to vibration and IMU gyro noise. If the IMU cannot be moved and velocity noise is a problem, a location closer to the IMU can be used as the body frame origin." humanName="IMU accelerometer X position" name="INS_POS1_X" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Y position of the first IMU accelerometer in body frame. Positive Y is to the right of the origin. Attention: The IMU should be located as close to the vehicle c.g. as practical so that the value of this parameter is minimised. Failure to do so can result in noisy navigation velocity measurements due to vibration and IMU gyro noise. If the IMU cannot be moved and velocity noise is a problem, a location closer to the IMU can be used as the body frame origin." humanName="IMU accelerometer Y position" name="INS_POS1_Y" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Z position of the first IMU accelerometer in body frame. Positive Z is down from the origin. Attention: The IMU should be located as close to the vehicle c.g. as practical so that the value of this parameter is minimised. Failure to do so can result in noisy navigation velocity measurements due to vibration and IMU gyro noise. If the IMU cannot be moved and velocity noise is a problem, a location closer to the IMU can be used as the body frame origin." humanName="IMU accelerometer Z position" name="INS_POS1_Z" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="X position of the second IMU accelerometer in body frame. Positive X is forward of the origin. Attention: The IMU should be located as close to the vehicle c.g. as practical so that the value of this parameter is minimised. Failure to do so can result in noisy navigation velocity measurements due to vibration and IMU gyro noise. If the IMU cannot be moved and velocity noise is a problem, a location closer to the IMU can be used as the body frame origin." humanName="IMU accelerometer X position" name="INS_POS2_X" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Y position of the second IMU accelerometer in body frame. Positive Y is to the right of the origin. Attention: The IMU should be located as close to the vehicle c.g. as practical so that the value of this parameter is minimised. Failure to do so can result in noisy navigation velocity measurements due to vibration and IMU gyro noise. If the IMU cannot be moved and velocity noise is a problem, a location closer to the IMU can be used as the body frame origin." humanName="IMU accelerometer Y position" name="INS_POS2_Y" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Z position of the second IMU accelerometer in body frame. Positive Z is down from the origin. Attention: The IMU should be located as close to the vehicle c.g. as practical so that the value of this parameter is minimised. Failure to do so can result in noisy navigation velocity measurements due to vibration and IMU gyro noise. If the IMU cannot be moved and velocity noise is a problem, a location closer to the IMU can be used as the body frame origin." humanName="IMU accelerometer Z position" name="INS_POS2_Z" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="X position of the third IMU accelerometer in body frame. Positive X is forward of the origin. Attention: The IMU should be located as close to the vehicle c.g. as practical so that the value of this parameter is minimised. Failure to do so can result in noisy navigation velocity measurements due to vibration and IMU gyro noise. If the IMU cannot be moved and velocity noise is a problem, a location closer to the IMU can be used as the body frame origin." humanName="IMU accelerometer X position" name="INS_POS3_X" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Y position of the third IMU accelerometer in body frame. Positive Y is to the right of the origin. Attention: The IMU should be located as close to the vehicle c.g. as practical so that the value of this parameter is minimised. Failure to do so can result in noisy navigation velocity measurements due to vibration and IMU gyro noise. If the IMU cannot be moved and velocity noise is a problem, a location closer to the IMU can be used as the body frame origin." humanName="IMU accelerometer Y position" name="INS_POS3_Y" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Z position of the third IMU accelerometer in body frame. Positive Z is down from the origin. Attention: The IMU should be located as close to the vehicle c.g. as practical so that the value of this parameter is minimised. Failure to do so can result in noisy navigation velocity measurements due to vibration and IMU gyro noise. If the IMU cannot be moved and velocity noise is a problem, a location closer to the IMU can be used as the body frame origin." humanName="IMU accelerometer Z position" name="INS_POS3_Z" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
@@ -4504,12 +4538,6 @@
 <value code="0">Standard Glide Slope</value>
 <value code=" 1">Deepstall</value>
 </values>
-</param>
-<param documentation="Altitude to trigger touchdown condition if weight on wheels sensor is not available. Disabled when 0. Recommend using an RTK GPS or rangefinder for accurate altitude" humanName="Touch down altitude" name="LAND_TD_ALT" user="Advanced">
-<field name="Range">0 5</field>
-<field name="Increment">0.01</field>
-<field name="Units">m</field>
-<field name="UnitText">meters</field>
 </param>
 </parameters>
 <parameters name="LAND_DS_">
@@ -5160,6 +5188,20 @@
 <field name="Range">0 15</field>
 </param>
 </parameters>
+<parameters name="OSD1_ASPD2">
+<param documentation="Enable setting" humanName="Enable" name="OSD1_ASPD2_EN" user="Standard">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Enabled</value>
+</values>
+</param>
+<param documentation="Horizontal position on screen" humanName="X position" name="OSD1_ASPD2_X" user="Standard">
+<field name="Range">0 29</field>
+</param>
+<param documentation="Vertical position on screen" humanName="Y position" name="OSD1_ASPD2_Y" user="Standard">
+<field name="Range">0 15</field>
+</param>
+</parameters>
 <parameters name="OSD1_ATEMP">
 <param documentation="Enable setting" humanName="Enable" name="OSD1_ATEMP_EN" user="Standard">
 <values>
@@ -5605,6 +5647,20 @@
 <field name="Range">0 29</field>
 </param>
 <param documentation="Vertical position on screen" humanName="Y position" name="OSD2_ALTITUDE_Y" user="Standard">
+<field name="Range">0 15</field>
+</param>
+</parameters>
+<parameters name="OSD2_ASPD2">
+<param documentation="Enable setting" humanName="Enable" name="OSD2_ASPD2_EN" user="Standard">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Enabled</value>
+</values>
+</param>
+<param documentation="Horizontal position on screen" humanName="X position" name="OSD2_ASPD2_X" user="Standard">
+<field name="Range">0 29</field>
+</param>
+<param documentation="Vertical position on screen" humanName="Y position" name="OSD2_ASPD2_Y" user="Standard">
 <field name="Range">0 15</field>
 </param>
 </parameters>
@@ -6056,6 +6112,20 @@
 <field name="Range">0 15</field>
 </param>
 </parameters>
+<parameters name="OSD3_ASPD2">
+<param documentation="Enable setting" humanName="Enable" name="OSD3_ASPD2_EN" user="Standard">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Enabled</value>
+</values>
+</param>
+<param documentation="Horizontal position on screen" humanName="X position" name="OSD3_ASPD2_X" user="Standard">
+<field name="Range">0 29</field>
+</param>
+<param documentation="Vertical position on screen" humanName="Y position" name="OSD3_ASPD2_Y" user="Standard">
+<field name="Range">0 15</field>
+</param>
+</parameters>
 <parameters name="OSD3_ATEMP">
 <param documentation="Enable setting" humanName="Enable" name="OSD3_ATEMP_EN" user="Standard">
 <values>
@@ -6501,6 +6571,20 @@
 <field name="Range">0 29</field>
 </param>
 <param documentation="Vertical position on screen" humanName="Y position" name="OSD4_ALTITUDE_Y" user="Standard">
+<field name="Range">0 15</field>
+</param>
+</parameters>
+<parameters name="OSD4_ASPD2">
+<param documentation="Enable setting" humanName="Enable" name="OSD4_ASPD2_EN" user="Standard">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Enabled</value>
+</values>
+</param>
+<param documentation="Horizontal position on screen" humanName="X position" name="OSD4_ASPD2_X" user="Standard">
+<field name="Range">0 29</field>
+</param>
+<param documentation="Vertical position on screen" humanName="Y position" name="OSD4_ASPD2_Y" user="Standard">
 <field name="Range">0 15</field>
 </param>
 </parameters>
@@ -7229,6 +7313,17 @@
 <field name="UnitText">degrees</field>
 <field name="RebootRequired">True</field>
 </param>
+<param documentation="Maximum Allowed roll angle for tailsitters. If this is zero then Q_ANGLE_MAX is used." humanName="Maximum Roll angle" name="Q_TAILSIT_RLL_MX" user="Standard">
+<field name="Range">0 80</field>
+<field name="Units">deg</field>
+<field name="UnitText">degrees</field>
+</param>
+<param documentation="This provides the radius used, when using a fixed wing landing approach. If set to 0 then the WP_LOITER_RAD will be selected." humanName="Quadplane fixed wing landing approach radius" name="Q_FW_LND_APR_RAD" user="Advanced">
+<field name="Range">0 200</field>
+<field name="Increment">5</field>
+<field name="Units">m</field>
+<field name="UnitText">meters</field>
+</param>
 </parameters>
 <parameters name="Q_A_">
 <param documentation="Maximum rate the yaw target can be updated in Loiter, RTL, Auto flight modes" humanName="Yaw target slew rate" name="Q_A_SLEW_YAW" user="Advanced">
@@ -7575,71 +7670,71 @@
 </values>
 </param>
 </parameters>
-<parameters name="Q_P_">
-<param documentation="Lower values will slow the response of the navigation controller and reduce twitchiness" humanName="XY Acceleration filter cutoff frequency" name="Q_P__ACC_XY_FILT" user="Advanced">
+<parameters name="Q_P">
+<param documentation="Lower values will slow the response of the navigation controller and reduce twitchiness" humanName="XY Acceleration filter cutoff frequency" name="Q_P_ACC_XY_FILT" user="Advanced">
 <field name="Range">0.5 5</field>
 <field name="Increment">0.1</field>
 <field name="Units">Hz</field>
 <field name="UnitText">hertz</field>
 </param>
-<param documentation="Position (vertical) controller P gain.  Converts the difference between the desired altitude and actual altitude into a climb or descent rate which is passed to the throttle rate controller" humanName="Position (vertical) controller P gain" name="Q_P__POSZ_P" user="Standard">
+<param documentation="Position (vertical) controller P gain.  Converts the difference between the desired altitude and actual altitude into a climb or descent rate which is passed to the throttle rate controller" humanName="Position (vertical) controller P gain" name="Q_P_POSZ_P" user="Standard">
 <field name="Range">1.000 3.000</field>
 </param>
-<param documentation="Velocity (vertical) controller P gain.  Converts the difference between desired vertical speed and actual speed into a desired acceleration that is passed to the throttle acceleration controller" humanName="Velocity (vertical) controller P gain" name="Q_P__VELZ_P" user="Standard">
+<param documentation="Velocity (vertical) controller P gain.  Converts the difference between desired vertical speed and actual speed into a desired acceleration that is passed to the throttle acceleration controller" humanName="Velocity (vertical) controller P gain" name="Q_P_VELZ_P" user="Standard">
 <field name="Range">1.000 8.000</field>
 </param>
-<param documentation="Acceleration (vertical) controller P gain.  Converts the difference between desired vertical acceleration and actual acceleration into a motor output" humanName="Acceleration (vertical) controller P gain" name="Q_P__ACCZ_P" user="Standard">
+<param documentation="Acceleration (vertical) controller P gain.  Converts the difference between desired vertical acceleration and actual acceleration into a motor output" humanName="Acceleration (vertical) controller P gain" name="Q_P_ACCZ_P" user="Standard">
 <field name="Range">0.500 1.500</field>
 <field name="Increment">0.05</field>
 </param>
-<param documentation="Acceleration (vertical) controller I gain.  Corrects long-term difference in desired vertical acceleration and actual acceleration" humanName="Acceleration (vertical) controller I gain" name="Q_P__ACCZ_I" user="Standard">
+<param documentation="Acceleration (vertical) controller I gain.  Corrects long-term difference in desired vertical acceleration and actual acceleration" humanName="Acceleration (vertical) controller I gain" name="Q_P_ACCZ_I" user="Standard">
 <field name="Range">0.000 3.000</field>
 </param>
-<param documentation="Acceleration (vertical) controller I gain maximum.  Constrains the maximum pwm that the I term will generate" humanName="Acceleration (vertical) controller I gain maximum" name="Q_P__ACCZ_IMAX" user="Standard">
+<param documentation="Acceleration (vertical) controller I gain maximum.  Constrains the maximum pwm that the I term will generate" humanName="Acceleration (vertical) controller I gain maximum" name="Q_P_ACCZ_IMAX" user="Standard">
 <field name="Range">0 1000</field>
 <field name="Units">d%</field>
 <field name="UnitText">decipercent</field>
 </param>
-<param documentation="Acceleration (vertical) controller D gain.  Compensates for short-term change in desired vertical acceleration vs actual acceleration" humanName="Acceleration (vertical) controller D gain" name="Q_P__ACCZ_D" user="Standard">
+<param documentation="Acceleration (vertical) controller D gain.  Compensates for short-term change in desired vertical acceleration vs actual acceleration" humanName="Acceleration (vertical) controller D gain" name="Q_P_ACCZ_D" user="Standard">
 <field name="Range">0.000 0.400</field>
 </param>
-<param documentation="Filter applied to acceleration to reduce noise.  Lower values reduce noise but add delay." humanName="Acceleration (vertical) controller filter" name="Q_P__ACCZ_FILT" user="Standard">
+<param documentation="Filter applied to acceleration to reduce noise.  Lower values reduce noise but add delay." humanName="Acceleration (vertical) controller filter" name="Q_P_ACCZ_FILT" user="Standard">
 <field name="Range">1.000 100.000</field>
 <field name="Units">Hz</field>
 <field name="UnitText">hertz</field>
 </param>
-<param documentation="Position controller P gain.  Converts the distance (in the latitude direction) to the target location into a desired speed which is then passed to the loiter latitude rate controller" humanName="Position (horizonal) controller P gain" name="Q_P__POSXY_P" user="Standard">
+<param documentation="Position controller P gain.  Converts the distance (in the latitude direction) to the target location into a desired speed which is then passed to the loiter latitude rate controller" humanName="Position (horizonal) controller P gain" name="Q_P_POSXY_P" user="Standard">
 <field name="Range">0.500 2.000</field>
 </param>
-<param documentation="Velocity (horizontal) P gain.  Converts the difference between desired velocity to a target acceleration" humanName="Velocity (horizontal) P gain" name="Q_P__VELXY_P" user="Advanced">
+<param documentation="Velocity (horizontal) P gain.  Converts the difference between desired velocity to a target acceleration" humanName="Velocity (horizontal) P gain" name="Q_P_VELXY_P" user="Advanced">
 <field name="Range">0.1 6.0</field>
 <field name="Increment">0.1</field>
 </param>
-<param documentation="Velocity (horizontal) I gain.  Corrects long-term difference in desired velocity to a target acceleration" humanName="Velocity (horizontal) I gain" name="Q_P__VELXY_I" user="Advanced">
+<param documentation="Velocity (horizontal) I gain.  Corrects long-term difference in desired velocity to a target acceleration" humanName="Velocity (horizontal) I gain" name="Q_P_VELXY_I" user="Advanced">
 <field name="Range">0.02 1.00</field>
 <field name="Increment">0.01</field>
 </param>
-<param documentation="Velocity (horizontal) D gain.  Corrects short-term changes in velocity" humanName="Velocity (horizontal) D gain" name="Q_P__VELXY_D" user="Advanced">
+<param documentation="Velocity (horizontal) D gain.  Corrects short-term changes in velocity" humanName="Velocity (horizontal) D gain" name="Q_P_VELXY_D" user="Advanced">
 <field name="Range">0.00 1.00</field>
 <field name="Increment">0.001</field>
 </param>
-<param documentation="Velocity (horizontal) integrator maximum.  Constrains the target acceleration that the I gain will output" humanName="Velocity (horizontal) integrator maximum" name="Q_P__VELXY_IMAX" user="Advanced">
+<param documentation="Velocity (horizontal) integrator maximum.  Constrains the target acceleration that the I gain will output" humanName="Velocity (horizontal) integrator maximum" name="Q_P_VELXY_IMAX" user="Advanced">
 <field name="Range">0 4500</field>
 <field name="Increment">10</field>
 <field name="Units">cm/s/s</field>
 <field name="UnitText">centimeters per square second</field>
 </param>
-<param documentation="Velocity (horizontal) input filter.  This filter (in hz) is applied to the input for P and I terms" humanName="Velocity (horizontal) input filter" name="Q_P__VELXY_FILT" user="Advanced">
+<param documentation="Velocity (horizontal) input filter.  This filter (in hz) is applied to the input for P and I terms" humanName="Velocity (horizontal) input filter" name="Q_P_VELXY_FILT" user="Advanced">
 <field name="Range">0 100</field>
 <field name="Units">Hz</field>
 <field name="UnitText">hertz</field>
 </param>
-<param documentation="Velocity (horizontal) input filter.  This filter (in hz) is applied to the input for P and I terms" humanName="Velocity (horizontal) input filter" name="Q_P__VELXY_D_FILT" user="Advanced">
+<param documentation="Velocity (horizontal) input filter.  This filter (in hz) is applied to the input for P and I terms" humanName="Velocity (horizontal) input filter" name="Q_P_VELXY_D_FILT" user="Advanced">
 <field name="Range">0 100</field>
 <field name="Units">Hz</field>
 <field name="UnitText">hertz</field>
 </param>
-<param documentation="Maximum lean angle autopilot can request.  Set to zero to use ANGLE_MAX parameter value" humanName="Position Control Angle Max" name="Q_P__ANGLE_MAX" user="Advanced">
+<param documentation="Maximum lean angle autopilot can request.  Set to zero to use ANGLE_MAX parameter value" humanName="Position Control Angle Max" name="Q_P_ANGLE_MAX" user="Advanced">
 <field name="Range">0 45</field>
 <field name="Increment">1</field>
 <field name="Units">deg</field>
@@ -7761,6 +7856,7 @@
 <value code=" 58">Clear Waypoints</value>
 <value code=" 62">Compass Learn</value>
 <value code=" 64"> Reverse Throttle</value>
+<value code=" 65">GPS Disable</value>
 </values>
 </param>
 </parameters>
@@ -7810,6 +7906,7 @@
 <value code=" 58">Clear Waypoints</value>
 <value code=" 62">Compass Learn</value>
 <value code=" 64"> Reverse Throttle</value>
+<value code=" 65">GPS Disable</value>
 </values>
 </param>
 </parameters>
@@ -7859,6 +7956,7 @@
 <value code=" 58">Clear Waypoints</value>
 <value code=" 62">Compass Learn</value>
 <value code=" 64"> Reverse Throttle</value>
+<value code=" 65">GPS Disable</value>
 </values>
 </param>
 </parameters>
@@ -7908,6 +8006,7 @@
 <value code=" 58">Clear Waypoints</value>
 <value code=" 62">Compass Learn</value>
 <value code=" 64"> Reverse Throttle</value>
+<value code=" 65">GPS Disable</value>
 </values>
 </param>
 </parameters>
@@ -7957,6 +8056,7 @@
 <value code=" 58">Clear Waypoints</value>
 <value code=" 62">Compass Learn</value>
 <value code=" 64"> Reverse Throttle</value>
+<value code=" 65">GPS Disable</value>
 </values>
 </param>
 </parameters>
@@ -8006,6 +8106,7 @@
 <value code=" 58">Clear Waypoints</value>
 <value code=" 62">Compass Learn</value>
 <value code=" 64"> Reverse Throttle</value>
+<value code=" 65">GPS Disable</value>
 </values>
 </param>
 </parameters>
@@ -8055,6 +8156,7 @@
 <value code=" 58">Clear Waypoints</value>
 <value code=" 62">Compass Learn</value>
 <value code=" 64"> Reverse Throttle</value>
+<value code=" 65">GPS Disable</value>
 </values>
 </param>
 </parameters>
@@ -8104,6 +8206,7 @@
 <value code=" 58">Clear Waypoints</value>
 <value code=" 62">Compass Learn</value>
 <value code=" 64"> Reverse Throttle</value>
+<value code=" 65">GPS Disable</value>
 </values>
 </param>
 </parameters>
@@ -8153,6 +8256,7 @@
 <value code=" 58">Clear Waypoints</value>
 <value code=" 62">Compass Learn</value>
 <value code=" 64"> Reverse Throttle</value>
+<value code=" 65">GPS Disable</value>
 </values>
 </param>
 </parameters>
@@ -8202,6 +8306,7 @@
 <value code=" 58">Clear Waypoints</value>
 <value code=" 62">Compass Learn</value>
 <value code=" 64"> Reverse Throttle</value>
+<value code=" 65">GPS Disable</value>
 </values>
 </param>
 </parameters>
@@ -8251,6 +8356,7 @@
 <value code=" 58">Clear Waypoints</value>
 <value code=" 62">Compass Learn</value>
 <value code=" 64"> Reverse Throttle</value>
+<value code=" 65">GPS Disable</value>
 </values>
 </param>
 </parameters>
@@ -8300,6 +8406,7 @@
 <value code=" 58">Clear Waypoints</value>
 <value code=" 62">Compass Learn</value>
 <value code=" 64"> Reverse Throttle</value>
+<value code=" 65">GPS Disable</value>
 </values>
 </param>
 </parameters>
@@ -8349,6 +8456,7 @@
 <value code=" 58">Clear Waypoints</value>
 <value code=" 62">Compass Learn</value>
 <value code=" 64"> Reverse Throttle</value>
+<value code=" 65">GPS Disable</value>
 </values>
 </param>
 </parameters>
@@ -8398,6 +8506,7 @@
 <value code=" 58">Clear Waypoints</value>
 <value code=" 62">Compass Learn</value>
 <value code=" 64"> Reverse Throttle</value>
+<value code=" 65">GPS Disable</value>
 </values>
 </param>
 </parameters>
@@ -8447,6 +8556,7 @@
 <value code=" 58">Clear Waypoints</value>
 <value code=" 62">Compass Learn</value>
 <value code=" 64"> Reverse Throttle</value>
+<value code=" 65">GPS Disable</value>
 </values>
 </param>
 </parameters>
@@ -8496,6 +8606,7 @@
 <value code=" 58">Clear Waypoints</value>
 <value code=" 62">Compass Learn</value>
 <value code=" 64"> Reverse Throttle</value>
+<value code=" 65">GPS Disable</value>
 </values>
 </param>
 </parameters>
@@ -8751,14 +8862,17 @@
 <field name="Increment">1</field>
 </param>
 <param documentation="X position of the first rangefinder in body frame. Positive X is forward of the origin. Use the zero range datum point if supplied." humanName=" X position offset" name="RNGFND_POS_X" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Y position of the first rangefinder in body frame. Positive Y is to the right of the origin. Use the zero range datum point if supplied." humanName="Y position offset" name="RNGFND_POS_Y" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Z position of the first rangefinder in body frame. Positive Z is down from the origin. Use the zero range datum point if supplied." humanName="Z position offset" name="RNGFND_POS_Z" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
@@ -8875,14 +8989,17 @@
 <field name="Increment">1</field>
 </param>
 <param documentation="X position of the second rangefinder in body frame. Positive X is forward of the origin. Use the zero range datum point if supplied." humanName=" X position offset" name="RNGFND2_POS_X" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Y position of the second rangefinder in body frame. Positive Y is to the right of the origin. Use the zero range datum point if supplied." humanName="Y position offset" name="RNGFND2_POS_Y" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Z position of the second rangefinder in body frame. Positive Z is down from the origin. Use the zero range datum point if supplied." humanName="Z position offset" name="RNGFND2_POS_Z" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
@@ -8999,14 +9116,17 @@
 <field name="Increment">1</field>
 </param>
 <param documentation="X position of the third rangefinder in body frame. Positive X is forward of the origin. Use the zero range datum point if supplied." humanName=" X position offset" name="RNGFND3_POS_X" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Y position of the third rangefinder in body frame. Positive Y is to the right of the origin. Use the zero range datum point if supplied." humanName="Y position offset" name="RNGFND3_POS_Y" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Z position of the third rangefinder in body frame. Positive Z is down from the origin. Use the zero range datum point if supplied." humanName="Z position offset" name="RNGFND3_POS_Z" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
@@ -9123,14 +9243,17 @@
 <field name="Increment">1</field>
 </param>
 <param documentation="X position of the fourth rangefinder in body frame. Use the zero range datum point if supplied." humanName=" X position offset" name="RNGFND4_POS_X" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Y position of the fourth rangefinder in body frame. Use the zero range datum point if supplied." humanName="Y position offset" name="RNGFND4_POS_Y" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
 <param documentation="Z position of the fourth rangefinder in body frame. Use the zero range datum point if supplied." humanName="Z position offset" name="RNGFND4_POS_Z" user="Advanced">
+<field name="Range">-10 10</field>
 <field name="Units">m</field>
 <field name="UnitText">meters</field>
 </param>
@@ -9409,6 +9532,7 @@
 <value code=" 15">SBus servo out</value>
 <value code=" 16">ESC Telemetry</value>
 <value code=" 17">Devo Telemetry</value>
+<value code=" 18">OpticalFlow</value>
 </values>
 <field name="RebootRequired">True</field>
 </param>
@@ -9446,6 +9570,7 @@
 <value code=" 15">SBus servo out</value>
 <value code=" 16">ESC Telemetry</value>
 <value code=" 17">Devo Telemetry</value>
+<value code=" 18">OpticalFlow</value>
 </values>
 <field name="RebootRequired">True</field>
 </param>
@@ -9483,6 +9608,7 @@
 <value code=" 15">SBus servo out</value>
 <value code=" 16">ESC Telemetry</value>
 <value code=" 17">Devo Telemetry</value>
+<value code=" 18">OpticalFlow</value>
 </values>
 <field name="RebootRequired">True</field>
 </param>
@@ -9520,6 +9646,7 @@
 <value code=" 15">SBus servo out</value>
 <value code=" 16">ESC Telemetry</value>
 <value code=" 17">Devo Telemetry</value>
+<value code=" 18">OpticalFlow</value>
 </values>
 <field name="RebootRequired">True</field>
 </param>
@@ -9557,6 +9684,7 @@
 <value code=" 15">SBus servo out</value>
 <value code=" 16">ESC Telemetry</value>
 <value code=" 17">Devo Telemetry</value>
+<value code=" 18">OpticalFlow</value>
 </values>
 <field name="RebootRequired">True</field>
 </param>
@@ -9594,6 +9722,7 @@
 <value code=" 15">SBus servo out</value>
 <value code=" 16">ESC Telemetry</value>
 <value code=" 17">Devo Telemetry</value>
+<value code=" 18">OpticalFlow</value>
 </values>
 <field name="RebootRequired">True</field>
 </param>
@@ -11652,16 +11781,16 @@
 </param>
 </parameters>
 <parameters name="SERVO_BLH_">
-<param documentation="Enable of BLHeli pass-thru servo protocol support to specific channels. This mask is in addition to motors enabled using SERVO_BLH_AUTO (if any)" humanName="Channel Bitmask" name="SERVO_BLH_MASK" user="Advanced">
+<param documentation="Enable of BLHeli pass-thru servo protocol support to specific channels. This mask is in addition to motors enabled using SERVO_BLH_AUTO (if any)" humanName="BLHeli Channel Bitmask" name="SERVO_BLH_MASK" user="Advanced">
 <field name="Bitmask">0:Channel1,1:Channel2,2:Channel3,3:Channel4,4:Channel5,5:Channel6,6:Channel7,7:Channel8,8:Channel9,9:Channel10,10:Channel11,11:Channel12,12:Channel13,13:Channel14,14:Channel15,15:Channel16</field>
 </param>
-<param documentation="If set to 1 this auto-enables BLHeli pass-thru support for all multicopter motors" humanName="auto-enable for multicopter motors" name="SERVO_BLH_AUTO" user="Standard">
+<param documentation="If set to 1 this auto-enables BLHeli pass-thru support for all multicopter motors" humanName="BLHeli auto-enable for multicopter motors" name="SERVO_BLH_AUTO" user="Standard">
 <values>
 <value code="0">Disabled</value>
 <value code="1">Enabled</value>
 </values>
 </param>
-<param documentation="Setting SERVO_BLH_TEST to a motor number enables an internal test of the BLHeli ESC protocol to the corresponding ESC. The debug output is displayed on the USB console." humanName="internal test of BLHeli interface" name="SERVO_BLH_TEST" user="Advanced">
+<param documentation="Setting SERVO_BLH_TEST to a motor number enables an internal test of the BLHeli ESC protocol to the corresponding ESC. The debug output is displayed on the USB console." humanName="BLHeli internal interface test" name="SERVO_BLH_TEST" user="Advanced">
 <values>
 <value code="0">Disabled</value>
 <value code="1">TestMotor1</value>
@@ -11690,7 +11819,7 @@
 <value code="1">Enabled</value>
 </values>
 </param>
-<param documentation="When set to a non-zero value this overrides the output type for the output channels given by SERVO_BLH_MASK. This can be used to enable DShot on outputs that are not part of the multicopter motors group." humanName="Output type override" name="SERVO_BLH_OTYPE" user="Advanced">
+<param documentation="When set to a non-zero value this overrides the output type for the output channels given by SERVO_BLH_MASK. This can be used to enable DShot on outputs that are not part of the multicopter motors group." humanName="BLHeli output type override" name="SERVO_BLH_OTYPE" user="Advanced">
 <values>
 <value code="0">None</value>
 <value code="1">OneShot</value>
@@ -11712,10 +11841,10 @@
 <value code="5">Telem5</value>
 </values>
 </param>
-<param documentation="This allows calculation of true RPM from ESC's eRPM. The default is 14." humanName="Motor Poles" name="SERVO_BLH_POLES" user="Advanced">
+<param documentation="This allows calculation of true RPM from ESC's eRPM. The default is 14." humanName="BLHeli Motor Poles" name="SERVO_BLH_POLES" user="Advanced">
 <field name="Range">1 127</field>
 </param>
-<param documentation="Mask of channels which are reversible. This is used for ESCs which have been configured in '3D' mode, allowing for the motor to spin in either direction" humanName="Channel Reversible Bitmask" name="SERVO_BLH_REMASK" user="Advanced">
+<param documentation="Mask of channels which are reversible. This is used for ESCs which have been configured in '3D' mode, allowing for the motor to spin in either direction" humanName="BLHeli bitmask of reversible channels" name="SERVO_BLH_REMASK" user="Advanced">
 <field name="Bitmask">0:Channel1,1:Channel2,2:Channel3,3:Channel4,4:Channel5,5:Channel6,6:Channel7,7:Channel8,8:Channel9,9:Channel10,10:Channel11,11:Channel12,12:Channel13,13:Channel14,14:Channel15,15:Channel16</field>
 </param>
 </parameters>
@@ -12193,7 +12322,7 @@
 <field name="Range">5.0 30.0</field>
 <field name="Increment">1.0</field>
 </param>
-<param documentation="This parameter adjusts the amount of weighting that the pitch control applies to speed vs height errors. Setting it to 0.0 will cause the pitch control to control height and ignore speed errors. This will normally improve height accuracy but give larger airspeed errors. Setting it to 2.0 will cause the pitch control loop to control speed and ignore height errors. This will normally reduce airsped errors, but give larger height errors.	A value of 1.0 gives a balanced response and is the default." humanName="Weighting applied to speed control" name="TECS_SPDWEIGHT" user="Advanced">
+<param documentation="This parameter adjusts the amount of weighting that the pitch control applies to speed vs height errors. Setting it to 0.0 will cause the pitch control to control height and ignore speed errors. This will normally improve height accuracy but give larger airspeed errors. Setting it to 2.0 will cause the pitch control loop to control speed and ignore height errors. This will normally reduce airsped errors, but give larger height errors.&#09;A value of 1.0 gives a balanced response and is the default." humanName="Weighting applied to speed control" name="TECS_SPDWEIGHT" user="Advanced">
 <field name="Range">0.0 2.0</field>
 <field name="Increment">0.1</field>
 </param>
