@@ -24,11 +24,92 @@ from mavros import mission
 
 app_log = logging.getLogger("tornado.application")
 
+# graphql imports
+from graphql import (
+    GraphQLArgument,
+    GraphQLEnumType,
+    GraphQLEnumValue,
+    GraphQLField,
+    GraphQLInterfaceType,
+    GraphQLList,
+    GraphQLNonNull,
+    GraphQLObjectType,
+    GraphQLSchema,
+    GraphQLString,
+    GraphQLBoolean,
+    GraphQLInt,
+    GraphQLFloat,
+)
+
+nav_sat_fix_data = {}
+
 
 class MAVROSSchema(schemaBase):
     def __init__(self):
         super().__init__()
-        # TODO: port all the old mavros schema to here...
+
+        self.telem_message = GraphQLInterfaceType(
+            "TelemMessage",
+            lambda: {
+                "id": GraphQLField(
+                    GraphQLNonNull(GraphQLString), description="The id of the message."
+                ),
+                "seq": GraphQLField(GraphQLInt, description="The sequence number of the message."),
+                "secs": GraphQLField(GraphQLInt, description=""),
+                "nsecs": GraphQLField(GraphQLInt, description=""),
+                "frame_id": GraphQLField(GraphQLString, description=""),
+            },
+        )
+
+        self.nav_sat_fix_message_type = GraphQLObjectType(
+            "NavSatFixMessage",
+            lambda: {
+                "status_status": GraphQLField(GraphQLInt, description=""),
+                "status_service": GraphQLField(GraphQLInt, description=""),
+                "latitude": GraphQLField(GraphQLFloat, description=""),
+                "longitude": GraphQLField(GraphQLFloat, description=""),
+                "altitude": GraphQLField(GraphQLFloat, description=""),
+                # TODO: position_covariance array
+                "position_covariance_type": GraphQLField(GraphQLInt, description=""),
+            },
+            interfaces=[self.telem_message],
+            description="MAVROS NavSatFixMessage",
+        )
+
+        self.q = {
+            "NavSatFixMessage": GraphQLField(
+                self.nav_sat_fix_message_type, args={}, resolve=self.get_nav_sat_fix_message
+            )
+        }
+
+        self.m = {
+            "NavSatFixMessage": GraphQLField(
+                self.nav_sat_fix_message_type,
+                args=self.get_mutation_args(self.nav_sat_fix_message_type),
+                resolve=self.set_nav_sat_fix_message,
+            )
+        }
+
+        self.s = {
+            "Authentication": GraphQLField(
+                self.nav_sat_fix_message_type, subscribe=self.sub_nav_sat_fix_message, resolve=None
+            )
+        }
+
+    def get_nav_sat_fix_message(self, root, info, **kwargs):
+        """NavSatFixMessage query handler"""
+        return nav_sat_fix_data
+
+    def set_nav_sat_fix_message(self, root, info, **kwargs):
+        """NavSatFixMessage mutation handler"""
+        updated_dict = {**nav_sat_fix_data, **kwargs}
+        self.subscriptions.emit(__name__, {"NavSatFixMessage": updated_dict})
+        nav_sat_fix_data = updated_dict
+        return updated_dict
+
+    def sub_nav_sat_fix_message(self, root, info, **kwargs):
+        """NavSatFixMessage subscription handler"""
+        return EventEmitterAsyncIterator(self.subscriptions, __name__)
 
 
 class MAVROSConnection(moduleBase):
