@@ -1,1 +1,2 @@
+#!/bin/bash
 mongod --dbpath .
