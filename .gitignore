@@ -1,5 +1,5 @@
-database/*
-!database/.gitkeep
+maverick_api/database/*
+!maverick_api/database/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
