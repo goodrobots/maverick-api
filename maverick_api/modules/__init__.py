@@ -29,7 +29,7 @@ class schemaBase(object):
         return {field: GraphQLObject.fields[field].type for field in GraphQLObject.fields}
         
 def api_callback(loop, func, **kwargs):
-    loop.spawn_callback(func, None, None, **kwargs)
+    loop.add_callback(func, None, None, **kwargs)
 
 def check_schema_class(attribute):
     return (inspect.isclass(attribute) and
