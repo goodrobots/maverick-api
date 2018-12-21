@@ -5,16 +5,32 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building'
+                sh '''
+                    export LC_ALL=C.UTF-8
+                    export LANG=C.UTF-8
+                    pipenv install --dev --three
+                    pipenv shell
+                    flake8 --version
+                    black --version
+                    black --check ./maverick_api/
+                '''
             }
         }
         stage('Test') {
             steps {
                 echo 'Testing'
+                sh '''
+                    pipenv shell
+                    black --check ./maverick_api/
+                '''
             }
         }
         stage('Deploy') {
+            when {
+                tag 'v*'
+            }
             steps {
-                echo 'Deploying'
+                echo 'Deploying only because this commit is tagged...'
             }
         }
     }
