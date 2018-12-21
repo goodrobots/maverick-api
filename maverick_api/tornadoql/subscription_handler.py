@@ -81,9 +81,9 @@ class GQLSubscriptionHandler(websocket.WebSocketHandler):
 
     def select_subprotocol(self, subprotocols):
         return WS_PROTOCOL
-    
+
     def check_origin(self, origin):
-        self.CORS_ORIGINS = ['localhost', 'dev.maverick.one']
+        self.CORS_ORIGINS = ["localhost", "dev.maverick.one"]
         parsed_origin = urlparse(origin)
         # return parsed_origin.hostname in self.CORS_ORIGINS
         return True
@@ -134,7 +134,7 @@ class GQLSubscriptionHandler(websocket.WebSocketHandler):
         params["context_value"]["session"] = self.current_user
         params["context_value"]["db_client"] = self.opts["db_client"]
         return params
-    
+
     # @Session.ensure_active_session
     async def open(self):
         app_log.info("open socket %s", self)
@@ -143,8 +143,7 @@ class GQLSubscriptionHandler(websocket.WebSocketHandler):
 
     def on_close(self):
         tornado.ioloop.IOLoop.current().spawn_callback(self.close_subscriptions)
- 
- 
+
     async def close_subscriptions(self):
         app_log.info("close socket %s", self)
         for sub in self.subscriptions:
@@ -155,7 +154,7 @@ class GQLSubscriptionHandler(websocket.WebSocketHandler):
             # socket could not be found in list
             print(e)
         self.subscriptions = {}
-    
+
     def on_message(self, message):
         parsed_message = json_decode(message)
         op_id = parsed_message.get("id")
@@ -189,7 +188,9 @@ class GQLSubscriptionHandler(websocket.WebSocketHandler):
             )
 
     def on_connection_init(self, op_id, payload):
-        tornado.ioloop.IOLoop.current().spawn_callback(self.send_message, op_type=GQL_CONNECTION_ACK)
+        tornado.ioloop.IOLoop.current().spawn_callback(
+            self.send_message, op_type=GQL_CONNECTION_ACK
+        )
 
     def on_connection_terminate(self, op_id):
         self.close(code=1011)
@@ -197,13 +198,13 @@ class GQLSubscriptionHandler(websocket.WebSocketHandler):
     async def on_start(self, op_id, params):
         """Setup a subscription"""
         subscription = await subscribe(
-            schema = self.schema,
-            document = parse(params["request_string"]),
-            root_value = None,
-            context_value = params["context_value"],
-            variable_values = params["variable_values"],
-            operation_name = params["operation_name"],
-            )
+            schema=self.schema,
+            document=parse(params["request_string"]),
+            root_value=None,
+            context_value=params["context_value"],
+            variable_values=params["variable_values"],
+            operation_name=params["operation_name"],
+        )
         await self.subscribe(op_id, subscription)
 
     async def on_stop(self, op_id):

@@ -41,27 +41,27 @@ from graphql import (
     GraphQLFloat,
 )
 
-from graphql.pyutils.event_emitter import (
-    EventEmitter,
-    EventEmitterAsyncIterator,
-)
+from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
+
 
 class MAVROSSchema(schemaBase):
     def __init__(self):
         super().__init__()
-        
-        self.nav_sat_fix_data = {"id":"test"}
-        self.imu_data = {"id":"test"}
-        self.state_data = {"id":"test"}
-        self.pose_data = {"id":"test"}
-        self.vfr_hud_data = {"id":"test"}
-        self.status_text_data = {"id":"test"}
-        
+
+        self.nav_sat_fix_data = {"id": "test"}
+        self.imu_data = {"id": "test"}
+        self.state_data = {"id": "test"}
+        self.pose_data = {"id": "test"}
+        self.vfr_hud_data = {"id": "test"}
+        self.status_text_data = {"id": "test"}
+
         self.nav_sat_fix_message_type = GraphQLObjectType(
             "NavSatFixMessage",
             lambda: {
                 "id": GraphQLField(GraphQLString, description="The id of the message."),
-                "seq": GraphQLField(GraphQLInt, description="The sequence number of the message."),
+                "seq": GraphQLField(
+                    GraphQLInt, description="The sequence number of the message."
+                ),
                 "secs": GraphQLField(GraphQLInt, description=""),
                 "nsecs": GraphQLField(GraphQLInt, description=""),
                 "frame_id": GraphQLField(GraphQLString, description=""),
@@ -73,14 +73,16 @@ class MAVROSSchema(schemaBase):
                 # TODO: position_covariance array
                 "position_covariance_type": GraphQLField(GraphQLInt, description=""),
             },
-            description="MAVROS NavSatFixMessage"
+            description="MAVROS NavSatFixMessage",
         )
-        
+
         self.imu_message_type = GraphQLObjectType(
             "ImuMessage",
             lambda: {
                 "id": GraphQLField(GraphQLString, description="The id of the message."),
-                "seq": GraphQLField(GraphQLInt, description="The sequence number of the message."),
+                "seq": GraphQLField(
+                    GraphQLInt, description="The sequence number of the message."
+                ),
                 "secs": GraphQLField(GraphQLInt, description=""),
                 "nsecs": GraphQLField(GraphQLInt, description=""),
                 "frame_id": GraphQLField(GraphQLString, description=""),
@@ -95,14 +97,16 @@ class MAVROSSchema(schemaBase):
                 "linear_acceleration_y": GraphQLField(GraphQLFloat, description=""),
                 "linear_acceleration_z": GraphQLField(GraphQLFloat, description=""),
             },
-            description="MAVROS ImuMessage"
+            description="MAVROS ImuMessage",
         )
-        
+
         self.state_message_type = GraphQLObjectType(
             "StateMessage",
             lambda: {
                 "id": GraphQLField(GraphQLString, description="The id of the message."),
-                "seq": GraphQLField(GraphQLInt, description="The sequence number of the message."),
+                "seq": GraphQLField(
+                    GraphQLInt, description="The sequence number of the message."
+                ),
                 "secs": GraphQLField(GraphQLInt, description=""),
                 "nsecs": GraphQLField(GraphQLInt, description=""),
                 "frame_id": GraphQLField(GraphQLString, description=""),
@@ -112,14 +116,16 @@ class MAVROSSchema(schemaBase):
                 "mode": GraphQLField(GraphQLString, description=""),
                 "system_status": GraphQLField(GraphQLInt, description=""),
             },
-            description="MAVROS StateMessage"
+            description="MAVROS StateMessage",
         )
-        
+
         self.pose_stamped_message_type = GraphQLObjectType(
             "PoseStampedMessage",
             lambda: {
                 "id": GraphQLField(GraphQLString, description="The id of the message."),
-                "seq": GraphQLField(GraphQLInt, description="The sequence number of the message."),
+                "seq": GraphQLField(
+                    GraphQLInt, description="The sequence number of the message."
+                ),
                 "secs": GraphQLField(GraphQLInt, description=""),
                 "nsecs": GraphQLField(GraphQLInt, description=""),
                 "frame_id": GraphQLField(GraphQLString, description=""),
@@ -131,14 +137,16 @@ class MAVROSSchema(schemaBase):
                 "pose_orientation_z": GraphQLField(GraphQLFloat, description=""),
                 "pose_orientation_w": GraphQLField(GraphQLFloat, description=""),
             },
-            description="MAVROS PoseStampedMessage"
+            description="MAVROS PoseStampedMessage",
         )
 
         self.vfr_hud_message_type = GraphQLObjectType(
             "VfrHudMessage",
             lambda: {
                 "id": GraphQLField(GraphQLString, description="The id of the message."),
-                "seq": GraphQLField(GraphQLInt, description="The sequence number of the message."),
+                "seq": GraphQLField(
+                    GraphQLInt, description="The sequence number of the message."
+                ),
                 "secs": GraphQLField(GraphQLInt, description=""),
                 "nsecs": GraphQLField(GraphQLInt, description=""),
                 "frame_id": GraphQLField(GraphQLString, description=""),
@@ -149,42 +157,43 @@ class MAVROSSchema(schemaBase):
                 "altitude": GraphQLField(GraphQLFloat, description=""),
                 "climb": GraphQLField(GraphQLFloat, description=""),
             },
-            description="MAVROS VfrHudMessage"
+            description="MAVROS VfrHudMessage",
         )
-        
+
         self.status_text_message_type = GraphQLObjectType(
             "StatusTextMessage",
             lambda: {
                 "id": GraphQLField(GraphQLString, description="The id of the message."),
-                "seq": GraphQLField(GraphQLInt, description="The sequence number of the message."),
+                "seq": GraphQLField(
+                    GraphQLInt, description="The sequence number of the message."
+                ),
                 "secs": GraphQLField(GraphQLInt, description=""),
                 "nsecs": GraphQLField(GraphQLInt, description=""),
                 "frame_id": GraphQLField(GraphQLString, description=""),
                 "level": GraphQLField(GraphQLInt, description=""),
                 "message": GraphQLField(GraphQLString, description=""),
             },
-            description="MAVROS StatusTextMessage"
+            description="MAVROS StatusTextMessage",
         )
-
 
         self.q = {
             "NavSatFixMessage": GraphQLField(
-                self.nav_sat_fix_message_type, resolve=self.get_nav_sat_fix_message,
+                self.nav_sat_fix_message_type, resolve=self.get_nav_sat_fix_message
             ),
             "ImuMessage": GraphQLField(
-                self.imu_message_type, resolve=self.get_imu_message,
+                self.imu_message_type, resolve=self.get_imu_message
             ),
             "StateMessage": GraphQLField(
-                self.state_message_type, resolve=self.get_state_message,
+                self.state_message_type, resolve=self.get_state_message
             ),
             "PoseStampedMessage": GraphQLField(
-                self.pose_stamped_message_type, resolve=self.get_pose_stamped_message,
+                self.pose_stamped_message_type, resolve=self.get_pose_stamped_message
             ),
             "VfrHudMessage": GraphQLField(
-                self.vfr_hud_message_type, resolve=self.get_vfr_hud_message,
+                self.vfr_hud_message_type, resolve=self.get_vfr_hud_message
             ),
             "StatusTextMessage": GraphQLField(
-                self.status_text_message_type, resolve=self.get_status_text_message,
+                self.status_text_message_type, resolve=self.get_status_text_message
             ),
         }
 
@@ -223,22 +232,30 @@ class MAVROSSchema(schemaBase):
 
         self.s = {
             "NavSatFixMessage": GraphQLField(
-                self.nav_sat_fix_message_type, subscribe=self.sub_nav_sat_fix_message, resolve=None,
+                self.nav_sat_fix_message_type,
+                subscribe=self.sub_nav_sat_fix_message,
+                resolve=None,
             ),
             "ImuMessage": GraphQLField(
-                self.imu_message_type, subscribe=self.sub_imu_message, resolve=None,
+                self.imu_message_type, subscribe=self.sub_imu_message, resolve=None
             ),
             "StateMessage": GraphQLField(
-                self.state_message_type, subscribe=self.sub_state_message, resolve=None,
+                self.state_message_type, subscribe=self.sub_state_message, resolve=None
             ),
             "PoseStampedMessage": GraphQLField(
-                self.pose_stamped_message_type, subscribe=self.sub_pose_stamped_message, resolve=None,
+                self.pose_stamped_message_type,
+                subscribe=self.sub_pose_stamped_message,
+                resolve=None,
             ),
             "VfrHudMessage": GraphQLField(
-                self.vfr_hud_message_type, subscribe=self.sub_vfr_hud_message, resolve=None,
+                self.vfr_hud_message_type,
+                subscribe=self.sub_vfr_hud_message,
+                resolve=None,
             ),
             "StatusTextMessage": GraphQLField(
-                self.status_text_message_type, subscribe=self.sub_imu_message, resolve=None,
+                self.status_text_message_type,
+                subscribe=self.sub_imu_message,
+                resolve=None,
             ),
         }
 
@@ -264,14 +281,18 @@ class MAVROSSchema(schemaBase):
     def set_imu_message(self, root, info, **kwargs):
         """ImuMessage mutation handler"""
         updated_dict = {**self.imu_data, **kwargs}
-        self.subscriptions.emit(str(__name__)+"ImuMessage", {"ImuMessage": updated_dict})
+        self.subscriptions.emit(
+            str(__name__) + "ImuMessage", {"ImuMessage": updated_dict}
+        )
         self.imu_data = updated_dict
         return updated_dict
 
     def sub_imu_message(self, root, info):
         """ImuMessage subscription handler"""
-        return EventEmitterAsyncIterator(self.subscriptions, str(__name__)+"ImuMessage")
-        
+        return EventEmitterAsyncIterator(
+            self.subscriptions, str(__name__) + "ImuMessage"
+        )
+
     def get_state_message(self, root, info):
         """StateMessage query handler"""
         return self.state_data
@@ -279,14 +300,18 @@ class MAVROSSchema(schemaBase):
     def set_state_message(self, root, info, **kwargs):
         """StateMessage mutation handler"""
         updated_dict = {**self.state_data, **kwargs}
-        self.subscriptions.emit(str(__name__)+"StateMessage", {"StateMessage": updated_dict})
+        self.subscriptions.emit(
+            str(__name__) + "StateMessage", {"StateMessage": updated_dict}
+        )
         self.state_data = updated_dict
         return updated_dict
 
     def sub_state_message(self, root, info):
         """StateMessage subscription handler"""
-        return EventEmitterAsyncIterator(self.subscriptions, str(__name__)+"StateMessage")
-    
+        return EventEmitterAsyncIterator(
+            self.subscriptions, str(__name__) + "StateMessage"
+        )
+
     def get_pose_stamped_message(self, root, info):
         """PoseStampedMessage query handler"""
         return self.pose_data
@@ -294,13 +319,17 @@ class MAVROSSchema(schemaBase):
     def set_pose_stamped_message(self, root, info, **kwargs):
         """PoseStampedMessage mutation handler"""
         updated_dict = {**self.pose_data, **kwargs}
-        self.subscriptions.emit(str(__name__)+"PoseStampedMessage", {"PoseStampedMessage": updated_dict})
+        self.subscriptions.emit(
+            str(__name__) + "PoseStampedMessage", {"PoseStampedMessage": updated_dict}
+        )
         self.pose_data = updated_dict
         return updated_dict
 
     def sub_pose_stamped_message(self, root, info):
         """PoseStampedMessage subscription handler"""
-        return EventEmitterAsyncIterator(self.subscriptions, str(__name__)+"PoseStampedMessage")
+        return EventEmitterAsyncIterator(
+            self.subscriptions, str(__name__) + "PoseStampedMessage"
+        )
 
     def get_vfr_hud_message(self, root, info):
         """VfrHudMessage query handler"""
@@ -309,14 +338,18 @@ class MAVROSSchema(schemaBase):
     def set_vfr_hud_message(self, root, info, **kwargs):
         """VfrHudMessage mutation handler"""
         updated_dict = {**self.vfr_hud_data, **kwargs}
-        self.subscriptions.emit(str(__name__)+"VfrHudMessage", {"VfrHudMessage": updated_dict})
+        self.subscriptions.emit(
+            str(__name__) + "VfrHudMessage", {"VfrHudMessage": updated_dict}
+        )
         self.vfr_hud_data = updated_dict
         return updated_dict
 
     def sub_vfr_hud_message(self, root, info):
         """VfrHudMessage subscription handler"""
-        return EventEmitterAsyncIterator(self.subscriptions, str(__name__)+"VfrHudMessage")
-        
+        return EventEmitterAsyncIterator(
+            self.subscriptions, str(__name__) + "VfrHudMessage"
+        )
+
     def get_status_text_message(self, root, info):
         """StatusTextMessage query handler"""
         return self.status_text_data
@@ -324,13 +357,17 @@ class MAVROSSchema(schemaBase):
     def set_status_text_message(self, root, info, **kwargs):
         """StatusTextMessage mutation handler"""
         updated_dict = {**self.status_text_data, **kwargs}
-        self.subscriptions.emit(str(__name__)+"StatusTextMessage", {"StatusTextMessage": updated_dict})
+        self.subscriptions.emit(
+            str(__name__) + "StatusTextMessage", {"StatusTextMessage": updated_dict}
+        )
         self.status_text_data = updated_dict
         return updated_dict
 
     def sub_status_text_message(self, root, info):
         """StatusTextMessage subscription handler"""
-        return EventEmitterAsyncIterator(self.subscriptions, str(__name__)+"StatusTextMessage")
+        return EventEmitterAsyncIterator(
+            self.subscriptions, str(__name__) + "StatusTextMessage"
+        )
 
 
 class MAVROSConnection(moduleBase):
@@ -367,9 +404,13 @@ class MAVROSConnection(moduleBase):
             if stream_rate is not None:
                 try:
                     set_rate(
-                        stream_id=stream_id, message_rate=stream_rate, on_off=(stream_rate != 0)
+                        stream_id=stream_id,
+                        message_rate=stream_rate,
+                        on_off=(stream_rate != 0),
                     )
-                    app_log.debug("Set stream {} rate {}".format(stream_id, stream_rate))
+                    app_log.debug(
+                        "Set stream {} rate {}".format(stream_id, stream_rate)
+                    )
                 except rospy.ServiceException as ex:
                     app_log.error(
                         "An error occurred while setting vehicle stream rates via ROS: {0}".format(
@@ -405,7 +446,9 @@ class MAVROSConnection(moduleBase):
 
     def vehicle_info(self):
         # Create ROS service definition for VehicleInfo
-        get_vehicle_info = rospy.ServiceProxy(mavros.get_topic("get_vehicle_info"), VehicleInfo)
+        get_vehicle_info = rospy.ServiceProxy(
+            mavros.get_topic("get_vehicle_info"), VehicleInfo
+        )
         try:
             self.info = get_vehicle_info()
             print(self.info)
@@ -413,7 +456,11 @@ class MAVROSConnection(moduleBase):
             app_log.debug(self.info)
             app_log.info(self.meta_string)
         except rospy.ServiceException as ex:
-            app_log.error("An error occurred while retrieving vehicle info via ROS: {0}".format(ex))
+            app_log.error(
+                "An error occurred while retrieving vehicle info via ROS: {0}".format(
+                    ex
+                )
+            )
 
     def mission_waypoints(self):
         self.waypoints = mission.pull()
@@ -422,8 +469,12 @@ class MAVROSConnection(moduleBase):
     def listener(self):
         rospy.Subscriber("/mavros/state", State, self.state_callback)
         rospy.Subscriber("/mavros/vfr_hud", VFR_HUD, self.vfr_hud_callback)
-        rospy.Subscriber("/mavros/global_position/global", NavSatFix, self.nav_sat_fix_callback)
-        rospy.Subscriber("/mavros/local_position/pose", PoseStamped, self.pose_stamped_callback)
+        rospy.Subscriber(
+            "/mavros/global_position/global", NavSatFix, self.nav_sat_fix_callback
+        )
+        rospy.Subscriber(
+            "/mavros/local_position/pose", PoseStamped, self.pose_stamped_callback
+        )
         rospy.Subscriber("/mavros/imu/data", Imu, self.imu_callback)
         rospy.Subscriber("/mavros/param_value", Param, self.param_callback)
         rospy.Subscriber("/rosout", Log, self.statustext_callback)
@@ -467,7 +518,9 @@ class MAVROSConnection(moduleBase):
         param_meta_server = get_param_meta(meta_string)
         app_log.debug("finished parameter meta fetch")
         if self.config["APP_DEBUG"]:
-            app_log.debug("parameter meta fetch took {0}s".format(time.time() - start_time))
+            app_log.debug(
+                "parameter meta fetch took {0}s".format(time.time() - start_time)
+            )
         # Parameters.meta = merge_two_dicts(param_meta_vehicle, param_meta_server)
 
     def param_set_callback(self, param_data):
@@ -478,7 +531,9 @@ class MAVROSConnection(moduleBase):
         from mavros.param import param_set
 
         mavros.set_namespace("mavros")
-        ret = param_set(param_data["id"].encode("ascii", "ignore"), float(param_data["value"]))
+        ret = param_set(
+            param_data["id"].encode("ascii", "ignore"), float(param_data["value"])
+        )
         # if ret == param_value:
         #     # param set worked
         #     pass
@@ -488,7 +543,9 @@ class MAVROSConnection(moduleBase):
 
         # # check to see if the set value matches the provided value
         # ret_param = param_get(param_data['id'])
-        app_log.debug("param set {0}:{1}  {2}".format(param_data["id"], param_data["value"], ret))
+        app_log.debug(
+            "param set {0}:{1}  {2}".format(param_data["id"], param_data["value"], ret)
+        )
         # app_log.debug('{0}'.format(ret_param))
         return ret
 
@@ -534,9 +591,10 @@ class MAVROSConnection(moduleBase):
             "altitude": data.altitude,
             "position_covariance_type": data.position_covariance_type,
         }
-        api_callback(self.loop, self.modules[__name__].set_nav_sat_fix_message, **kwargs)
-        
-        
+        api_callback(
+            self.loop, self.modules[__name__].set_nav_sat_fix_message, **kwargs
+        )
+
     def pose_stamped_callback(self, data):
         kwargs = {
             "seq": data.header.seq,
@@ -551,8 +609,9 @@ class MAVROSConnection(moduleBase):
             "pose_orientation_z": data.pose.orientation.z,
             "pose_orientation_w": data.pose.orientation.w,
         }
-        api_callback(self.loop, self.modules[__name__].set_pose_stamped_message, **kwargs)
-
+        api_callback(
+            self.loop, self.modules[__name__].set_pose_stamped_message, **kwargs
+        )
 
     def imu_callback(self, data):
         kwargs = {
@@ -609,7 +668,6 @@ class MAVROSConnection(moduleBase):
                 "level": data.level,
                 "message": data.msg,
             }
-            api_callback(self.loop, self.modules[__name__].set_status_text_message, **kwargs)
-
-
-
+            api_callback(
+                self.loop, self.modules[__name__].set_status_text_message, **kwargs
+            )
