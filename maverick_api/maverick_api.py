@@ -27,8 +27,8 @@ import tornado.ioloop
 from tornado.log import enable_pretty_logging
 
 # tornadoql imports
-from tornadoql.graphql_handler import GQLHandler
-from tornadoql.subscription_handler import GQLSubscriptionHandler
+from modules.base.tornadoql.graphql_handler import GQLHandler
+from modules.base.tornadoql.subscription_handler import GQLSubscriptionHandler
 
 # graphql imports
 from graphql import graphql
@@ -36,6 +36,11 @@ from graphql import get_introspection_query
 
 # database imports
 import motor
+
+# module imports
+import modules  # noqa E402
+from modules.graphql.maverick_mavros import MAVROSConnection
+from modules.graphql.maverick_status import StatusModule
 
 # setup logging
 handler = RotatingFileHandler(
@@ -70,11 +75,6 @@ access_log.addHandler(handler)
 app_log.setLevel(logging.INFO)
 gen_log.setLevel(logging.DEBUG)
 access_log.setLevel(logging.DEBUG)
-
-# module imports
-import modules  # noqa E402
-from modules.maverick_mavros import MAVROSConnection
-from modules.maverick_status import StatusModule
 
 # setup mongo database
 db_client = motor.motor_tornado.MotorClient("localhost", 27017)
@@ -204,7 +204,7 @@ class Server(object):
         self.mavlink_connection = None
 
         # TODO: fix this config mess...
-        self.config = Configuration(self.opts.configuration)
+        self.config = Configuration(self.opts.configuration, "config/config.json")
         self.config = self.config.get_config()
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
@@ -212,12 +212,12 @@ class Server(object):
         # setup the connection to ROS
         loop = tornado.ioloop.IOLoop.current()
         self.mavros_connection = MAVROSConnection(
-            self.config, loop, modules.module_schema
+            self.config, loop, modules.graphql.module_schema
         )
         self.mavros_thread = threading.Thread(target=self.mavros_connection.run)
         self.mavros_thread.daemon = True
         self.mavros_thread.start()
-        self.status_module = StatusModule(self.config, loop, modules.module_schema)
+        self.status_module = StatusModule(self.config, loop, modules.graphql.module_schema)
         main(self.config)
 
     def exit_gracefully(self, signum, frame):
@@ -237,7 +237,7 @@ class Server(object):
 
 if __name__ == "__main__":
     from optparse import OptionParser
-    from config import Configuration
+    from modules.base.setup.config import Configuration
 
     parser = OptionParser("maverick-api [options]")
 

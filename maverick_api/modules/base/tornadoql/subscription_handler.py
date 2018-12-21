@@ -7,8 +7,9 @@ from tornado.log import app_log
 from graphql.subscription import subscribe
 from graphql.language import parse
 import tornado.ioloop
-from tornadoql.session_control import Session
 from urllib.parse import urlparse
+
+from .session_control import Session
 
 GRAPHQL_WS = "graphql-ws"
 WS_PROTOCOL = GRAPHQL_WS

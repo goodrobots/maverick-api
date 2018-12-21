@@ -1,11 +1,11 @@
 import logging
 import time
 
-from modules import moduleBase
-from modules import schemaBase
-from modules import api_callback
+from modules.graphql import moduleBase
+from modules.graphql import schemaBase
+from modules.graphql import api_callback
 
-from util.mavlink import get_meta_string
+from modules.base.util.mavlink import get_meta_string
 
 # mavros & ros imports
 import rospy

@@ -4,8 +4,6 @@ import os
 import functools
 import tornado.ioloop
 
-from modules import moduleBase
-
 from graphql import (
     GraphQLArgument,
     GraphQLEnumType,
@@ -21,21 +19,20 @@ from graphql import (
     GraphQLInt,
 )
 from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
-from modules import schemaBase
-from tornadoql.session_control import Session
+
+from modules.graphql import moduleBase
+from modules.graphql import schemaBase
+
+from modules.base.tornadoql.session_control import Session
 
 # Setup monotonic clock
 CLOCK_MONOTONIC_RAW = 4
-
-
 class timespec(ctypes.Structure):
     _fields_ = [("tv_sec", ctypes.c_long), ("tv_nsec", ctypes.c_long)]
-
 
 librt = ctypes.CDLL("librt.so.1", use_errno=True)
 clock_gettime = librt.clock_gettime
 clock_gettime.argtypes = [ctypes.c_int, ctypes.POINTER(timespec)]
-
 
 def monotonic_time():
     t = timespec()
