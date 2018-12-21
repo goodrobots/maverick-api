@@ -6,7 +6,7 @@ if __name__ == "__main__" and __package__ is None:
 
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from util.common import find, file_age_in_seconds
+from modules.base.util.common import find, file_age_in_seconds
 import xml.etree.ElementTree as ET
 import pprint
 import requests

@@ -486,7 +486,7 @@ class MAVROSConnection(moduleBase):
 
     def params(self, meta_string="ArduCopter"):
         # TODO: make vehicle dynamic and chosse between px4 and ardupilot
-        from param.parse_param_xml import get_param_meta
+        from modules.base.param.parse_param_xml import get_param_meta
 
         # from api.schema import Parameters
         from mavros.param import param_get_all

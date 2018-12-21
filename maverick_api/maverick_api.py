@@ -160,7 +160,7 @@ class TornadoQL(tornado.web.Application):
             static_path=APP_STATIC,
             xsrf_cookies=False,
         )
-        TornadoQL.schema = modules.api_schema
+        TornadoQL.schema = modules.graphql.api_schema
         super(TornadoQL, self).__init__(handlers, **settings)
 
 
