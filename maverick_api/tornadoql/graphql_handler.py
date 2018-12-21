@@ -9,6 +9,7 @@ from graphql.error import format_error as format_graphql_error
 from graphql import graphql
 from tornadoql.session_control import Session
 
+
 def error_status(exception):
     if isinstance(exception, web.HTTPError):
         return exception.status_code
@@ -44,6 +45,7 @@ def error_response(func):
             self.write(error_json)
         else:
             return result
+
     return wrapper_error_response
 
 
@@ -61,8 +63,11 @@ class GQLHandler(web.RequestHandler):
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Credentials", "true")
-        self.set_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
-        self.set_header('Access-Control-Allow-Methods', 'HEAD, PUT, POST, GET, OPTIONS')
+        self.set_header(
+            "Access-Control-Allow-Headers",
+            "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+        )
+        self.set_header("Access-Control-Allow-Methods", "HEAD, PUT, POST, GET, OPTIONS")
 
     def options(self):
         self.set_status(204)
@@ -71,13 +76,13 @@ class GQLHandler(web.RequestHandler):
     @Session.ensure_active_session
     @error_response
     async def post(self):
-#         print(self.current_user)
-#         print(self.get_current_user().authenticated)
-#         if not self.current_user.authenticated:
-#             self.current_user.set_authenticated(True)
-#         else:
-#             self.current_user.set_authenticated(False)
-        
+        #         print(self.current_user)
+        #         print(self.get_current_user().authenticated)
+        #         if not self.current_user.authenticated:
+        #             self.current_user.set_authenticated(True)
+        #         else:
+        #             self.current_user.set_authenticated(False)
+
         return await self.handle_graqhql()
 
     async def handle_graqhql(self):
@@ -103,11 +108,12 @@ class GQLHandler(web.RequestHandler):
         print("context", context_value)
         context_value["session"] = self.current_user
         context_value["db_client"] = self.opts["db_client"]
-        result = await graphql(schema = self.schema,
-                               source = graphql_req.get("query"),
-                               root_value = None, # resolve root
-                               context_value = context_value, # resolve info
-                               )
+        result = await graphql(
+            schema=self.schema,
+            source=graphql_req.get("query"),
+            root_value=None,  # resolve root
+            context_value=context_value,  # resolve info
+        )
         print(result)
         return result
 
@@ -130,7 +136,7 @@ class GQLHandler(web.RequestHandler):
     @property
     def context(self):
         return None
-    
+
     @property
     def active_session(self):
         return None

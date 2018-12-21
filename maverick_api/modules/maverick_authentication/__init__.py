@@ -27,12 +27,16 @@ class AuthenticationSchema(schemaBase):
         self.auth_type = GraphQLObjectType(
             "Authentication",
             lambda: {
-                "id": GraphQLField(GraphQLNonNull(GraphQLString), description="The id of user."),
+                "id": GraphQLField(
+                    GraphQLNonNull(GraphQLString), description="The id of user."
+                ),
                 "userName": GraphQLField(
-                    GraphQLString, description="The user name associated with the account."
+                    GraphQLString,
+                    description="The user name associated with the account.",
                 ),
                 "password": GraphQLField(
-                    GraphQLString, description="The hashed password associated with the account."
+                    GraphQLString,
+                    description="The hashed password associated with the account.",
                 ),
             },
         )
@@ -51,12 +55,16 @@ class AuthenticationSchema(schemaBase):
 
         self.m = {
             "Authentication": GraphQLField(
-                self.auth_type, args=self.get_mutation_args(self.auth_type), resolve=self.set_auth
+                self.auth_type,
+                args=self.get_mutation_args(self.auth_type),
+                resolve=self.set_auth,
             )
         }
 
         self.s = {
-            "Authentication": GraphQLField(self.auth_type, subscribe=self.sub_auth, resolve=None)
+            "Authentication": GraphQLField(
+                self.auth_type, subscribe=self.sub_auth, resolve=None
+            )
         }
 
     def get_auth(self, root, info, id):

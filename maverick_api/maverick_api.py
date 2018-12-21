@@ -72,7 +72,7 @@ gen_log.setLevel(logging.DEBUG)
 access_log.setLevel(logging.DEBUG)
 
 # module imports
-import modules # noqa E402
+import modules  # noqa E402
 from modules.maverick_mavros import MAVROSConnection
 from modules.maverick_status import StatusModule
 
@@ -82,14 +82,19 @@ db_client = motor.motor_tornado.MotorClient("localhost", 27017)
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 APP_STATIC = os.path.join(APP_ROOT, "static")
 # TODO: group the settings and make configurable
-SETTINGS = {"static_path": APP_STATIC, "sockets": [], "subscriptions": {}, "db_client":db_client}
+SETTINGS = {
+    "static_path": APP_STATIC,
+    "sockets": [],
+    "subscriptions": {},
+    "db_client": db_client,
+}
 
 
 class GraphQLHandler(GQLHandler):
     def initialize(self, opts):
         super(GQLHandler, self).initialize()
         self.opts = opts
-    
+
     @property
     def schema(self):
         return TornadoQL.schema
@@ -143,20 +148,21 @@ class TornadoQL(tornado.web.Application):
             (r"/graphiql", GraphiQLHandler),
             (r"/schema", SchemaHandler),
         ]
-        
+
         if config["APP_DEBUG"]:
             debug = True
         else:
             debug = False
-            
+
         settings = dict(
-            debug = debug,
+            debug=debug,
             cookie_secret=config["APP_SECRET_KEY"],
             static_path=APP_STATIC,
             xsrf_cookies=False,
         )
         TornadoQL.schema = modules.api_schema
         super(TornadoQL, self).__init__(handlers, **settings)
+
 
 def start_server(config):
     application = TornadoQL(config)
@@ -181,6 +187,7 @@ def main(config):
     app_log.debug("Tornado finished")
     server.stop()
 
+
 def request_server_stop(config):
     # TODO: close all websocket connections (required?)
     ioloop = tornado.ioloop.IOLoop.current()
@@ -201,10 +208,12 @@ class Server(object):
         self.config = self.config.get_config()
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
-        
+
         # setup the connection to ROS
         loop = tornado.ioloop.IOLoop.current()
-        self.mavros_connection = MAVROSConnection(self.config, loop, modules.module_schema)
+        self.mavros_connection = MAVROSConnection(
+            self.config, loop, modules.module_schema
+        )
         self.mavros_thread = threading.Thread(target=self.mavros_connection.run)
         self.mavros_thread.daemon = True
         self.mavros_thread.start()
