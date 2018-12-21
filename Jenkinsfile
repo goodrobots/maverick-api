@@ -9,10 +9,9 @@ pipeline {
                     export LC_ALL=C.UTF-8
                     export LANG=C.UTF-8
                     pipenv install --dev --three
-                    pipenv shell
-                    flake8 --version
-                    black --version
-                    black --check ./maverick_api/
+                    pipenv run flake8 --version
+                    pipenv run black --version
+                    pipenv run black --check ./maverick_api/
                 '''
             }
         }
@@ -20,8 +19,7 @@ pipeline {
             steps {
                 echo 'Testing'
                 sh '''
-                    pipenv shell
-                    black --check ./maverick_api/
+                    pipenv run black --check ./maverick_api/
                 '''
             }
         }
