@@ -117,14 +117,14 @@ class StatusSchema(schemaBase):
 
 
 class StatusModule(moduleBase):
-    def __init__(self, config, loop, modules):
-        super().__init__(config, loop, modules)
+    def __init__(self, loop, module):
+        super().__init__(loop, module)
         self.periodic_callbacks = []
         self.install_periodic_callbacks()
         self.start_periodic_callbacks()
 
     def install_periodic_callbacks(self):
-        callback = functools.partial(self.modules[__name__].get_report, None, None)
+        callback = functools.partial(self.module[__name__].get_report, None, None)
         self.periodic_callbacks.append(
             tornado.ioloop.PeriodicCallback(callback, callback_time=1000, jitter=0.1)
         )

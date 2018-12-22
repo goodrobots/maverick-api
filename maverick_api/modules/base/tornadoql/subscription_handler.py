@@ -133,7 +133,7 @@ class GQLSubscriptionHandler(websocket.WebSocketHandler):
             "context_value": payload.get("context", {}),
         }
         params["context_value"]["session"] = self.current_user
-        params["context_value"]["db_client"] = self.opts["db_client"]
+        #params["context_value"]["db_client"] = self.opts["db_client"]
         return params
 
     # @Session.ensure_active_session

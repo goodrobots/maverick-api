@@ -9,11 +9,10 @@ from graphql.pyutils.event_emitter import EventEmitter
 
 
 class moduleBase(object):
-    def __init__(self, config, loop, modules):
+    def __init__(self, loop, module):
         # Attributes
-        self.config = config
         self.loop = loop
-        self.modules = modules
+        self.module = module
 
 
 class schemaBase(object):

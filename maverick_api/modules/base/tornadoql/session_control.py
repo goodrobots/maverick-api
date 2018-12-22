@@ -111,10 +111,10 @@ class Session(object):
                 # use current_user alias as it is baked into tornado
                 self.current_user = Session(session_id)
                 # connect to the session db
-                db = self.opts["db_client"].session_database
+                # db = self.opts["db_client"].session_database
                 try:
                     self.set_secure_cookie("session", session_id)
-                    print("set secure cookie")
+                    print("setting secure cookie")
                     result = await db.session_collection.insert_one(
                         self.current_user.create_document()
                     )
@@ -124,6 +124,8 @@ class Session(object):
                 except RuntimeError as e:
                     # cannot set secure cookie from a websocket
                     print(e)
+                    return
+                except Exception as e:
                     return
             else:
                 # To save db access we assume the session document exists
