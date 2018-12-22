@@ -87,7 +87,11 @@ class GraphQLSubscriptionHandler(GQLSubscriptionHandler):
 
 class GraphiQLHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render(os.path.join(self.application.settings.get("static_path"), "graphiql.html"))
+        if options.development:
+            self.render(os.path.join(self.application.settings.get("static_path"), "graphiql.html"))
+        else:
+            self.set_status(403)
+        self.finish()
 
 
 class SchemaHandler(tornado.web.RequestHandler):

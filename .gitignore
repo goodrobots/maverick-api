@@ -4,6 +4,8 @@ maverick_api/data/database/*
 maverick_api/modules/custom/*
 !maverick_api/modules/custom/.gitkeep
 
+maverick_api/config/maverick-api.conf
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

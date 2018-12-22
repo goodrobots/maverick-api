@@ -19,6 +19,7 @@ class MavConfig(object):
         define('app_prefix', default='maverick-api/', type=str, help='URL prefix')
         define('app_secretkey', default='super_s3cret', type=str, help='Secret Key')
         define('basedir', default=None, type=str, help='Base Directory, defaults to directory of maverick_api.py script if not set')
+        define('development', default=False, type=bool, help='Turn on development options')
         define('debug', default=False, type=bool, help='Turn on debug mode')
         define('logdir', default="logs/", type=str, help='Log directory')
         define('server_interface', default='0.0.0.0', type=str, help='Interface to listen on: 0.0.0.0 represents all interfaces')

@@ -7,6 +7,9 @@ app_secretkey = 'super_s3cret'
 # Base Directory, defaults to directory of maverick_api.py script if not set or None
 # basedir = None
 
+# Turn on development options - Not safe for deployment
+development = False
+
 # Turn on debug mode
 debug = False
 
