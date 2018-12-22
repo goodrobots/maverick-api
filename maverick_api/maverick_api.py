@@ -13,14 +13,13 @@ __version__ = "0.2"
 # std lib imports
 import logging
 import traceback
-#from logging.handlers import RotatingFileHandler
 import os
 import json
 import sys
 import signal
 import time
 import threading
-from pathlib import Path
+from pathlib import Path, PurePath
 
 # tornado imports
 import tornado.web
@@ -47,57 +46,11 @@ from modules.api.maverick_mavros import MAVROSConnection
 from modules.api.maverick_status import StatusModule
 from modules.api import module_schema, api_schema
 
-
-"""
-# setup logging
-handler = RotatingFileHandler(
-    "tornado.log",
-    mode="a",
-    maxBytes=1 * 1024 * 1024,
-    backupCount=2,
-    encoding=None,
-    delay=0,
-)
-enable_pretty_logging()
-formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
-handler.setFormatter(formatter)
-access_log = logging.getLogger("tornado.access")
-app_log = logging.getLogger("tornado.application")
-gen_log = logging.getLogger("tornado.general")
-app_log.addHandler(handler)
-gen_log.addHandler(handler)
-access_log.addHandler(handler)
-"""
-
-# def exception_handler(type, value, tb):
-#     """Setup exception handler"""
-#     app_log.exception(
-#         "Uncaught exception: {0} - {1}".format(str(value), traceback.print_tb(tb))
-#     )
-
-# Install exception handler
-# sys.excepthook = exception_handler
-
-# TODO: log level set by config
-"""
-app_log.setLevel(logging.INFO)
-gen_log.setLevel(logging.DEBUG)
-access_log.setLevel(logging.DEBUG)
-"""
+from tornado.log import app_log
 
 """
 # setup mongo database
 db_client = motor.motor_tornado.MotorClient("localhost", 27017)
-
-APP_ROOT = os.path.dirname(os.path.abspath(__file__))
-APP_STATIC = os.path.join(APP_ROOT, "static")
-# TODO: group the settings and make configurable
-SETTINGS = {
-    "static_path": APP_STATIC,
-    "sockets": [],
-    "subscriptions": {},
-    "db_client": db_client,
-}
 """
 
 class GraphQLHandler(GQLHandler):
@@ -134,7 +87,7 @@ class GraphQLSubscriptionHandler(GQLSubscriptionHandler):
 
 class GraphiQLHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render(os.path.join(APP_STATIC, "graphiql.html"))
+        self.render(os.path.join(self.application.settings.get("static_path"), "graphiql.html"))
 
 
 class SchemaHandler(tornado.web.RequestHandler):
@@ -168,43 +121,17 @@ class TornadoQL(tornado.web.Application):
         super(TornadoQL, self).__init__(handlers, **settings)
 
 
-def start_server():
-    application = TornadoQL()
-    server = tornado.httpserver.HTTPServer(application)
-    server.listen(
-        port=options.server_port,
-        address=options.server_interface
-    )
-    logging.debug("Starting Wholesale-API server: {0}:{1}/{2}".format(options.server_interface, options.server_port, options.app_prefix))
-    return server
-
-
-def main():
-    server = start_server()
-    tornado.ioloop.IOLoop.current().start()
-    # this function blocks at this point until the server
-    # is asked to exit via request_server_stop()
-    logging.debug("Tornado finished")
-    server.stop()
-
-
-def request_server_stop():
-    # TODO: close all websocket connections (required?)
-    ioloop = tornado.ioloop.IOLoop.current()
-    ioloop.add_callback(ioloop.stop)
-    logging.debug("Asked Tornado to exit")
-
-
 class Server(object):
     def __init__(self):
         self.exit = False
-        self.server_thread = None
+        self.server = None
         self.mavros_connection = None
         self.mavlink_connection = None
 
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
-
+        
+    def initialize(self):
         # setup the connection to ROS
         loop = tornado.ioloop.IOLoop.current()
         self.mavros_connection = MAVROSConnection(loop, module_schema)
@@ -212,7 +139,26 @@ class Server(object):
         self.mavros_thread.daemon = True
         self.mavros_thread.start()
         self.status_module = StatusModule(loop, module_schema)
-        main()
+        
+        application = TornadoQL()
+        self.server = tornado.httpserver.HTTPServer(application)
+        self.server.listen(
+            port=options.server_port,
+            address=options.server_interface
+        )
+        app_log.debug("Starting Maverick API server: {0}:{1}/{2}".format(options.server_interface, options.server_port, options.app_prefix))
+        
+    def serve(self):
+        tornado.ioloop.IOLoop.current().start()
+        # this function blocks at this point until the server
+        # is asked to exit via request_stop()
+        app_log.debug("Tornado finished")
+    
+    def request_stop(self):
+        # TODO: close all websocket connections (required?)
+        ioloop = tornado.ioloop.IOLoop.current()
+        ioloop.add_callback(ioloop.stop)
+        app_log.debug("Asked Tornado to exit")
 
     def exit_gracefully(self, signum, frame):
         """called on sigterm"""
@@ -221,23 +167,23 @@ class Server(object):
             self.mavros_connection.shutdown()
         if self.mavlink_connection:
             self.mavlink_connection.shutdown()
-        if self.server_thread:
-            # attempt to shutdown the tornado server
-            request_server_stop()
-            self.server_thread.join(timeout=4)
-        else:
-            request_server_stop()
+        self.request_stop()
 
 
 if __name__ == "__main__":
+    # Obtain basedir path (must be done from main script)
+    basedir = Path(__file__).resolve().parent
+    
     # Setup config
-    MavConfig('config/maverick-api.conf')
-
-    # Define basedir in options, must be done from main script
-    options.basedir = str(Path(__file__).resolve().parent)
-
+    MavConfig(PurePath(basedir).joinpath('config', 'maverick-api.conf'))
+    
+    # Define basedir in options
+    options.basedir = str(basedir)
+    
     # Setup logging
     MavLogging()
 
     # Instantiate and start api server
-    Server()
+    api = Server()
+    api.initialize()
+    api.serve()
