@@ -1,5 +1,8 @@
-maverick_api/database/*
-!maverick_api/database/.gitkeep
+maverick_api/data/database/*
+!maverick_api/data/database/.gitkeep
+
+maverick_api/modules/custom/*
+!maverick_api/modules/custom.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
