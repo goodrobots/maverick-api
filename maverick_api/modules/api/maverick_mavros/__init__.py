@@ -1,9 +1,9 @@
 import logging
 import time
 
-from modules.graphql import moduleBase
-from modules.graphql import schemaBase
-from modules.graphql import api_callback
+from modules.api import moduleBase
+from modules.api import schemaBase
+from modules.api import api_callback
 
 from modules.base.util.mavlink import get_meta_string
 
