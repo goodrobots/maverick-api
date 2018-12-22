@@ -112,8 +112,8 @@ class GraphQLHandler(GQLHandler):
 class GraphQLSubscriptionHandler(GQLSubscriptionHandler):
     def initialize(self):
         super(GraphQLSubscriptionHandler, self).initialize()
-        self.sockets = []
-        self.subscriptions = {}
+        self.handler_sockets = []
+        self.handler_subscriptions = {}
 
     @property
     def schema(self):
@@ -121,15 +121,15 @@ class GraphQLSubscriptionHandler(GQLSubscriptionHandler):
 
     @property
     def sockets(self):
-        return self.sockets
+        return self.handler_sockets
 
     @property
     def subscriptions(self):
-        return self.subscriptions.get(self, {})
+        return self.handler_subscriptions.get(self, {})
 
     @subscriptions.setter
     def subscriptions(self, subscriptions):
-        self.subscriptions[self] = subscriptions
+        self.handler_subscriptions[self] = subscriptions
 
 
 class GraphiQLHandler(tornado.web.RequestHandler):

@@ -108,7 +108,7 @@ class GQLHandler(web.RequestHandler):
         context_value = graphql_req.get("context", {})
         print("context", context_value)
         context_value["session"] = self.current_user
-        context_value["db_client"] = self.opts["db_client"]
+        #context_value["db_client"] = self.opts["db_client"]
         result = await graphql(
             schema=self.schema,
             source=graphql_req.get("query"),
