@@ -1,11 +1,11 @@
 import logging
 import time
 
-from modules import moduleBase
-from modules import schemaBase
-from modules import api_callback
+from modules.graphql import moduleBase
+from modules.graphql import schemaBase
+from modules.graphql import api_callback
 
-from util.mavlink import get_meta_string
+from modules.base.util.mavlink import get_meta_string
 
 # mavros & ros imports
 import rospy
@@ -486,7 +486,7 @@ class MAVROSConnection(moduleBase):
 
     def params(self, meta_string="ArduCopter"):
         # TODO: make vehicle dynamic and chosse between px4 and ardupilot
-        from param.parse_param_xml import get_param_meta
+        from modules.base.param.parse_param_xml import get_param_meta
 
         # from api.schema import Parameters
         from mavros.param import param_get_all

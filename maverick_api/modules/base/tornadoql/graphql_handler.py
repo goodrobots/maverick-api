@@ -7,7 +7,8 @@ from tornado.log import app_log
 from graphql.error import GraphQLError
 from graphql.error import format_error as format_graphql_error
 from graphql import graphql
-from tornadoql.session_control import Session
+
+from .session_control import Session
 
 
 def error_status(exception):

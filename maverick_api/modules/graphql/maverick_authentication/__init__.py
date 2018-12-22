@@ -13,8 +13,9 @@ from graphql import (
     GraphQLInt,
 )
 from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
-from modules import schemaBase
-from tornadoql.session_control import Session
+
+from modules.graphql import schemaBase
+from modules.base.tornadoql.session_control import Session
 
 user1 = dict(id="1", userName="sam", password="password1")
 user2 = dict(id="2", userName="ben", password="password2")
