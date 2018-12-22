@@ -43,9 +43,9 @@ from modules.base.setup.config import MavConfig
 from modules.base.setup.logging import MavLogging
 
 #import modules  # noqa E402
-from modules.graphql.maverick_mavros import MAVROSConnection
-from modules.graphql.maverick_status import StatusModule
-from modules.graphql import module_schema, api_schema
+from modules.api.maverick_mavros import MAVROSConnection
+from modules.api.maverick_status import StatusModule
+from modules.api import module_schema, api_schema
 
 
 """
