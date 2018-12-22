@@ -13,18 +13,19 @@ __version__ = "0.2"
 # std lib imports
 import logging
 import traceback
-from logging.handlers import RotatingFileHandler
+#from logging.handlers import RotatingFileHandler
 import os
 import json
 import sys
 import signal
 import time
 import threading
+from pathlib import Path
 
 # tornado imports
 import tornado.web
 import tornado.ioloop
-from tornado.log import enable_pretty_logging
+from tornado.options import options
 
 # tornadoql imports
 from modules.base.tornadoql.graphql_handler import GQLHandler
@@ -38,10 +39,16 @@ from graphql import get_introspection_query
 import motor
 
 # module imports
-import modules  # noqa E402
+from modules.base.setup.config import MavConfig
+from modules.base.setup.logging import MavLogging
+
+#import modules  # noqa E402
 from modules.graphql.maverick_mavros import MAVROSConnection
 from modules.graphql.maverick_status import StatusModule
+from modules.graphql import module_schema, api_schema
 
+
+"""
 # setup logging
 handler = RotatingFileHandler(
     "tornado.log",
@@ -60,7 +67,7 @@ gen_log = logging.getLogger("tornado.general")
 app_log.addHandler(handler)
 gen_log.addHandler(handler)
 access_log.addHandler(handler)
-
+"""
 
 # def exception_handler(type, value, tb):
 #     """Setup exception handler"""
@@ -72,10 +79,13 @@ access_log.addHandler(handler)
 # sys.excepthook = exception_handler
 
 # TODO: log level set by config
+"""
 app_log.setLevel(logging.INFO)
 gen_log.setLevel(logging.DEBUG)
 access_log.setLevel(logging.DEBUG)
+"""
 
+"""
 # setup mongo database
 db_client = motor.motor_tornado.MotorClient("localhost", 27017)
 
@@ -88,12 +98,11 @@ SETTINGS = {
     "subscriptions": {},
     "db_client": db_client,
 }
-
+"""
 
 class GraphQLHandler(GQLHandler):
-    def initialize(self, opts):
+    def initialize(self):
         super(GQLHandler, self).initialize()
-        self.opts = opts
 
     @property
     def schema(self):
@@ -101,9 +110,10 @@ class GraphQLHandler(GQLHandler):
 
 
 class GraphQLSubscriptionHandler(GQLSubscriptionHandler):
-    def initialize(self, opts):
+    def initialize(self):
         super(GraphQLSubscriptionHandler, self).initialize()
-        self.opts = opts
+        self.sockets = []
+        self.subscriptions = {}
 
     @property
     def schema(self):
@@ -111,15 +121,15 @@ class GraphQLSubscriptionHandler(GQLSubscriptionHandler):
 
     @property
     def sockets(self):
-        return self.opts["sockets"]
+        return self.sockets
 
     @property
     def subscriptions(self):
-        return self.opts["subscriptions"].get(self, {})
+        return self.subscriptions.get(self, {})
 
     @subscriptions.setter
     def subscriptions(self, subscriptions):
-        self.opts["subscriptions"][self] = subscriptions
+        self.subscriptions[self] = subscriptions
 
 
 class GraphiQLHandler(tornado.web.RequestHandler):
@@ -139,86 +149,70 @@ class SchemaHandler(tornado.web.RequestHandler):
 
 
 class TornadoQL(tornado.web.Application):
-    def __init__(self, config):
-        # TODO: roll settings into config
-        args = dict(opts=SETTINGS)
+    def __init__(self):
         handlers = [
-            (r"/subscriptions", GraphQLSubscriptionHandler, args),
-            (r"/graphql", GraphQLHandler, args),
+            (r"/subscriptions", GraphQLSubscriptionHandler),
+            (r"/graphql", GraphQLHandler),
             (r"/graphiql", GraphiQLHandler),
             (r"/schema", SchemaHandler),
         ]
 
-        if config["APP_DEBUG"]:
-            debug = True
-        else:
-            debug = False
-
         settings = dict(
-            debug=debug,
-            cookie_secret=config["APP_SECRET_KEY"],
-            static_path=APP_STATIC,
+            debug = options.debug,
+            cookie_secret = options.app_secretkey,
+            static_path = os.path.join(options.basedir, "data", "static"),
             xsrf_cookies=False,
         )
-        TornadoQL.schema = modules.graphql.api_schema
+
+        TornadoQL.schema = api_schema
         super(TornadoQL, self).__init__(handlers, **settings)
 
 
-def start_server(config):
-    application = TornadoQL(config)
+def start_server():
+    application = TornadoQL()
     server = tornado.httpserver.HTTPServer(application)
     server.listen(
-        port=int(config["SERVER_PORT"]), address=str(config["SERVER_INTERFACE"])
+        port=options.server_port,
+        address=options.server_interface
     )
-    if config["APP_DEBUG"]:
-        app_log.debug(
-            "Starting Wholesale-API server: {0}:{1}/{2}".format(
-                config["SERVER_INTERFACE"], config["SERVER_PORT"], config["APP_PREFIX"]
-            )
-        )
+    logging.debug("Starting Wholesale-API server: {0}:{1}/{2}".format(options.server_interface, options.server_port, options.app_prefix))
     return server
 
 
-def main(config):
-    server = start_server(config)
+def main():
+    server = start_server()
     tornado.ioloop.IOLoop.current().start()
     # this function blocks at this point until the server
     # is asked to exit via request_server_stop()
-    app_log.debug("Tornado finished")
+    logging.debug("Tornado finished")
     server.stop()
 
 
-def request_server_stop(config):
+def request_server_stop():
     # TODO: close all websocket connections (required?)
     ioloop = tornado.ioloop.IOLoop.current()
     ioloop.add_callback(ioloop.stop)
-    app_log.debug("Asked Tornado to exit")
+    logging.debug("Asked Tornado to exit")
 
 
 class Server(object):
-    def __init__(self, optsargs):
+    def __init__(self):
         self.exit = False
-        (self.opts, self.args) = optsargs
         self.server_thread = None
         self.mavros_connection = None
         self.mavlink_connection = None
 
-        # TODO: fix this config mess...
-        self.config = Configuration(self.opts.configuration, "config/config.json")
-        self.config = self.config.get_config()
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
 
         # setup the connection to ROS
         loop = tornado.ioloop.IOLoop.current()
-        self.mavros_connection = MAVROSConnection(
-            self.config, loop, modules.graphql.module_schema
-        )
+        self.mavros_connection = MAVROSConnection(loop, module_schema)
         self.mavros_thread = threading.Thread(target=self.mavros_connection.run)
         self.mavros_thread.daemon = True
         self.mavros_thread.start()
-        self.status_module = StatusModule(self.config, loop, modules.graphql.module_schema)
-        main(self.config)
+        self.status_module = StatusModule(loop, module_schema)
+        main()
 
     def exit_gracefully(self, signum, frame):
         """called on sigterm"""
@@ -229,25 +223,21 @@ class Server(object):
             self.mavlink_connection.shutdown()
         if self.server_thread:
             # attempt to shutdown the tornado server
-            request_server_stop(self.config)
+            request_server_stop()
             self.server_thread.join(timeout=4)
         else:
-            request_server_stop(self.config)
+            request_server_stop()
 
 
 if __name__ == "__main__":
-    from optparse import OptionParser
-    from modules.base.setup.config import Configuration
+    # Setup config
+    MavConfig('config/maverick-api.conf')
 
-    parser = OptionParser("maverick-api [options]")
+    # Define basedir in options, must be done from main script
+    options.basedir = str(Path(__file__).resolve().parent)
 
-    parser.add_option(
-        "--configuration",
-        dest="configuration",
-        type="str",
-        help="configuration file name",
-        default="config.json",
-    )
-    optsargs = parser.parse_args()
-    (opts, args) = optsargs
-    Server(optsargs)
+    # Setup logging
+    MavLogging()
+
+    # Instantiate and start api server
+    Server()

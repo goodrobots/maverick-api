@@ -22,7 +22,7 @@ from mavros_maverick.srv import VehicleInfo
 from mavros.param import param_ret_value
 from mavros import mission
 
-app_log = logging.getLogger("tornado.application")
+from tornado.options import options
 
 # graphql imports
 from graphql import (
@@ -371,8 +371,8 @@ class MAVROSSchema(schemaBase):
 
 
 class MAVROSConnection(moduleBase):
-    def __init__(self, config, loop, modules):
-        super().__init__(config, loop, modules)
+    def __init__(self, loop, module):
+        super().__init__(loop, module)
         # Attributes
         self.info = None
         self.meta_string = ""  # meta string used to load the correct params
@@ -408,11 +408,11 @@ class MAVROSConnection(moduleBase):
                         message_rate=stream_rate,
                         on_off=(stream_rate != 0),
                     )
-                    app_log.debug(
+                    logging.debug(
                         "Set stream {} rate {}".format(stream_id, stream_rate)
                     )
                 except rospy.ServiceException as ex:
-                    app_log.error(
+                    logging.error(
                         "An error occurred while setting vehicle stream rates via ROS: {0}".format(
                             ex
                         )
@@ -453,10 +453,10 @@ class MAVROSConnection(moduleBase):
             self.info = get_vehicle_info()
             print(self.info)
             self.meta_string = get_meta_string(self.info)
-            app_log.debug(self.info)
-            app_log.info(self.meta_string)
+            logging.debug(self.info)
+            logging.info(self.meta_string)
         except rospy.ServiceException as ex:
-            app_log.error(
+            logging.error(
                 "An error occurred while retrieving vehicle info via ROS: {0}".format(
                     ex
                 )
@@ -482,7 +482,7 @@ class MAVROSConnection(moduleBase):
     def topics(self):
         topics = rospy.get_published_topics()
         for topic in topics:
-            app_log.info(topic)
+            logging.info(topic)
 
     def params(self, meta_string="ArduCopter"):
         # TODO: make vehicle dynamic and chosse between px4 and ardupilot
@@ -494,7 +494,7 @@ class MAVROSConnection(moduleBase):
         # TODO: UPDATE CALLBACK
         # Parameters.callback = self.param_set_callback
         param_received, param_list = param_get_all(False)
-        app_log.debug("Parameters received: {0}".format(param_received))
+        logging.debug("Parameters received: {0}".format(param_received))
 
         param_meta_vehicle = {}
         for param in param_list:
@@ -504,7 +504,7 @@ class MAVROSConnection(moduleBase):
             param_meta_vehicle[param.param_id] = {
                 "group": param.param_id.split("_")[0].strip().rstrip("_").upper()
             }
-            app_log.debug(
+            logging.debug(
                 "param get {0}:{1}  {2}".format(
                     param.param_id, param.param_value, type(param.param_value)
                 )
@@ -512,13 +512,13 @@ class MAVROSConnection(moduleBase):
 
         # TODO: handle IOError when mavlink-router is not connected to the AP but mavros is running
 
-        if self.config["APP_DEBUG"]:
+        if options.debug:
             start_time = time.time()
-        app_log.debug("starting parameter meta fetch")
+        logging.debug("starting parameter meta fetch")
         param_meta_server = get_param_meta(meta_string)
-        app_log.debug("finished parameter meta fetch")
-        if self.config["APP_DEBUG"]:
-            app_log.debug(
+        logging.debug("finished parameter meta fetch")
+        if options.debug:
+            logging.debug(
                 "parameter meta fetch took {0}s".format(time.time() - start_time)
             )
         # Parameters.meta = merge_two_dicts(param_meta_vehicle, param_meta_server)
@@ -543,10 +543,10 @@ class MAVROSConnection(moduleBase):
 
         # # check to see if the set value matches the provided value
         # ret_param = param_get(param_data['id'])
-        app_log.debug(
+        logging.debug(
             "param set {0}:{1}  {2}".format(param_data["id"], param_data["value"], ret)
         )
-        # app_log.debug('{0}'.format(ret_param))
+        # logging.debug('{0}'.format(ret_param))
         return ret
 
     def state_callback(self, data):
@@ -561,7 +561,7 @@ class MAVROSConnection(moduleBase):
             "mode": data.mode,
             "armed": data.armed,
         }
-        api_callback(self.loop, self.modules[__name__].set_state_message, **kwargs)
+        api_callback(self.loop, self.module[__name__].set_state_message, **kwargs)
 
     def vfr_hud_callback(self, data):
         kwargs = {
@@ -576,7 +576,7 @@ class MAVROSConnection(moduleBase):
             "altitude": data.altitude,
             "climb": data.climb,
         }
-        api_callback(self.loop, self.modules[__name__].set_vfr_hud_message, **kwargs)
+        api_callback(self.loop, self.module[__name__].set_vfr_hud_message, **kwargs)
 
     def nav_sat_fix_callback(self, data):
         kwargs = {
@@ -592,7 +592,7 @@ class MAVROSConnection(moduleBase):
             "position_covariance_type": data.position_covariance_type,
         }
         api_callback(
-            self.loop, self.modules[__name__].set_nav_sat_fix_message, **kwargs
+            self.loop, self.module[__name__].set_nav_sat_fix_message, **kwargs
         )
 
     def pose_stamped_callback(self, data):
@@ -610,7 +610,7 @@ class MAVROSConnection(moduleBase):
             "pose_orientation_w": data.pose.orientation.w,
         }
         api_callback(
-            self.loop, self.modules[__name__].set_pose_stamped_message, **kwargs
+            self.loop, self.module[__name__].set_pose_stamped_message, **kwargs
         )
 
     def imu_callback(self, data):
@@ -630,12 +630,12 @@ class MAVROSConnection(moduleBase):
             "linear_acceleration_y": data.linear_acceleration.y,
             "linear_acceleration_z": data.linear_acceleration.z,
         }
-        api_callback(self.loop, self.modules[__name__].set_imu_message, **kwargs)
+        api_callback(self.loop, self.module[__name__].set_imu_message, **kwargs)
 
     def param_callback(self, data):
-        # app_log.debug('param callback data: {0}  value type: {1} '.format(data, type(data.value)))
+        # logging.debug('param callback data: {0}  value type: {1} '.format(data, type(data.value)))
         kwargs = {"id": data.param_id, "value": param_ret_value(data)}
-        # api_callback(self.loop, self.modules[__name__].set_param, **kwargs)
+        # api_callback(self.loop, self.module[__name__].set_param, **kwargs)
         # print(kwargs)
 
     def mission_callback(self, data):
@@ -654,12 +654,12 @@ class MAVROSConnection(moduleBase):
                 "longitude": waypoint.y_long,
                 "altitude": waypoint.z_alt,
             }
-            # api_callback(self.loop, self.modules[__name__].set_mission, **kwargs)
+            # api_callback(self.loop, self.module[__name__].set_mission, **kwargs)
             # print(kwargs)
 
     def statustext_callback(self, data):
         if data.name == "/mavros":
-            app_log.debug("statustext: {0}:{1}".format(data.level, data.msg))
+            logging.debug("statustext: {0}:{1}".format(data.level, data.msg))
             kwargs = {
                 "seq": data.header.seq,
                 "secs": data.header.stamp.secs,
@@ -669,5 +669,5 @@ class MAVROSConnection(moduleBase):
                 "message": data.msg,
             }
             api_callback(
-                self.loop, self.modules[__name__].set_status_text_message, **kwargs
+                self.loop, self.module[__name__].set_status_text_message, **kwargs
             )
