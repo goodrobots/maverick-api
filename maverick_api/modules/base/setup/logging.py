@@ -18,16 +18,43 @@ class MavLogging(object):
         options.log_file_prefix = os.path.join(options.logdir, 'maverick-api.log')
 
         access_log = logging.getLogger('tornado.access')
-        acc_handler = logging.FileHandler(os.path.join(options.logdir, 'access.log'))
+        acc_handler = logging.handlers.RotatingFileHandler(
+                                    os.path.join(options.logdir, 'access.log'),
+                                    mode="a",
+                                    maxBytes=1 * 1024 * 1024,
+                                    backupCount=2,
+                                    encoding=None,
+                                    delay=0,
+                                    )
+        acc_handler.setFormatter(LogFormatter(color=False, fmt='%(asctime)s.%(msecs)03d %(levelname)s %(message)s', datefmt='%Y-%m-%d,%H:%M:%S'))
         access_log.addHandler(acc_handler)
 
-        app_log = logging.getLogger('tornado.application')
+        application_log = logging.getLogger('tornado.application')
         channel = logging.StreamHandler()
-        channel.setFormatter(LogFormatter(color=True, fmt='%(asctime)s.%(msecs)03d', datefmt='%Y-%m-%d,%H:%M:%S'))
-        app_log.addHandler(channel)
-        app_handler = logging.FileHandler(options.log_file_prefix)
-        app_handler.setFormatter(LogFormatter(color=False, fmt='%(asctime)s.%(msecs)03d', datefmt='%Y-%m-%d,%H:%M:%S'))
-        app_log.addHandler(app_handler)
+        channel.setFormatter(LogFormatter(color=True, fmt='%(asctime)s.%(msecs)03d %(levelname)s %(message)s', datefmt='%Y-%m-%d,%H:%M:%S'))
+        application_log.addHandler(channel)
+        app_handler = logging.handlers.RotatingFileHandler(
+                                                    options.log_file_prefix,
+                                                    mode="a",
+                                                    maxBytes=1 * 1024 * 1024,
+                                                    backupCount=2,
+                                                    encoding=None,
+                                                    delay=0,
+                                                    )
+        app_handler.setFormatter(LogFormatter(color=False, fmt='%(asctime)s.%(msecs)03d %(levelname)s %(message)s', datefmt='%Y-%m-%d,%H:%M:%S'))
+        application_log.addHandler(app_handler)
+        
+        general_log = logging.getLogger('tornado.general')
+        gen_handler = logging.handlers.RotatingFileHandler(
+                                            os.path.join(options.logdir, 'general.log'),
+                                            mode="a",
+                                            maxBytes=1 * 1024 * 1024,
+                                            backupCount=2,
+                                            encoding=None,
+                                            delay=0,
+                                            )
+        gen_handler.setFormatter(LogFormatter(color=False, fmt='%(asctime)s.%(msecs)03d %(levelname)s %(message)s', datefmt='%Y-%m-%d,%H:%M:%S'))
+        general_log.addHandler(gen_handler)
 
         # Update log level depending on 'debug' value
         if options.debug == True:
