@@ -5052,8 +5052,6 @@
 </param>
 </parameters>
 <parameters name="INS_">
-<param documentation="unused" humanName="IMU Product ID" name="INS_PRODUCT_ID" user="Advanced">
-</param>
 <param documentation="Gyro sensor offsets of X axis. This is setup on each boot during gyro calibrations" humanName="Gyro offsets of X axis" name="INS_GYROFFS_X" user="Advanced">
 <field name="Units">rad/s</field>
 <field name="UnitText">radians per second</field>

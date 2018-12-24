@@ -15,8 +15,6 @@ class MavLogging(object):
         functions.mkdirs(options.logdir)
 
     def setup_logging(self):
-        options.log_file_prefix = os.path.join(options.logdir, 'maverick-api.log')
-
         access_log = logging.getLogger('tornado.access')
         acc_handler = logging.handlers.RotatingFileHandler(
                                     os.path.join(options.logdir, 'access.log'),
@@ -34,7 +32,7 @@ class MavLogging(object):
         channel.setFormatter(LogFormatter(color=True, fmt='%(asctime)s.%(msecs)03d %(levelname)s %(message)s', datefmt='%Y-%m-%d,%H:%M:%S'))
         application_log.addHandler(channel)
         app_handler = logging.handlers.RotatingFileHandler(
-                                                    options.log_file_prefix,
+                                                    os.path.join(options.logdir, 'api.log'),
                                                     mode="a",
                                                     maxBytes=1 * 1024 * 1024,
                                                     backupCount=2,

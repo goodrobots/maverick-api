@@ -27,12 +27,13 @@ class MavConfig(object):
 
     # Parse and load config options
     def load_options(self):
+        options.logging = None
         try:
-            options.parse_config_file(self.config_file)
+            options.parse_config_file(self.config_file, final=False)
         except FileNotFoundError as e:
             print("Error, config file {} not found".format(self.config_file))
             sys.exit(1)
-        #tornado.options.parse_command_line()
+        options.parse_command_line()
 
     def autoreload_config_file(self):
         logging.debug("Starting autoreload_config_file")
