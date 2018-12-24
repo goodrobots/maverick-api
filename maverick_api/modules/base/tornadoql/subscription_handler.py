@@ -9,7 +9,9 @@ from graphql.language import parse
 import tornado.ioloop
 from urllib.parse import urlparse
 
-from .session_control import Session
+from .session_control import GraphQLSession
+
+from modules.api import api_schema
 
 GRAPHQL_WS = "graphql-ws"
 WS_PROTOCOL = GRAPHQL_WS
@@ -63,22 +65,30 @@ class SubscriptionObserver(object):
         self.send_error(self.op_id, error)
 
 
-class GQLSubscriptionHandler(websocket.WebSocketHandler):
+class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
+    def initialize(self):
+        self.handler_sockets = []
+        self.handler_subscriptions = {}
+
     @property
     def schema(self):
-        raise NotImplementedError("schema must be provided")
+        # raise NotImplementedError("schema must be provided")
+        return api_schema
 
     @property
     def sockets(self):
-        raise NotImplementedError("sockets() must be implemented")
+        # raise NotImplementedError("sockets() must be implemented")
+        return self.handler_sockets
 
     @property
     def subscriptions(self):
-        raise NotImplementedError("subscriptions() must be implemented")
+        # raise NotImplementedError("subscriptions() must be implemented")
+        return self.handler_subscriptions.get(self, {})
 
     @subscriptions.setter
     def subscriptions(self, subscriptions):
-        raise NotImplementedError("subscriptions() must be implemented")
+        # raise NotImplementedError("subscriptions() must be implemented")
+        self.handler_subscriptions[self] = subscriptions
 
     def select_subprotocol(self, subprotocols):
         return WS_PROTOCOL
