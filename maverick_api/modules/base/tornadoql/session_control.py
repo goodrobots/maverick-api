@@ -7,7 +7,7 @@ import os
 import motor  # async access to mongo database
 
 
-class Session(object):
+class GraphQLSession(object):
     def __init__(self, session_id):
         self.session_id = session_id
         self.user_authenticated = True
@@ -109,7 +109,7 @@ class Session(object):
                 # create a new session
                 session_id = uuid4().__str__()
                 # use current_user alias as it is baked into tornado
-                self.current_user = Session(session_id)
+                self.current_user = GraphQLSession(session_id)
                 # connect to the session db
                 # db = self.opts["db_client"].session_database
                 try:
@@ -130,7 +130,7 @@ class Session(object):
             else:
                 # To save db access we assume the session document exists
                 # FIXME: lookup and load session if required
-                self.current_user = Session(session_id)
+                self.current_user = GraphQLSession(session_id)
             return await func(self, *args, **kwargs)
 
         return wrapper_active_session

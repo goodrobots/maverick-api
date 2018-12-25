@@ -15,7 +15,7 @@ from graphql import (
 from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
 
 from modules.api import schemaBase
-from modules.base.tornadoql.session_control import Session
+from modules.base.tornadoql.session_control import GraphQLSession
 
 user1 = dict(id="1", userName="sam", password="password1")
 user2 = dict(id="2", userName="ben", password="password2")
@@ -72,7 +72,7 @@ class AuthenticationSchema(schemaBase):
         """Authentication query handler"""
         return auth_data.get(id)
 
-    @Session.authenticated
+    @GraphQLSession.authenticated
     async def set_auth(self, root, info, **kwargs):
         """Authentication mutation handler"""
         usr = auth_data.get(kwargs["id"])

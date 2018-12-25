@@ -12,118 +12,25 @@ __version__ = "0.2"
 
 # std lib imports
 import logging
-import traceback
 import os
-import json
 import sys
 import signal
-import time
 import threading
 from pathlib import Path, PurePath
 
 # tornado imports
-import tornado.web
 import tornado.ioloop
 from tornado.options import options
-
-# tornadoql imports
-from modules.base.tornadoql.graphql_handler import GQLHandler
-from modules.base.tornadoql.subscription_handler import GQLSubscriptionHandler
-
-# graphql imports
-from graphql import graphql
-from graphql import get_introspection_query
-
-# database imports
-import motor
 
 # module imports
 from modules.base.setup.config import MavConfig
 from modules.base.setup.logging import MavLogging
+from modules.base.tornadoql.tornadoql import TornadoQL
 
 #import modules  # noqa E402
 from modules.api.maverick_mavros import MAVROSConnection
 from modules.api.maverick_status import StatusModule
-from modules.api import module_schema, api_schema
-
-from tornado.log import app_log
-
-"""
-# setup mongo database
-db_client = motor.motor_tornado.MotorClient("localhost", 27017)
-"""
-
-class GraphQLHandler(GQLHandler):
-    def initialize(self):
-        super(GQLHandler, self).initialize()
-
-    @property
-    def schema(self):
-        return TornadoQL.schema
-
-
-class GraphQLSubscriptionHandler(GQLSubscriptionHandler):
-    def initialize(self):
-        super(GraphQLSubscriptionHandler, self).initialize()
-        self.handler_sockets = []
-        self.handler_subscriptions = {}
-
-    @property
-    def schema(self):
-        return TornadoQL.schema
-
-    @property
-    def sockets(self):
-        return self.handler_sockets
-
-    @property
-    def subscriptions(self):
-        return self.handler_subscriptions.get(self, {})
-
-    @subscriptions.setter
-    def subscriptions(self, subscriptions):
-        self.handler_subscriptions[self] = subscriptions
-
-
-class GraphiQLHandler(tornado.web.RequestHandler):
-    def get(self):
-        if options.development:
-            self.render(os.path.join(self.application.settings.get("static_path"), "graphiql.html"))
-        else:
-            self.set_status(403)
-        self.finish()
-
-
-class SchemaHandler(tornado.web.RequestHandler):
-    """introspection of the api schema"""
-
-    async def get(self):
-        query = get_introspection_query(descriptions=True)
-        introspection_query_result = await graphql(TornadoQL.schema, query)
-        introspection_dict = introspection_query_result.data
-        self.write(json.dumps(introspection_dict, indent=4, sort_keys=True))
-        self.finish()
-
-
-class TornadoQL(tornado.web.Application):
-    def __init__(self):
-        handlers = [
-            (r"/subscriptions", GraphQLSubscriptionHandler),
-            (r"/graphql", GraphQLHandler),
-            (r"/graphiql", GraphiQLHandler),
-            (r"/schema", SchemaHandler),
-        ]
-
-        settings = dict(
-            debug = options.debug,
-            cookie_secret = options.app_secretkey,
-            static_path = os.path.join(options.basedir, "data", "static"),
-            xsrf_cookies=False,
-        )
-
-        TornadoQL.schema = api_schema
-        super(TornadoQL, self).__init__(handlers, **settings)
-
+from modules.api import module_schema
 
 class Server(object):
     def __init__(self):
@@ -150,19 +57,19 @@ class Server(object):
             port=options.server_port,
             address=options.server_interface
         )
-        app_log.debug("Starting Maverick API server: {0}:{1}/{2}".format(options.server_interface, options.server_port, options.app_prefix))
+        logging.debug("Starting Maverick API server: {0}:{1}/{2}".format(options.server_interface, options.server_port, options.app_prefix))
         
     def serve(self):
         tornado.ioloop.IOLoop.current().start()
         # this function blocks at this point until the server
         # is asked to exit via request_stop()
-        app_log.debug("Tornado finished")
+        logging.debug("Tornado finished")
     
     def request_stop(self):
         # TODO: close all websocket connections (required?)
         ioloop = tornado.ioloop.IOLoop.current()
         ioloop.add_callback(ioloop.stop)
-        app_log.debug("Asked Tornado to exit")
+        logging.debug("Asked Tornado to exit")
 
     def exit_gracefully(self, signum, frame):
         """called on sigterm"""

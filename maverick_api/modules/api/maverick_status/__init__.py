@@ -23,8 +23,6 @@ from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterato
 from modules.api import moduleBase
 from modules.api import schemaBase
 
-from modules.base.tornadoql.session_control import Session
-
 # Setup monotonic clock
 CLOCK_MONOTONIC_RAW = 4
 class timespec(ctypes.Structure):

@@ -8,8 +8,9 @@ from graphql.error import GraphQLError
 from graphql.error import format_error as format_graphql_error
 from graphql import graphql
 
-from .session_control import Session
+from .session_control import GraphQLSession
 
+from modules.api import api_schema
 
 def error_status(exception):
     if isinstance(exception, web.HTTPError):
@@ -60,7 +61,7 @@ class ExecutionError(Exception):
         self.message = "\n".join(self.errors)
 
 
-class GQLHandler(web.RequestHandler):
+class GraphQLHandler(web.RequestHandler):
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Credentials", "true")
@@ -74,7 +75,7 @@ class GQLHandler(web.RequestHandler):
         self.set_status(204)
         self.finish()
 
-    @Session.ensure_active_session
+    @GraphQLSession.ensure_active_session
     @error_response
     async def post(self):
         #         print(self.current_user)
@@ -128,7 +129,8 @@ class GQLHandler(web.RequestHandler):
 
     @property
     def schema(self):
-        raise NotImplementedError("schema must be provided")
+        # raise NotImplementedError("schema must be provided")
+        return api_schema
 
     @property
     def middleware(self):
