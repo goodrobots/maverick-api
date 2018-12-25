@@ -6,6 +6,8 @@ maverick_api/modules/custom/*
 
 maverick_api/config/maverick-api.conf
 
+maverick_api/data/parameters/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
