@@ -6,7 +6,9 @@ if __name__ == "__main__" and __package__ is None:
 
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from modules.base.util.functions import find, file_age_in_seconds
+from tornado.options import options
+
+from modules.base.util.functions import find, file_age_in_seconds, mkdirs
 import xml.etree.ElementTree as ET
 import pprint
 import requests
@@ -47,7 +49,8 @@ def get_param_meta(vehicle, remote=True, force_download=False, max_age=60 * 60):
             remote = False  # PX4 does not support remote download of param meta
     if remote:
         # check to see if we have a recent file from the server
-        dir_path = os.path.dirname(os.path.realpath(__file__))
+        dir_path = os.path.join(options.basedir, "data", "parameters")
+        mkdirs(dir_path)
         file_path = os.path.join(dir_path, "{0}.xml".format(vehicle))
         if not test_file_age(file_path, max_age) or force_download:
             url = get_ardupilot_url(vehicle)
@@ -77,12 +80,10 @@ def get_param_meta(vehicle, remote=True, force_download=False, max_age=60 * 60):
         return extract_param_meta_from_tree(tree, vehicle)
 
 
-def save_param_meta(tree, file_name, dir_path=None):
+def save_param_meta(tree, file_name, dir_path=os.path.join(options.basedir, "data", "parameters")):
     """Write a tree structure to a local .xml file"""
     if tree is None:
         return False
-    if not dir_path:
-        dir_path = os.path.dirname(os.path.realpath(__file__))
     file_path = os.path.join(dir_path, "{0}.xml".format(file_name))
     param_meta_data = ET.tostring(tree, encoding="unicode")
     print("Saving meta to {0}".format(file_path))
@@ -109,11 +110,9 @@ def download_param_meta(
         return tree
 
 
-def load_param_meta(file_name, dir_path=None):
+def load_param_meta(file_name, dir_path=os.path.join(options.basedir, "data", "parameters")):
     """Load a param meta .xml file and return the tree structure"""
     tree = None
-    if not dir_path:
-        dir_path = os.path.dirname(os.path.realpath(__file__))
     file_path = os.path.join(dir_path, "{0}.xml".format(file_name))
     print("Loading meta from {0}".format(file_path))
     try:
