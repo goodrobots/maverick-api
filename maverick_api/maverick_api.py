@@ -28,8 +28,8 @@ from modules.base.setup.logging import MavLogging
 from modules.base.tornadoql.tornadoql import TornadoQL
 
 #import modules  # noqa E402
-from modules.api.maverick_mavros import MAVROSConnection
-from modules.api.maverick_status import StatusModule
+from modules.api.mavros import MAVROSConnection
+from modules.api.status import StatusModule
 from modules.api import module_schema
 
 class Server(object):
