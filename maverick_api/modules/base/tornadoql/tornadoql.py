@@ -9,6 +9,7 @@ from modules.base.tornadoql.schema_handler import SchemaHandler
 import tornado.web
 from tornado.options import options
 
+
 class TornadoQL(tornado.web.Application):
     def __init__(self):
         handlers = [
@@ -19,9 +20,9 @@ class TornadoQL(tornado.web.Application):
         ]
 
         settings = dict(
-            debug = options.debug,
-            cookie_secret = options.app_secretkey,
-            static_path = os.path.join(options.basedir, "data", "static"),
+            debug=options.debug,
+            cookie_secret=options.app_secretkey,
+            static_path=os.path.join(options.basedir, "data", "static"),
             xsrf_cookies=False,
         )
 

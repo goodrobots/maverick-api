@@ -591,9 +591,7 @@ class MAVROSConnection(moduleBase):
             "altitude": data.altitude,
             "position_covariance_type": data.position_covariance_type,
         }
-        api_callback(
-            self.loop, self.module[__name__].set_nav_sat_fix_message, **kwargs
-        )
+        api_callback(self.loop, self.module[__name__].set_nav_sat_fix_message, **kwargs)
 
     def pose_stamped_callback(self, data):
         kwargs = {

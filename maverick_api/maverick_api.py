@@ -20,13 +20,13 @@ from modules.base.setup.logging import MavLogging
 if __name__ == "__main__":
     # Obtain basedir path (must be done from main script)
     basedir = Path(__file__).resolve().parent
-    
+
     # Setup config
-    MavConfig(PurePath(basedir).joinpath('config', 'maverick-api.conf'))
-    
+    MavConfig(PurePath(basedir).joinpath("config", "maverick-api.conf"))
+
     # Define basedir in options
     options.basedir = str(basedir)
-    
+
     # Setup logging
     MavLogging()
 

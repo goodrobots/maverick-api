@@ -7,6 +7,7 @@ import tornado.ioloop
 from graphql import GraphQLField, GraphQLObjectType, GraphQLSchema
 from graphql.pyutils.event_emitter import EventEmitter
 
+
 class moduleBase(object):
     def __init__(self, loop, module):
         # Attributes

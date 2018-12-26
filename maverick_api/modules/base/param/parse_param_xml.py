@@ -80,7 +80,9 @@ def get_param_meta(vehicle, remote=True, force_download=False, max_age=60 * 60):
         return extract_param_meta_from_tree(tree, vehicle)
 
 
-def save_param_meta(tree, file_name, dir_path=os.path.join(options.basedir, "data", "parameters")):
+def save_param_meta(
+    tree, file_name, dir_path=os.path.join(options.basedir, "data", "parameters")
+):
     """Write a tree structure to a local .xml file"""
     if tree is None:
         return False
@@ -110,7 +112,9 @@ def download_param_meta(
         return tree
 
 
-def load_param_meta(file_name, dir_path=os.path.join(options.basedir, "data", "parameters")):
+def load_param_meta(
+    file_name, dir_path=os.path.join(options.basedir, "data", "parameters")
+):
     """Load a param meta .xml file and return the tree structure"""
     tree = None
     file_path = os.path.join(dir_path, "{0}.xml".format(file_name))

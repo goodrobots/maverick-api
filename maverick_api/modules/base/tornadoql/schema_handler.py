@@ -6,6 +6,7 @@ from modules.api import module_schema, api_schema
 
 import tornado.web
 
+
 class SchemaHandler(tornado.web.RequestHandler):
     """introspection of the api schema"""
 
