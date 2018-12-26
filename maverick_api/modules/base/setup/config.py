@@ -25,6 +25,7 @@ class MavConfig(object):
             type=str,
             help="Base Directory, defaults to directory of maverick_api.py script if not set",
         )
+        define("config_file", default=self.config_file, type=str, help="Path to config file")
         define(
             "development", default=False, type=bool, help="Turn on development options"
         )
@@ -41,12 +42,12 @@ class MavConfig(object):
     # Parse and load config options
     def load_options(self):
         options.logging = None
+        options.parse_command_line(final=False)
         try:
-            options.parse_config_file(self.config_file, final=False)
+            options.parse_config_file(options.config_file)
         except FileNotFoundError as e:
             print("Error, config file {} not found".format(self.config_file))
             sys.exit(1)
-        options.parse_command_line()
 
     def autoreload_config_file(self):
         logging.debug("Starting autoreload_config_file")
