@@ -3,9 +3,12 @@ from collections import OrderedDict
 from graphql import format_error
 from tornado import websocket
 from tornado.escape import json_decode
+import logging
 from tornado.log import app_log
 from graphql.subscription import subscribe
 from graphql.language import parse
+from graphql.execution import ExecutionResult
+from graphql.subscription.map_async_iterator import MapAsyncIterator
 import tornado.ioloop
 from urllib.parse import urlparse
 
@@ -216,7 +219,14 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
             variable_values=params["variable_values"],
             operation_name=params["operation_name"],
         )
-        await self.subscribe(op_id, subscription)
+        if isinstance(subscription, ExecutionResult):
+            # There was an error during the subscription graphql call
+            # TODO: log send errors back to client
+            app_log.warn("GraphQL Error: %s", subscription.errors)
+            return False
+        else:
+            # The subscription graphql call successfully created a MapAsyncIterator
+            await self.subscribe(op_id, subscription)
 
     async def on_stop(self, op_id):
         await self.unsubscribe(op_id)
