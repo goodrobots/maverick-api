@@ -49,7 +49,7 @@ def get_param_meta(vehicle, remote=True, force_download=False, max_age=60 * 60):
             remote = False  # PX4 does not support remote download of param meta
     if remote:
         # check to see if we have a recent file from the server
-        dir_path = os.path.join(options.basedir, "data", "parameters")
+        dir_path = os.path.join(options.datadir, "parameters")
         mkdirs(dir_path)
         file_path = os.path.join(dir_path, "{0}.xml".format(vehicle))
         if not test_file_age(file_path, max_age) or force_download:
@@ -81,7 +81,7 @@ def get_param_meta(vehicle, remote=True, force_download=False, max_age=60 * 60):
 
 
 def save_param_meta(
-    tree, file_name, dir_path=os.path.join(options.basedir, "data", "parameters")
+    tree, file_name, dir_path=os.path.join(options.datadir, "parameters")
 ):
     """Write a tree structure to a local .xml file"""
     if tree is None:
@@ -113,7 +113,7 @@ def download_param_meta(
 
 
 def load_param_meta(
-    file_name, dir_path=os.path.join(options.basedir, "data", "parameters")
+    file_name, dir_path=os.path.join(options.datadir, "parameters")
 ):
     """Load a param meta .xml file and return the tree structure"""
     tree = None

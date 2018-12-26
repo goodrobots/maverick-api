@@ -26,10 +26,11 @@ class MavConfig(object):
             help="Base Directory, defaults to directory of maverick_api.py script if not set",
         )
         define("config_file", default=self.config_file, type=str, help="Path to config file")
+        define("datadir", default="data/", type=str, help="Data directory")
+        define("debug", default=False, type=bool, help="Turn on debug mode")
         define(
             "development", default=False, type=bool, help="Turn on development options"
         )
-        define("debug", default=False, type=bool, help="Turn on debug mode")
         define("logdir", default="logs/", type=str, help="Log directory")
         define(
             "server_interface",

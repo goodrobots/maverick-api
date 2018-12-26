@@ -22,7 +22,7 @@ class TornadoQL(tornado.web.Application):
         settings = dict(
             debug=options.debug,
             cookie_secret=options.app_secretkey,
-            static_path=os.path.join(options.basedir, "data", "static"),
+            static_path=os.path.join(options.datadir, "static"),
             xsrf_cookies=False,
         )
 
