@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "916139e23b4a9815ca35b90c00583073951d75cbbe5ccb05ce45c45baf69155b"
+            "sha256": "9af88407ce50390c67cdba2ddecec20827e3f28e2dab76586d0eaa903fcb99e5"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,13 @@
         ]
     },
     "default": {
+        "aiosqlite": {
+            "hashes": [
+                "sha256:a29bf465f0c366c9495c90c1802e62828eeccf12f3d704a33b14a50851e1715f"
+            ],
+            "index": "pypi",
+            "version": "==0.8.1"
+        },
         "graphql-core-next": {
             "hashes": [
                 "sha256:95509fc50cd632c5b004b959ffc397d47c709ba297162aa841839f610f1a6c70",
@@ -140,11 +147,11 @@
         },
         "more-itertools": {
             "hashes": [
-                "sha256:c187a73da93e7a8acc0001572aebc7e3c69daf7bf6881a2cea10650bd4420092",
-                "sha256:c476b5d3a34e12d40130bc2f935028b5f636df8f372dc2c1c01dc19681b2039e",
-                "sha256:fcbfeaea0be121980e15bc97b3817b5202ca73d0eae185b4550cbfce2a3ebb3d"
+                "sha256:38a936c0a6d98a38bcc2d03fdaaedaba9f412879461dd2ceff8d37564d6522e4",
+                "sha256:c0a5785b1109a6bd7fac76d6837fd1feca158e54e521ccd2ae8bfe393cc9d4fc",
+                "sha256:fe7a7cae1ccb57d33952113ff4fa1bc5f879963600ed74918f1236e212ee50b9"
             ],
-            "version": "==4.3.0"
+            "version": "==5.0.0"
         },
         "pluggy": {
             "hashes": [

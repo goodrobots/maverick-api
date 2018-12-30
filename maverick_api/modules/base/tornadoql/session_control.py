@@ -5,6 +5,7 @@ import hashlib
 import binascii
 import os
 import motor  # async access to mongo database
+import logging
 
 
 class GraphQLSession(object):
@@ -26,6 +27,7 @@ class GraphQLSession(object):
     async def is_authenticated(self, client):
         """Check to see if this session is authenticated"""
         # TODO: Expand and include LDAP
+        # TODO: Make database layer general to mongo, sqlite, etc...
         db = client.session_database
         print(self.session_id.decode("utf-8"))
         document = await db.session_collection.find_one(
@@ -42,7 +44,7 @@ class GraphQLSession(object):
         else:
             # TODO: perform check against user RBAC
             # and return True / False
-            return True
+            return False
 
     @staticmethod
     def hash_password(password):
@@ -73,11 +75,14 @@ class GraphQLSession(object):
                     # the call is being made directly from the api
                     # authentication is not required
                     return await func(self, *args, **kwargs)
-                self.session = info.context.get("session")
-                client = info.context.get("db_client")
-                is_authenticated = await self.session.is_authenticated(client)
-                print(is_authenticated)
+                    
+                # self.session = info.context.get("session")
+                # client = info.context.get("db_client")
+                # is_authenticated = await self.session.is_authenticated(client)
+                
+                is_authenticated = False
                 if not is_authenticated:
+                    logging.debug("Un-authenticated access attempt")
                     # FIXME: need a default behavior for non-auth'd session
                     return GraphQLError(message="Current session is not authenticated")
                 if RBAC is not None:

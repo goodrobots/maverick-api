@@ -105,7 +105,6 @@ class GraphQLHandler(web.RequestHandler):
     async def execute_graphql(self):
         graphql_req = self.graphql_request
         print(self.graphql_request)
-        # print(graphql_req["context"])
         app_log.debug("graphql request: %s", graphql_req)
         context_value = graphql_req.get("context", {})
         print("context", context_value)
@@ -117,7 +116,6 @@ class GraphQLHandler(web.RequestHandler):
             root_value=None,  # resolve root
             context_value=context_value,  # resolve info
         )
-        print(result)
         return result
 
     @property
@@ -130,7 +128,6 @@ class GraphQLHandler(web.RequestHandler):
 
     @property
     def schema(self):
-        # raise NotImplementedError("schema must be provided")
         return api_schema
 
     @property
