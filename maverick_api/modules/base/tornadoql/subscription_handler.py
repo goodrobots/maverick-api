@@ -160,7 +160,11 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
             self.sockets.remove(self)
         except ValueError as e:
             # socket could not be found in list
-            app_log.info("Subscription socket was unable to be found during subscription close: {0}".format(e))
+            app_log.info(
+                "Subscription socket was unable to be found during subscription close: {0}".format(
+                    e
+                )
+            )
         self.subscriptions = {}
 
     def on_message(self, message):

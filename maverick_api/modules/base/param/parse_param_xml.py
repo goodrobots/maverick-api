@@ -112,9 +112,7 @@ def download_param_meta(
         return tree
 
 
-def load_param_meta(
-    file_name, dir_path=os.path.join(options.datadir, "parameters")
-):
+def load_param_meta(file_name, dir_path=os.path.join(options.datadir, "parameters")):
     """Load a param meta .xml file and return the tree structure"""
     tree = None
     file_path = os.path.join(dir_path, "{0}.xml".format(file_name))

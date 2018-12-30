@@ -49,6 +49,7 @@ def error_response(func):
             self.write(error_json)
         else:
             return result
+
     return wrapper_error_response
 
 
