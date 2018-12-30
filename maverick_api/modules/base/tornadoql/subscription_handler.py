@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from collections import OrderedDict
 from graphql import format_error
 from tornado import websocket
 from tornado.escape import json_decode
@@ -23,7 +21,7 @@ GQL_CONNECTION_INIT = "connection_init"  # Client -> Server
 GQL_CONNECTION_ACK = "connection_ack"  # Server -> Client
 GQL_CONNECTION_ERROR = "connection_error"  # Server -> Client
 
-# NOTE: This one here don't follow the standard due to connection optimization
+# NOTE: This does not follow the standard due to connection optimization
 GQL_CONNECTION_TERMINATE = "connection_terminate"  # Client -> Server
 GQL_CONNECTION_KEEP_ALIVE = "ka"  # Server -> Client
 GQL_START = "start"  # Client -> Server
@@ -75,31 +73,27 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
 
     @property
     def schema(self):
-        # raise NotImplementedError("schema must be provided")
         return api_schema
 
     @property
     def sockets(self):
-        # raise NotImplementedError("sockets() must be implemented")
         return self.handler_sockets
 
     @property
     def subscriptions(self):
-        # raise NotImplementedError("subscriptions() must be implemented")
         return self.handler_subscriptions.get(self, {})
 
     @subscriptions.setter
     def subscriptions(self, subscriptions):
-        # raise NotImplementedError("subscriptions() must be implemented")
         self.handler_subscriptions[self] = subscriptions
 
     def select_subprotocol(self, subprotocols):
         return WS_PROTOCOL
 
     def check_origin(self, origin):
+        # TODO FIXME check origin rather than just returning True
         self.CORS_ORIGINS = ["localhost", "dev.maverick.one"]
         parsed_origin = urlparse(origin)
-        # return parsed_origin.hostname in self.CORS_ORIGINS
         return True
 
     async def send_message(self, op_id=None, op_type=None, payload=None):
@@ -110,8 +104,8 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
             message["type"] = op_type
         if payload is not None:
             message["payload"] = payload
-
         assert message, "You need to send at least one thing"
+        app_log.debug("Websocket Send {0}".format(message))
         return await self.write_message(message)
 
     def send_error(self, op_id, error, error_type=None):
@@ -129,7 +123,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
         return await self.send_message(op_id, GQL_DATA, result)
 
     def execution_result_to_dict(self, execution_result):
-        result = OrderedDict()
+        result = {}
         if execution_result.data:
             result["data"] = execution_result.data
         if execution_result.errors:
@@ -166,11 +160,12 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
             self.sockets.remove(self)
         except ValueError as e:
             # socket could not be found in list
-            print(e)
+            app_log.info("Subscription socket was unable to be found during subscription close: {0}".format(e))
         self.subscriptions = {}
 
     def on_message(self, message):
         parsed_message = json_decode(message)
+        app_log.debug("Websocket Receive {0}".format(parsed_message))
         op_id = parsed_message.get("id")
         op_type = parsed_message.get("type")
         payload = parsed_message.get("payload")

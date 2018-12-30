@@ -1,6 +1,7 @@
 import os
 import tornado.web
 from tornado.options import options
+import logging
 
 
 class GraphiQLHandler(tornado.web.RequestHandler):
@@ -13,4 +14,3 @@ class GraphiQLHandler(tornado.web.RequestHandler):
             )
         else:
             self.set_status(403)
-        self.finish()
