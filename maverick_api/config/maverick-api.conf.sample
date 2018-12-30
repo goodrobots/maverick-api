@@ -4,6 +4,9 @@ app_prefix = 'maverick-api/'
 # Secret Key - used to set secure cookie.  KEEP SECRET
 app_secretkey = 'super_s3cret'
 
+# Database backend - used to select the database backend [mongo, sqlite]
+database_backend = "sqlite"
+
 # Base Directory, defaults to directory of maverick_api.py script if not set or None
 # basedir = None
 

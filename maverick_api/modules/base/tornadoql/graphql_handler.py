@@ -9,11 +9,13 @@ from graphql.error import format_error as format_graphql_error
 from graphql import graphql
 
 from .session_control import GraphQLSession
+from .session_control import AuthError
 
 from modules.api import api_schema
 
 
 def error_status(exception):
+    app_log.warn("status", exception)
     if isinstance(exception, web.HTTPError):
         return exception.status_code
     elif isinstance(exception, (ExecutionError, GraphQLError)):
@@ -44,21 +46,22 @@ def error_response(func):
                 app_log.error("Error: {0} {1}".format(ex, tb))
             self.set_status(error_status(ex))
             error_json = json_encode({"errors": error_format(ex)})
-            app_log.debug("error_json: %s", error_json)
             self.write(error_json)
         else:
             return result
-
     return wrapper_error_response
 
 
 class ExecutionError(Exception):
     def __init__(self, status_code=400, errors=None):
         self.status_code = status_code
-        if errors is None:
-            self.errors = []
-        else:
-            self.errors = [str(e) for e in errors]
+        self.errors = []
+        for error in errors:
+            if isinstance(error.original_error, AuthError):
+                self.status_code = error.original_error.status_code
+                self.errors.append(str(error.original_error))
+            else:
+                self.errors.append(str(error))
         self.message = "\n".join(self.errors)
 
 
@@ -79,26 +82,19 @@ class GraphQLHandler(web.RequestHandler):
     @GraphQLSession.ensure_active_session
     @error_response
     async def post(self):
-        #         print(self.current_user)
-        #         print(self.get_current_user().authenticated)
-        #         if not self.current_user.authenticated:
-        #             self.current_user.set_authenticated(True)
-        #         else:
-        #             self.current_user.set_authenticated(False)
-
         return await self.handle_graqhql()
 
     async def handle_graqhql(self):
         result = await self.execute_graphql()
         app_log.debug("GraphQL result data: %s errors: %s", result.data, result.errors)
         if result and result.errors:
+            # an error occured during the graphql query
             ex = ExecutionError(errors=result.errors)
+            self.set_status(ex.status_code)
             app_log.warn("GraphQL Error: %s", ex.message)
             self.write("GraphQL Error: {}".format(ex.message))
-            if not self.application.settings.get("debug", False):
-                # Return a 500 server error to the client if we are not running the
-                #     server in debug mode
-                raise ex
+            return
+        # only return data if we dont have errors
         response = {"data": result.data}
         self.write(response)
 
