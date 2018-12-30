@@ -7,6 +7,9 @@ import os
 import motor  # async access to mongo database
 import logging
 
+# FIXME: remove
+import random
+
 
 class GraphQLSession(object):
     def __init__(self, session_id):
@@ -75,17 +78,20 @@ class GraphQLSession(object):
                     # the call is being made directly from the api
                     # authentication is not required
                     return await func(self, *args, **kwargs)
-                    
                 # self.session = info.context.get("session")
                 # client = info.context.get("db_client")
                 # is_authenticated = await self.session.is_authenticated(client)
-                is_authenticated = False
+                
+                # FIXME: a quick hack to return an error 50% of the time
+                is_authenticated = random.choice([True, False])
                 if not is_authenticated:
                     logging.warn("Un-authenticated access attempt")
                     # FIXME: need a default behavior for non-auth'd session
                     return AuthError(message="Current session is not authenticated", status_code = 401)
                     # return GraphQLError(message="Current session is not authenticated")
                 if RBAC is not None:
+                    # FIXME: a quick hack to return an error
+                    return AuthError(message="Current user is not authorized", status_code = 403)
                     # RBAC requirements have been passed to the function
                     if self.session.verify_RBAC(RBAC=RBAC):
                         # The RBAC requirements have been met

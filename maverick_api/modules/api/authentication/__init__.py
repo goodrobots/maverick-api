@@ -68,7 +68,7 @@ class AuthenticationSchema(schemaBase):
             )
         }
     
-    @GraphQLSession.authenticated
+    @GraphQLSession.authenticated(RBAC="FIXME")
     def get_auth(self, root, info, id):
         """Authentication query handler"""
         return auth_data.get(id)
