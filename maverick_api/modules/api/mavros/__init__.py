@@ -55,6 +55,7 @@ class MAVROSSchema(schemaBase):
         self.pose_data = {"id": "test"}
         self.vfr_hud_data = {"id": "test"}
         self.status_text_data = {"id": "test"}
+        self.mission_data = {"meta":{"total":0, "updateTime":int(time.time())}}
 
         self.nav_sat_fix_message_type = GraphQLObjectType(
             "NavSatFixMessage",
@@ -176,6 +177,29 @@ class MAVROSSchema(schemaBase):
             },
             description="MAVROS StatusTextMessage",
         )
+        
+        self.mission_type = GraphQLObjectType(
+            "Mission",
+            lambda: {
+                "seq": GraphQLField(GraphQLString, description="The sequence number of the mission item."),
+                "isCurrent": GraphQLField(
+                    GraphQLBoolean, description="True if this mission item is the active target"
+                ),
+                "autocontinue": GraphQLField(GraphQLBoolean, description="Continue mission after this mission item"),
+                "frame": GraphQLField(GraphQLInt, description=""),
+                "command": GraphQLField(GraphQLInt, description=""),
+                "param1": GraphQLField(GraphQLFloat, description=""),
+                "param2": GraphQLField(GraphQLFloat, description=""),
+                "param3": GraphQLField(GraphQLFloat, description=""),
+                "param4": GraphQLField(GraphQLFloat, description=""),
+                "latitude": GraphQLField(GraphQLFloat, description=""),
+                "longitude": GraphQLField(GraphQLFloat, description=""),
+                "altitude": GraphQLField(GraphQLFloat, description=""),
+                "updateTime": GraphQLField(GraphQLInt, description=""),
+                "total": GraphQLField(GraphQLInt, description="Total number of mission items"),
+            },
+            description="Mission item",
+        ) 
 
         self.q = {
             "NavSatFixMessage": GraphQLField(
@@ -195,6 +219,15 @@ class MAVROSSchema(schemaBase):
             ),
             "StatusTextMessage": GraphQLField(
                 self.status_text_message_type, resolve=self.get_status_text_message
+            ),
+            "Mission": GraphQLField(
+                self.mission_type,
+                args={
+                    "seq": GraphQLArgument(
+                        GraphQLNonNull(GraphQLString), description="The sequence number of desired mission item"
+                    )
+                },
+                resolve=self.get_mission
             ),
         }
 
@@ -229,6 +262,11 @@ class MAVROSSchema(schemaBase):
                 args=self.get_mutation_args(self.status_text_message_type),
                 resolve=self.set_status_text_message,
             ),
+            "Mission": GraphQLField(
+                self.mission_type,
+                args=self.get_mutation_args(self.mission_type),
+                resolve=self.update_mission
+            ),
         }
 
         self.s = {
@@ -256,6 +294,11 @@ class MAVROSSchema(schemaBase):
             "StatusTextMessage": GraphQLField(
                 self.status_text_message_type,
                 subscribe=self.sub_imu_message,
+                resolve=None,
+            ),
+            "Mission": GraphQLField(
+                self.mission_type,
+                subscribe=self.sub_mission,
                 resolve=None,
             ),
         }
@@ -371,6 +414,47 @@ class MAVROSSchema(schemaBase):
         return EventEmitterAsyncIterator(
             self.subscriptions, str(__name__) + "StatusTextMessage"
         )
+        
+    def get_mission(self, root, info, **kwargs):
+        """Mission query handler"""
+        application_log.debug(f"Mission query handler {kwargs}")
+        mission_item = self.mission_data.get(kwargs["seq"])
+        return mission_item
+
+    def update_mission(self, root, info, **kwargs):
+        """Mission mutation handler"""
+        data = kwargs.get("data")
+        total = len(data.waypoints)
+        update_time = int(time.time())
+        mission_data = {"meta":{"total":total, "updateTime":update_time}}
+        for seq, waypoint in enumerate(data.waypoints):
+            mission_item = {
+                "seq": str(seq),
+                "frame": waypoint.frame,
+                "command": waypoint.command,
+                "isCurrent": waypoint.is_current,
+                "autocontinue": waypoint.autocontinue,
+                "param1": waypoint.param1,
+                "param2": waypoint.param2,
+                "param3": waypoint.param3,
+                "param4": waypoint.param4,
+                "latitude": waypoint.x_lat,
+                "longitude": waypoint.y_long,
+                "altitude": waypoint.z_alt,
+                "updateTime": update_time,
+                "total": total,
+            }
+            mission_data[mission_item["seq"]]=mission_item
+            self.subscriptions.emit(str(__name__) + "Mission", {"Mission": mission_item}
+        )
+        self.mission_data=mission_data
+        application_log.debug(f"Mission mutation handler {self.mission_data}")
+
+    def sub_mission(self, root, info):
+        """Mission subscription handler"""
+        return EventEmitterAsyncIterator(
+            self.subscriptions, str(__name__) + "Mission"
+        )
 
 
 class MAVROSConnection(moduleBase):
@@ -467,6 +551,7 @@ class MAVROSConnection(moduleBase):
 
     def mission_waypoints(self):
         self.waypoints = mission.pull()
+        application_log.warn(f"waypoints: {self.waypoints}")
         mission.subscribe_waypoints(self.mission_callback)
 
     def listener(self):
@@ -640,23 +725,8 @@ class MAVROSConnection(moduleBase):
         # print(kwargs)
 
     def mission_callback(self, data):
-        for seq, waypoint in enumerate(data.waypoints):
-            kwargs = {
-                "seq": seq,
-                "frame": waypoint.frame,
-                "command": waypoint.command,
-                "is_current": waypoint.is_current,
-                "autocontinue": waypoint.autocontinue,
-                "param1": waypoint.param1,
-                "param2": waypoint.param2,
-                "param3": waypoint.param3,
-                "param4": waypoint.param4,
-                "latitude": waypoint.x_lat,
-                "longitude": waypoint.y_long,
-                "altitude": waypoint.z_alt,
-            }
-            # api_callback(self.loop, self.module[__name__].set_mission, **kwargs)
-            # print(kwargs)
+        application_log.debug(f"mission_callback: {data}")
+        api_callback(self.loop, self.module[__name__].update_mission, data=data)
 
     def statustext_callback(self, data):
         if data.name == "/mavros":
@@ -672,3 +742,13 @@ class MAVROSConnection(moduleBase):
             api_callback(
                 self.loop, self.module[__name__].set_status_text_message, **kwargs
             )
+
+
+class Mission(object):
+    def __init__(self):
+        self.waypoints = {}
+        self.callback = None
+    
+    @property
+    def waypoint_count():
+        return len(self.waypoints)
