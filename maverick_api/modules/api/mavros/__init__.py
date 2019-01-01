@@ -516,11 +516,15 @@ class MAVROSSchema(schemaBase):
             # mission_list = ...
             pass
         application_log.debug(f"Mission list query handler {mission_list}")
+        try:
+            update_time = max([x["updateTime"] for x in mission_list])
+        except ValueError as e:
+            update_time = None
         return {
             "id": mission_id,
             "mission": mission_list,
             "total": len(mission_list),
-            "updateTime": max([x["updateTime"] for x in mission_list]),
+            "updateTime": update_time,
         }
 
     def sub_mission_list(self, root, info):
