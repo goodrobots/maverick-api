@@ -1,3 +1,5 @@
+import json
+
 # graphql imports
 from graphql import graphql
 from graphql import get_introspection_query

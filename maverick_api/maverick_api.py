@@ -14,6 +14,7 @@ from tornado.options import options
 from pathlib import Path, PurePath
 
 from modules.base.apiserver import ApiServer
+from modules.base.database import MavDatabase
 from modules.base.setup.config import MavConfig
 from modules.base.setup.logging import MavLogging
 
@@ -29,6 +30,9 @@ if __name__ == "__main__":
 
     # Setup logging
     MavLogging()
+    
+    # Setup database
+    MavDatabase()
 
     # Instantiate and start api server
     api = ApiServer()

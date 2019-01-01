@@ -1,9 +1,11 @@
+import logging
 import sys
 import traceback
 from functools import wraps
+
 from tornado import web
 from tornado.escape import json_decode, json_encode
-from tornado.log import app_log
+
 from graphql.error import GraphQLError
 from graphql.error import format_error as format_graphql_error
 from graphql import graphql
@@ -13,9 +15,10 @@ from .session_control import AuthError
 
 from modules.api import api_schema
 
+application_log = logging.getLogger("tornado.application")
 
 def error_status(exception):
-    app_log.warn("status", exception)
+    application_log.warn("status", exception)
     if isinstance(exception, web.HTTPError):
         return exception.status_code
     elif isinstance(exception, (ExecutionError, GraphQLError)):
@@ -43,7 +46,7 @@ def error_response(func):
         except Exception as ex:
             if not isinstance(ex, (web.HTTPError, ExecutionError, GraphQLError)):
                 tb = "".join(traceback.format_exception(*sys.exc_info()))
-                app_log.error("Error: {0} {1}".format(ex, tb))
+                application_log.error("Error: {0} {1}".format(ex, tb))
             self.set_status(error_status(ex))
             error_json = json_encode({"errors": error_format(ex)})
             self.write(error_json)
@@ -78,40 +81,36 @@ class GraphQLHandler(web.RequestHandler):
 
     def options(self):
         self.set_status(204)
-        self.finish()
 
-    @GraphQLSession.ensure_active_session
+    #@GraphQLSession.ensure_active_session
     @error_response
     async def post(self):
         return await self.handle_graqhql()
 
     async def handle_graqhql(self):
         result = await self.execute_graphql()
-        app_log.debug("GraphQL result data: %s errors: %s", result.data, result.errors)
+        application_log.debug("Request header: {0}".format(self.request.headers))
+        application_log.debug("GraphQL result data: %s errors: %s", result.data, result.errors)
         if result and result.errors:
             # an error occured during the graphql query
             ex = ExecutionError(errors=result.errors)
             self.set_status(ex.status_code)
-            app_log.warn("GraphQL Error: %s", ex.message)
+            application_log.warn("GraphQL Error: %s", ex.message)
             self.write("GraphQL Error: {}".format(ex.message))
             return
-        # only return data if we dont have errors
+        # only return result data if we dont have errors
         response = {"data": result.data}
         self.write(response)
 
     async def execute_graphql(self):
         graphql_req = self.graphql_request
-        print(self.graphql_request)
-        app_log.debug("graphql request: %s", graphql_req)
-        context_value = graphql_req.get("context", {})
-        print("context", context_value)
-        context_value["session"] = self.current_user
-        # context_value["db_client"] = self.opts["db_client"]
+        application_log.debug("graphql request: %s", graphql_req)
+        provided_context = graphql_req.get("context", {})
         result = await graphql(
             schema=self.schema,
             source=graphql_req.get("query"),
             root_value=None,  # resolve root
-            context_value=context_value,  # resolve info
+            context_value={**provided_context, **self.context},  # resolve info
         )
         return result
 
@@ -133,7 +132,13 @@ class GraphQLHandler(web.RequestHandler):
 
     @property
     def context(self):
-        return None
+        auth = self.request.headers.get("Authorization", "")
+        if "Bearer " in auth:
+            auth = auth.lstrip("Bearer ")
+        else:
+            auth = None
+        # TODO: provide DB object via options to context
+        return {"authorization":auth, "session":self.current_user, "db_access":None}
 
     @property
     def active_session(self):

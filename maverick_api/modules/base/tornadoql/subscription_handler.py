@@ -1,17 +1,17 @@
-from graphql import format_error
+import logging
+from urllib.parse import urlparse
+
+import tornado.ioloop
 from tornado import websocket
 from tornado.escape import json_decode
-import logging
-from tornado.log import app_log
+
+from graphql import format_error
 from graphql.subscription import subscribe
 from graphql.language import parse
 from graphql.execution import ExecutionResult
 from graphql.subscription.map_async_iterator import MapAsyncIterator
-import tornado.ioloop
-from urllib.parse import urlparse
 
 from .session_control import GraphQLSession
-
 from modules.api import api_schema
 
 GRAPHQL_WS = "graphql-ws"
@@ -30,6 +30,8 @@ GQL_ERROR = "error"  # Server -> Client
 GQL_COMPLETE = "complete"  # Server -> Client
 GQL_STOP = "stop"  # Client -> Server
 
+websocket_log = logging.getLogger("tornado.websocket")
+application_log = logging.getLogger("tornado.application")
 
 class SubscriptionObserver(object):
     def __init__(
@@ -70,6 +72,8 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
     def initialize(self):
         self.handler_sockets = []
         self.handler_subscriptions = {}
+        # TODO: provide DB object via options to context
+        self.context = {"authorization":None, "session":self.current_user, "db_access":None}
 
     @property
     def schema(self):
@@ -105,7 +109,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
         if payload is not None:
             message["payload"] = payload
         assert message, "You need to send at least one thing"
-        app_log.debug("Websocket Send {0}".format(message))
+        websocket_log.debug("Websocket Send {0} {1}".format(self.context, message))
         return await self.write_message(message)
 
     def send_error(self, op_id, error, error_type=None):
@@ -133,19 +137,19 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
         return result
 
     def get_graphql_params(self, payload):
+        provided_context = payload.get("context", {})
+        
         params = {
             "request_string": payload.get("query"),
             "variable_values": payload.get("variables"),
             "operation_name": payload.get("operationName"),
-            "context_value": payload.get("context", {}),
+            "context_value": {**provided_context, **self.context},
         }
-        params["context_value"]["session"] = self.current_user
-        # params["context_value"]["db_client"] = self.opts["db_client"]
         return params
 
     # @Session.ensure_active_session
     async def open(self):
-        app_log.info("open socket %s", self)
+        application_log.info("open socket %s", self)
         self.sockets.append(self)
         self.subscriptions = {}
 
@@ -153,14 +157,14 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
         tornado.ioloop.IOLoop.current().spawn_callback(self.close_subscriptions)
 
     async def close_subscriptions(self):
-        app_log.info("close socket %s", self)
+        application_log.info("close socket %s", self)
         for sub in self.subscriptions:
             await self.subscriptions[sub].dispose()
         try:
             self.sockets.remove(self)
         except ValueError as e:
             # socket could not be found in list
-            app_log.info(
+            application_log.info(
                 "Subscription socket was unable to be found during subscription close: {0}".format(
                     e
                 )
@@ -169,7 +173,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
 
     def on_message(self, message):
         parsed_message = json_decode(message)
-        app_log.debug("Websocket Receive {0}".format(parsed_message))
+        websocket_log.debug("Websocket Receive {0}".format(parsed_message))
         op_id = parsed_message.get("id")
         op_type = parsed_message.get("type")
         payload = parsed_message.get("payload")
@@ -201,6 +205,8 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
             )
 
     def on_connection_init(self, op_id, payload):
+        application_log.debug(payload)
+        self.context["authorization"] = payload.get("authorization", None)
         tornado.ioloop.IOLoop.current().spawn_callback(
             self.send_message, op_type=GQL_CONNECTION_ACK
         )
@@ -221,7 +227,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
         if isinstance(subscription, ExecutionResult):
             # There was an error during the subscription graphql call
             # TODO: log send errors back to client
-            app_log.warn("GraphQL Error: %s", subscription.errors)
+            application_log.warn("GraphQL Error: %s", subscription.errors)
             return False
         else:
             # The subscription graphql call successfully created a MapAsyncIterator
@@ -241,11 +247,11 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
             self.send_error,
             self.on_close,
         )
-        app_log.debug("subscriptions: %s", self.subscriptions)
+        application_log.debug("subscriptions: %s", self.subscriptions)
         tornado.ioloop.IOLoop.current().spawn_callback(self.subscriptions[op_id].main)
 
     async def unsubscribe(self, op_id):
-        app_log.info("subscrption end: op_id=%s", op_id)
+        application_log.info("subscrption end: op_id=%s", op_id)
         await self.subscriptions[op_id].dispose()
         self.subscriptions = {n: s for n, s in self.subscriptions.items() if s != op_id}
-        app_log.debug("subscriptions: %s", self.subscriptions)
+        application_log.debug("subscriptions: %s", self.subscriptions)

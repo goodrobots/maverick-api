@@ -25,8 +25,25 @@ auth_data = {user1["id"]: user1, user2["id"]: user2}
 class AuthenticationSchema(schemaBase):
     def __init__(self):
         super().__init__()
-        self.auth_type = GraphQLObjectType(
-            "Authentication",
+        self.auth_request_type = GraphQLObjectType(
+            "AuthenticationRequest",
+            lambda: {
+                "id": GraphQLField(
+                    GraphQLNonNull(GraphQLString), description="The id of user."
+                ),
+                "userName": GraphQLField(
+                    GraphQLString,
+                    description="The user name associated with the account.",
+                ),
+                "password": GraphQLField(
+                    GraphQLString,
+                    description="The hashed password associated with the account.",
+                ),
+            },
+        )
+
+        self.auth_status_type = GraphQLObjectType(
+            "AuthenticationStatus",
             lambda: {
                 "id": GraphQLField(
                     GraphQLNonNull(GraphQLString), description="The id of user."
@@ -43,45 +60,61 @@ class AuthenticationSchema(schemaBase):
         )
 
         self.q = {
-            "Authentication": GraphQLField(
-                self.auth_type,
+            "AuthenticationRequest": GraphQLField(
+                self.auth_request_type,
                 args={
                     "id": GraphQLArgument(
                         GraphQLNonNull(GraphQLString), description="id of the user"
                     )
                 },
                 resolve=self.get_auth,
-            )
+            ),
+            "AuthenticationStatus": GraphQLField(
+                self.auth_status_type,
+                args={
+                    "id": GraphQLArgument(
+                        GraphQLNonNull(GraphQLString), description="id of the user"
+                    )
+                },
+                resolve=self.get_auth,
+            ),
         }
 
         self.m = {
-            "Authentication": GraphQLField(
-                self.auth_type,
-                args=self.get_mutation_args(self.auth_type),
+            "AuthenticationRequest": GraphQLField(
+                self.auth_request_type,
+                args=self.get_mutation_args(self.auth_request_type),
                 resolve=self.set_auth,
-            )
+            ),
+            "AuthenticationStatus": GraphQLField(
+                self.auth_status_type,
+                args=self.get_mutation_args(self.auth_request_type),
+                resolve=self.set_auth,
+            ),
         }
 
         self.s = {
-            "Authentication": GraphQLField(
-                self.auth_type, subscribe=self.sub_auth, resolve=None
-            )
+            "AuthenticationRequest": GraphQLField(
+                self.auth_request_type, subscribe=self.sub_auth, resolve=None
+            ),
+            "AuthenticationStatus": GraphQLField(
+                self.auth_status_type, subscribe=self.sub_auth, resolve=None
+            ),
         }
 
     @GraphQLSession.authenticated(RBAC="FIXME")
     def get_auth(self, root, info, id):
-        """Authentication query handler"""
+        """AuthenticationRequest query handler"""
         return auth_data.get(id)
 
-    @GraphQLSession.authenticated
-    async def set_auth(self, root, info, **kwargs):
-        """Authentication mutation handler"""
+    def set_auth(self, root, info, **kwargs):
+        """AuthenticationRequest mutation handler"""
         usr = auth_data.get(kwargs["id"])
         updated_dict = {**usr, **kwargs}
-        self.subscriptions.emit(__name__, {"Authentication": updated_dict})
+        self.subscriptions.emit(__name__, {"AuthenticationRequest": updated_dict})
         auth_data[kwargs["id"]] = updated_dict
         return updated_dict
 
     def sub_auth(self, root, info, **kwargs):
-        """Authentication subscription handler"""
+        """AuthenticationRequest subscription handler"""
         return EventEmitterAsyncIterator(self.subscriptions, __name__)

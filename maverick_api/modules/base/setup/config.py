@@ -6,6 +6,8 @@ import logging
 from tornado import ioloop
 from tornado.options import define, options
 
+application_log = logging.getLogger("tornado.application")
+
 
 class MavConfig(object):
     def __init__(self, config_file):
@@ -31,6 +33,8 @@ class MavConfig(object):
             type=str,
             help="Path to config file",
         )
+        define("database_backend", default="sqlite", type=str,
+            help="Used to select the database backend")
         define("datadir", default="data/", type=str, help="Data directory")
         define("debug", default=False, type=bool, help="Turn on debug mode")
         define(
@@ -52,11 +56,11 @@ class MavConfig(object):
         try:
             options.parse_config_file(options.config_file)
         except FileNotFoundError as e:
-            print("Error, config file {} not found".format(self.config_file))
+            application_log.critical(f"Error, config file {options.config_file} not found")
             sys.exit(1)
 
     def autoreload_config_file(self):
-        logging.debug("Starting autoreload_config_file")
+        application_log.debug("Starting autoreload_config_file")
 
         def reload_options_on_update(config_file):
             modified = os.stat(config_file).st_mtime
@@ -64,9 +68,9 @@ class MavConfig(object):
                 self.modify_time = modified
                 return
             if self.modify_time != modified:
-                logging.info("Modified config file, reloading options")
+                application_log.info("Modified config file, reloading options")
                 self.modify_time = modified
                 self.load_options()
 
-        config_callback = functools.partial(reload_options_on_update, self.config_file)
+        config_callback = functools.partial(reload_options_on_update, options.config_file)
         ioloop.PeriodicCallback(config_callback, 1000).start()

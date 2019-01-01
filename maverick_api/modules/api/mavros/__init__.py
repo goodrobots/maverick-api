@@ -40,8 +40,9 @@ from graphql import (
     GraphQLInt,
     GraphQLFloat,
 )
-
 from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
+
+application_log = logging.getLogger("tornado.application")
 
 
 class MAVROSSchema(schemaBase):
@@ -276,6 +277,7 @@ class MAVROSSchema(schemaBase):
 
     def get_imu_message(self, root, info):
         """ImuMessage query handler"""
+        application_log.info(f"ImuMessage query handler {info}")
         return self.imu_data
 
     def set_imu_message(self, root, info, **kwargs):
@@ -289,6 +291,7 @@ class MAVROSSchema(schemaBase):
 
     def sub_imu_message(self, root, info):
         """ImuMessage subscription handler"""
+        application_log.info(f"ImuMessage subscription handler {info}")
         return EventEmitterAsyncIterator(
             self.subscriptions, str(__name__) + "ImuMessage"
         )

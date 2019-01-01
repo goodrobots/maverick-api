@@ -1,7 +1,9 @@
+import logging
 import ctypes
 from uuid import uuid4
 import os
 import functools
+
 import tornado.ioloop
 
 from graphql import (
@@ -22,6 +24,8 @@ from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterato
 
 from modules.api import moduleBase
 from modules.api import schemaBase
+
+application_log = logging.getLogger("tornado.application")
 
 # Setup monotonic clock
 CLOCK_MONOTONIC_RAW = 4
@@ -64,8 +68,6 @@ def get_status(status_messages, status_count):
         msg = "..."
         status_count = 0
     return (msg, status_count)
-
-
 #################### TODO: REMOVE ME
 
 status_data = dict(
@@ -106,6 +108,7 @@ class StatusSchema(schemaBase):
 
     def get_report(self, root, info):
         """API status report query handler"""
+        # application_log.info(f"API status report query handler {info}")
         status_data["currentTime"] = str(monotonic_time())
         (status_data["currentStatus"], status_data["status_count"]) = get_status(
             status_data["status_messages"], status_data["status_count"]
@@ -114,7 +117,8 @@ class StatusSchema(schemaBase):
         return status_data
 
     def sub_report(self, root, info, **kwargs):
-        """Authentication subscription handler"""
+        """API status report subscription handler"""
+        application_log.info(f"API status report subscription handler {info}")
         return EventEmitterAsyncIterator(self.subscriptions, __name__)
 
 
