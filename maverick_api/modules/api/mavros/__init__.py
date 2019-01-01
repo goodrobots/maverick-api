@@ -55,7 +55,8 @@ class MAVROSSchema(schemaBase):
         self.pose_data = {"id": "test"}
         self.vfr_hud_data = {"id": "test"}
         self.status_text_data = {"id": "test"}
-        self.mission_data = {"meta":{"total":0, "updateTime":int(time.time())}}
+        self.mission_data = {}
+        self.mission_meta = {"meta":{"total":0, "updateTime":int(time.time())}}
 
         self.nav_sat_fix_message_type = GraphQLObjectType(
             "NavSatFixMessage",
@@ -199,7 +200,17 @@ class MAVROSSchema(schemaBase):
                 "total": GraphQLField(GraphQLInt, description="Total number of mission items"),
             },
             description="Mission item",
-        ) 
+        )
+        
+        self.mission_list_type = GraphQLObjectType(
+            "MissionList",
+            lambda: {
+                "id": GraphQLField(GraphQLString, description="The id of the mission."),
+                "mission":GraphQLField(GraphQLList(self.mission_type)),
+                "total": GraphQLField(GraphQLInt, description="Total number of mission items"),
+                "updateTime": GraphQLField(GraphQLInt, description=""),
+            },
+        )
 
         self.q = {
             "NavSatFixMessage": GraphQLField(
@@ -228,6 +239,15 @@ class MAVROSSchema(schemaBase):
                     )
                 },
                 resolve=self.get_mission
+            ),
+            "MissionList": GraphQLField(
+                self.mission_list_type,
+                args={
+                    "id": GraphQLArgument(
+                        GraphQLNonNull(GraphQLString), description="The id of the desired mission"
+                    )
+                },
+                resolve=self.get_mission_list
             ),
         }
 
@@ -299,6 +319,11 @@ class MAVROSSchema(schemaBase):
             "Mission": GraphQLField(
                 self.mission_type,
                 subscribe=self.sub_mission,
+                resolve=None,
+            ),
+            "MissionList": GraphQLField(
+                self.mission_list_type,
+                subscribe=self.sub_mission_list,
                 resolve=None,
             ),
         }
@@ -418,7 +443,11 @@ class MAVROSSchema(schemaBase):
     def get_mission(self, root, info, **kwargs):
         """Mission query handler"""
         application_log.debug(f"Mission query handler {kwargs}")
-        mission_item = self.mission_data.get(kwargs["seq"])
+        sequence = kwargs.get("seq", "meta")
+        if sequence == "meta":
+            mission_item = self.mission_meta[sequence]
+        else:
+            mission_item = self.mission_data.get(sequence, {})
         return mission_item
 
     def update_mission(self, root, info, **kwargs):
@@ -426,7 +455,8 @@ class MAVROSSchema(schemaBase):
         data = kwargs.get("data")
         total = len(data.waypoints)
         update_time = int(time.time())
-        mission_data = {"meta":{"total":total, "updateTime":update_time}}
+        self.mission_meta = {"meta":{"total":total, "updateTime":update_time}}
+        mission_data = {}
         for seq, waypoint in enumerate(data.waypoints):
             mission_item = {
                 "seq": str(seq),
@@ -448,6 +478,7 @@ class MAVROSSchema(schemaBase):
             self.subscriptions.emit(str(__name__) + "Mission", {"Mission": mission_item}
         )
         self.mission_data=mission_data
+        self.subscriptions.emit(str(__name__) + "MissionList", {"MissionList": self.get_mission_list(None, None, id = "loaded")})
         application_log.debug(f"Mission mutation handler {self.mission_data}")
 
     def sub_mission(self, root, info):
@@ -455,7 +486,28 @@ class MAVROSSchema(schemaBase):
         return EventEmitterAsyncIterator(
             self.subscriptions, str(__name__) + "Mission"
         )
-
+    
+    def get_mission_list(self, root, info, **kwargs):
+        """Mission list query handler"""
+        application_log.debug(f"Mission list query handler {kwargs}")
+        mission_id = kwargs.get("id")
+        mission_list = []
+        
+        mission_id = "loaded" # FIXME: remove this line to make mission_id dynamic
+        if mission_id == "loaded":
+            mission_list = [self.mission_data[x] for x in self.mission_data.keys()]
+        else:
+            # TODO: load the mission from file / database based on mission_id
+            # mission_list = ...
+            pass
+        application_log.debug(f"Mission list query handler {mission_list}")
+        return {"id":mission_id, "mission":mission_list, "total":len(mission_list), "updateTime":max([x["updateTime"] for x in mission_list])}
+        
+    def sub_mission_list(self, root, info):
+        """Mission list subscription handler"""
+        return EventEmitterAsyncIterator(
+            self.subscriptions, str(__name__) + "MissionList"
+        )
 
 class MAVROSConnection(moduleBase):
     def __init__(self, loop, module):
@@ -742,13 +794,3 @@ class MAVROSConnection(moduleBase):
             api_callback(
                 self.loop, self.module[__name__].set_status_text_message, **kwargs
             )
-
-
-class Mission(object):
-    def __init__(self):
-        self.waypoints = {}
-        self.callback = None
-    
-    @property
-    def waypoint_count():
-        return len(self.waypoints)
