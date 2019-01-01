@@ -68,6 +68,8 @@ def get_status(status_messages, status_count):
         msg = "..."
         status_count = 0
     return (msg, status_count)
+
+
 #################### TODO: REMOVE ME
 
 status_data = dict(

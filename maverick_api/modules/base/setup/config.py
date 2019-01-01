@@ -33,8 +33,12 @@ class MavConfig(object):
             type=str,
             help="Path to config file",
         )
-        define("database_backend", default="sqlite", type=str,
-            help="Used to select the database backend")
+        define(
+            "database_backend",
+            default="sqlite",
+            type=str,
+            help="Used to select the database backend",
+        )
         define("datadir", default="data/", type=str, help="Data directory")
         define("debug", default=False, type=bool, help="Turn on debug mode")
         define(
@@ -56,7 +60,9 @@ class MavConfig(object):
         try:
             options.parse_config_file(options.config_file)
         except FileNotFoundError as e:
-            application_log.critical(f"Error, config file {options.config_file} not found")
+            application_log.critical(
+                f"Error, config file {options.config_file} not found"
+            )
             sys.exit(1)
 
     def autoreload_config_file(self):
@@ -72,5 +78,7 @@ class MavConfig(object):
                 self.modify_time = modified
                 self.load_options()
 
-        config_callback = functools.partial(reload_options_on_update, options.config_file)
+        config_callback = functools.partial(
+            reload_options_on_update, options.config_file
+        )
         ioloop.PeriodicCallback(config_callback, 1000).start()

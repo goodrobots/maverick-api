@@ -6,6 +6,7 @@ from tornado.options import define, options
 
 from modules.base.util import functions
 
+
 class MavLogging(object):
     def __init__(self):
         self.logs = []
@@ -13,18 +14,18 @@ class MavLogging(object):
         self.date_fmt = "%Y-%m-%d,%H:%M:%S"
         self.create_logdirs()
         self.setup_logging()
-        
+
     def create_logdirs(self):
         functions.mkdirs(options.logdir)
 
     def setup_logging(self):
-        
+
         self.root_log = logging.getLogger()
         channel = logging.StreamHandler()
         channel.setFormatter(
             LogFormatter(
                 color=True,
-                fmt="%(color)s"+self.log_fmt_prefix+"%(end_color)s%(message)s",
+                fmt="%(color)s" + self.log_fmt_prefix + "%(end_color)s%(message)s",
                 datefmt=self.date_fmt,
                 colors={10: 4, 20: 2, 30: 3, 40: 1},
             )
@@ -47,7 +48,7 @@ class MavLogging(object):
         )
         self.root_log.addHandler(api_handler)
         self.logs.append(self.root_log)
-        
+
         self.access_log = logging.getLogger("tornado.access")
         acc_handler = logging.handlers.RotatingFileHandler(
             os.path.join(options.logdir, "access.log"),
@@ -72,7 +73,7 @@ class MavLogging(object):
         channel.setFormatter(
             LogFormatter(
                 color=True,
-                fmt="%(color)s"+self.log_fmt_prefix+"%(end_color)s%(message)s",
+                fmt="%(color)s" + self.log_fmt_prefix + "%(end_color)s%(message)s",
                 datefmt=self.date_fmt,
                 colors={10: 4, 20: 2, 30: 3, 40: 1},
             )
@@ -114,7 +115,7 @@ class MavLogging(object):
         )
         self.general_log.addHandler(gen_handler)
         self.logs.append(self.general_log)
-        
+
         self.websocket_log = logging.getLogger("tornado.websocket")
         websoc_handler = logging.handlers.RotatingFileHandler(
             os.path.join(options.logdir, "websocket.log"),
@@ -138,7 +139,7 @@ class MavLogging(object):
         if options.debug == True:
             for log in self.logs:
                 log.setLevel(logging.DEBUG)
-            
+
         else:
             for log in self.logs:
                 log.setLevel(logging.INFO)

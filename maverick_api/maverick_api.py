@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     # Setup logging
     MavLogging()
-    
+
     # Setup database
     MavDatabase()
 

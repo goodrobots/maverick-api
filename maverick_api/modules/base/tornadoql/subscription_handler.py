@@ -33,6 +33,7 @@ GQL_STOP = "stop"  # Client -> Server
 websocket_log = logging.getLogger("tornado.websocket")
 application_log = logging.getLogger("tornado.application")
 
+
 class SubscriptionObserver(object):
     def __init__(
         self, op_id, subscription, send_execution_result, send_error, on_close
@@ -73,7 +74,11 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
         self.handler_sockets = []
         self.handler_subscriptions = {}
         # TODO: provide DB object via options to context
-        self.context = {"authorization":None, "session":self.current_user, "db_access":None}
+        self.context = {
+            "authorization": None,
+            "session": self.current_user,
+            "db_access": None,
+        }
 
     @property
     def schema(self):
@@ -138,7 +143,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
 
     def get_graphql_params(self, payload):
         provided_context = payload.get("context", {})
-        
+
         params = {
             "request_string": payload.get("query"),
             "variable_values": payload.get("variables"),

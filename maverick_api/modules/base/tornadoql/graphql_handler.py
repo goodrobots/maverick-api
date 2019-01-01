@@ -17,6 +17,7 @@ from modules.api import api_schema
 
 application_log = logging.getLogger("tornado.application")
 
+
 def error_status(exception):
     application_log.warn("status", exception)
     if isinstance(exception, web.HTTPError):
@@ -82,7 +83,7 @@ class GraphQLHandler(web.RequestHandler):
     def options(self):
         self.set_status(204)
 
-    #@GraphQLSession.ensure_active_session
+    # @GraphQLSession.ensure_active_session
     @error_response
     async def post(self):
         return await self.handle_graqhql()
@@ -90,7 +91,9 @@ class GraphQLHandler(web.RequestHandler):
     async def handle_graqhql(self):
         result = await self.execute_graphql()
         application_log.debug("Request header: {0}".format(self.request.headers))
-        application_log.debug("GraphQL result data: %s errors: %s", result.data, result.errors)
+        application_log.debug(
+            "GraphQL result data: %s errors: %s", result.data, result.errors
+        )
         if result and result.errors:
             # an error occured during the graphql query
             ex = ExecutionError(errors=result.errors)
@@ -138,7 +141,7 @@ class GraphQLHandler(web.RequestHandler):
         else:
             auth = None
         # TODO: provide DB object via options to context
-        return {"authorization":auth, "session":self.current_user, "db_access":None}
+        return {"authorization": auth, "session": self.current_user, "db_access": None}
 
     @property
     def active_session(self):

@@ -11,9 +11,10 @@ application_log = logging.getLogger("tornado.application")
 
 # FIXME: remove
 user_records = {
-    "bob":{"id":1234, "authenticated":True, "RBAC": "*", "token":"callsignviper"},
-    "jim":{"id":5678, "authenticated":False, "RBAC": None, "token":None},
+    "bob": {"id": 1234, "authenticated": True, "RBAC": "*", "token": "callsignviper"},
+    "jim": {"id": 5678, "authenticated": False, "RBAC": None, "token": None},
 }
+
 
 class GraphQLSession(object):
     def __init__(self, session_id):
@@ -40,7 +41,7 @@ class GraphQLSession(object):
             {"session_id": self.session_id.decode("utf-8")}
         )
         return document["user_authenticated"]
-        
+
     @staticmethod
     def verify_RBAC(self, *, API_RBAC=None, user_RBAC=None):
         """Check to see if current user meets role based
@@ -65,7 +66,7 @@ class GraphQLSession(object):
     def hash_password(password):
         """Hash a password for storing."""
         salt = hashlib.sha256(os.urandom(60)).hexdigest().encode("ascii")
-        pwdhash = hashlib.pbkdf2_hmac("sha512", password.encode("utf-8"), salt, 100000)
+        pwdhash = hashlib.pbkdf2_hmac("sha512", password.encode("utf-8"), salt, 100_000)
         pwdhash = binascii.hexlify(pwdhash)
         return (salt + pwdhash).decode("ascii")
 
@@ -75,7 +76,7 @@ class GraphQLSession(object):
         salt = stored_password[:64]
         stored_password = stored_password[64:]
         pwdhash = hashlib.pbkdf2_hmac(
-            "sha512", provided_password.encode("utf-8"), salt.encode("ascii"), 100000
+            "sha512", provided_password.encode("utf-8"), salt.encode("ascii"), 100_000
         )
         pwdhash = binascii.hexlify(pwdhash).decode("ascii")
         return pwdhash == stored_password
@@ -93,12 +94,12 @@ class GraphQLSession(object):
                     # the call is being made directly from the api
                     # authentication is not required
                     return await func(self, *args, **kwargs)
-                    
+
                 # self.session = info.context.get("session")
                 # client = info.context.get("db_client")
                 # is_authenticated = await self.session.is_authenticated(client)
-                
-                token = info.context.get('authorization', None)
+
+                token = info.context.get("authorization", None)
                 if token:
                     # TODO search database via token
                     # TODO: perform database lookup against token to obtain user auth & RBAC levels
@@ -108,7 +109,7 @@ class GraphQLSession(object):
                             user_is_authenticated = user_record["authenticated"]
                             user_RBAC = user_record["RBAC"]
                             break
-                    
+
                 if not user_is_authenticated:
                     logging.warn("Un-authenticated API access attempt")
                     return AuthError(
@@ -117,7 +118,9 @@ class GraphQLSession(object):
                 logging.info(f"{user_record[id]} is authenticated")
                 if RBAC:
                     # a RBAC check is required
-                    RBAC_result = GraphQLSession.verify_RBAC(API_RBAC=RBAC, user_RBAC=user_RBAC)
+                    RBAC_result = GraphQLSession.verify_RBAC(
+                        API_RBAC=RBAC, user_RBAC=user_RBAC
+                    )
                     if not RBAC_result:
                         logging.warn("Un-authorized API usage attempt")
                         return AuthError(

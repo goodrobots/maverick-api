@@ -56,7 +56,7 @@ class MAVROSSchema(schemaBase):
         self.vfr_hud_data = {"id": "test"}
         self.status_text_data = {"id": "test"}
         self.mission_data = {}
-        self.mission_meta = {"meta":{"total":0, "updateTime":int(time.time())}}
+        self.mission_meta = {"meta": {"total": 0, "updateTime": int(time.time())}}
 
         self.nav_sat_fix_message_type = GraphQLObjectType(
             "NavSatFixMessage",
@@ -158,7 +158,10 @@ class MAVROSSchema(schemaBase):
                 "heading": GraphQLField(GraphQLInt, description=""),
                 "throttle": GraphQLField(GraphQLFloat, description=""),
                 "altitude": GraphQLField(GraphQLFloat, description=""),
-                "relativeAltitude": GraphQLField(GraphQLFloat, description="Current altitude relative to origin altitude"),
+                "relativeAltitude": GraphQLField(
+                    GraphQLFloat,
+                    description="Current altitude relative to origin altitude",
+                ),
                 "climb": GraphQLField(GraphQLFloat, description=""),
             },
             description="MAVROS VfrHudMessage",
@@ -179,15 +182,22 @@ class MAVROSSchema(schemaBase):
             },
             description="MAVROS StatusTextMessage",
         )
-        
+
         self.mission_type = GraphQLObjectType(
             "Mission",
             lambda: {
-                "seq": GraphQLField(GraphQLString, description="The sequence number of the mission item."),
-                "isCurrent": GraphQLField(
-                    GraphQLBoolean, description="True if this mission item is the active target"
+                "seq": GraphQLField(
+                    GraphQLString,
+                    description="The sequence number of the mission item.",
                 ),
-                "autocontinue": GraphQLField(GraphQLBoolean, description="Continue mission after this mission item"),
+                "isCurrent": GraphQLField(
+                    GraphQLBoolean,
+                    description="True if this mission item is the active target",
+                ),
+                "autocontinue": GraphQLField(
+                    GraphQLBoolean,
+                    description="Continue mission after this mission item",
+                ),
                 "frame": GraphQLField(GraphQLInt, description=""),
                 "command": GraphQLField(GraphQLInt, description=""),
                 "param1": GraphQLField(GraphQLFloat, description=""),
@@ -198,17 +208,21 @@ class MAVROSSchema(schemaBase):
                 "longitude": GraphQLField(GraphQLFloat, description=""),
                 "altitude": GraphQLField(GraphQLFloat, description=""),
                 "updateTime": GraphQLField(GraphQLInt, description=""),
-                "total": GraphQLField(GraphQLInt, description="Total number of mission items"),
+                "total": GraphQLField(
+                    GraphQLInt, description="Total number of mission items"
+                ),
             },
             description="Mission item",
         )
-        
+
         self.mission_list_type = GraphQLObjectType(
             "MissionList",
             lambda: {
                 "id": GraphQLField(GraphQLString, description="The id of the mission."),
-                "mission":GraphQLField(GraphQLList(self.mission_type)),
-                "total": GraphQLField(GraphQLInt, description="Total number of mission items"),
+                "mission": GraphQLField(GraphQLList(self.mission_type)),
+                "total": GraphQLField(
+                    GraphQLInt, description="Total number of mission items"
+                ),
                 "updateTime": GraphQLField(GraphQLInt, description=""),
             },
         )
@@ -236,19 +250,21 @@ class MAVROSSchema(schemaBase):
                 self.mission_type,
                 args={
                     "seq": GraphQLArgument(
-                        GraphQLNonNull(GraphQLString), description="The sequence number of desired mission item"
+                        GraphQLNonNull(GraphQLString),
+                        description="The sequence number of desired mission item",
                     )
                 },
-                resolve=self.get_mission
+                resolve=self.get_mission,
             ),
             "MissionList": GraphQLField(
                 self.mission_list_type,
                 args={
                     "id": GraphQLArgument(
-                        GraphQLNonNull(GraphQLString), description="The id of the desired mission"
+                        GraphQLNonNull(GraphQLString),
+                        description="The id of the desired mission",
                     )
                 },
-                resolve=self.get_mission_list
+                resolve=self.get_mission_list,
             ),
         }
 
@@ -286,7 +302,7 @@ class MAVROSSchema(schemaBase):
             "Mission": GraphQLField(
                 self.mission_type,
                 args=self.get_mutation_args(self.mission_type),
-                resolve=self.update_mission
+                resolve=self.update_mission,
             ),
         }
 
@@ -318,14 +334,10 @@ class MAVROSSchema(schemaBase):
                 resolve=None,
             ),
             "Mission": GraphQLField(
-                self.mission_type,
-                subscribe=self.sub_mission,
-                resolve=None,
+                self.mission_type, subscribe=self.sub_mission, resolve=None
             ),
             "MissionList": GraphQLField(
-                self.mission_list_type,
-                subscribe=self.sub_mission_list,
-                resolve=None,
+                self.mission_list_type, subscribe=self.sub_mission_list, resolve=None
             ),
         }
 
@@ -440,7 +452,7 @@ class MAVROSSchema(schemaBase):
         return EventEmitterAsyncIterator(
             self.subscriptions, str(__name__) + "StatusTextMessage"
         )
-        
+
     def get_mission(self, root, info, **kwargs):
         """Mission query handler"""
         application_log.debug(f"Mission query handler {kwargs}")
@@ -456,7 +468,7 @@ class MAVROSSchema(schemaBase):
         data = kwargs.get("data")
         total = len(data.waypoints)
         update_time = int(time.time())
-        self.mission_meta = {"meta":{"total":total, "updateTime":update_time}}
+        self.mission_meta = {"meta": {"total": total, "updateTime": update_time}}
         mission_data = {}
         for seq, waypoint in enumerate(data.waypoints):
             mission_item = {
@@ -475,26 +487,28 @@ class MAVROSSchema(schemaBase):
                 "updateTime": update_time,
                 "total": total,
             }
-            mission_data[mission_item["seq"]]=mission_item
-            self.subscriptions.emit(str(__name__) + "Mission", {"Mission": mission_item}
+            mission_data[mission_item["seq"]] = mission_item
+            self.subscriptions.emit(
+                str(__name__) + "Mission", {"Mission": mission_item}
+            )
+        self.mission_data = mission_data
+        self.subscriptions.emit(
+            str(__name__) + "MissionList",
+            {"MissionList": self.get_mission_list(None, None, id="loaded")},
         )
-        self.mission_data=mission_data
-        self.subscriptions.emit(str(__name__) + "MissionList", {"MissionList": self.get_mission_list(None, None, id = "loaded")})
         application_log.debug(f"Mission mutation handler {self.mission_data}")
 
     def sub_mission(self, root, info):
         """Mission subscription handler"""
-        return EventEmitterAsyncIterator(
-            self.subscriptions, str(__name__) + "Mission"
-        )
-    
+        return EventEmitterAsyncIterator(self.subscriptions, str(__name__) + "Mission")
+
     def get_mission_list(self, root, info, **kwargs):
         """Mission list query handler"""
         application_log.debug(f"Mission list query handler {kwargs}")
         mission_id = kwargs.get("id")
         mission_list = []
-        
-        mission_id = "loaded" # FIXME: remove this line to make mission_id dynamic
+
+        mission_id = "loaded"  # FIXME: remove this line to make mission_id dynamic
         if mission_id == "loaded":
             mission_list = [self.mission_data[x] for x in self.mission_data.keys()]
         else:
@@ -502,13 +516,19 @@ class MAVROSSchema(schemaBase):
             # mission_list = ...
             pass
         application_log.debug(f"Mission list query handler {mission_list}")
-        return {"id":mission_id, "mission":mission_list, "total":len(mission_list), "updateTime":max([x["updateTime"] for x in mission_list])}
-        
+        return {
+            "id": mission_id,
+            "mission": mission_list,
+            "total": len(mission_list),
+            "updateTime": max([x["updateTime"] for x in mission_list]),
+        }
+
     def sub_mission_list(self, root, info):
         """Mission list subscription handler"""
         return EventEmitterAsyncIterator(
             self.subscriptions, str(__name__) + "MissionList"
         )
+
 
 class MAVROSConnection(moduleBase):
     def __init__(self, loop, module):
@@ -619,7 +639,9 @@ class MAVROSConnection(moduleBase):
         rospy.Subscriber("/mavros/imu/data", Imu, self.imu_callback)
         rospy.Subscriber("/mavros/param_value", Param, self.param_callback)
         rospy.Subscriber("/rosout", Log, self.statustext_callback)
-        rospy.Subscriber('/mavros/global_position/rel_alt', Float64, self.rel_alt_callback)
+        rospy.Subscriber(
+            "/mavros/global_position/rel_alt", Float64, self.rel_alt_callback
+        )
 
     def topics(self):
         topics = rospy.get_published_topics()
@@ -796,9 +818,7 @@ class MAVROSConnection(moduleBase):
             api_callback(
                 self.loop, self.module[__name__].set_status_text_message, **kwargs
             )
-    
+
     def rel_alt_callback(self, data):
-        kwargs = {
-            "relativeAltitude": data.data
-        }
+        kwargs = {"relativeAltitude": data.data}
         api_callback(self.loop, self.module[__name__].set_vfr_hud_message, **kwargs)
