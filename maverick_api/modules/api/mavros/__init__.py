@@ -11,7 +11,7 @@ from modules.base.util.mavlink import get_meta_string
 import rospy
 import mavros
 import mavros.utils
-from std_msgs.msg import String
+from std_msgs.msg import String, Float64
 from rosgraph_msgs.msg import Log
 from mavros_msgs.msg import State, VFR_HUD
 from mavros_msgs.srv import StreamRate, StreamRateRequest
@@ -158,6 +158,7 @@ class MAVROSSchema(schemaBase):
                 "heading": GraphQLField(GraphQLInt, description=""),
                 "throttle": GraphQLField(GraphQLFloat, description=""),
                 "altitude": GraphQLField(GraphQLFloat, description=""),
+                "relativeAltitude": GraphQLField(GraphQLFloat, description="Current altitude relative to origin altitude"),
                 "climb": GraphQLField(GraphQLFloat, description=""),
             },
             description="MAVROS VfrHudMessage",
@@ -618,6 +619,7 @@ class MAVROSConnection(moduleBase):
         rospy.Subscriber("/mavros/imu/data", Imu, self.imu_callback)
         rospy.Subscriber("/mavros/param_value", Param, self.param_callback)
         rospy.Subscriber("/rosout", Log, self.statustext_callback)
+        rospy.Subscriber('/mavros/global_position/rel_alt', Float64, self.rel_alt_callback)
 
     def topics(self):
         topics = rospy.get_published_topics()
@@ -794,3 +796,9 @@ class MAVROSConnection(moduleBase):
             api_callback(
                 self.loop, self.module[__name__].set_status_text_message, **kwargs
             )
+    
+    def rel_alt_callback(self, data):
+        kwargs = {
+            "relativeAltitude": data.data
+        }
+        api_callback(self.loop, self.module[__name__].set_vfr_hud_message, **kwargs)
