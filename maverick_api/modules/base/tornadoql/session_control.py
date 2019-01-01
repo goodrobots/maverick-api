@@ -7,10 +7,9 @@ import logging
 
 from graphql.error import GraphQLError
 
-import random # FIXME: remove
-
 application_log = logging.getLogger("tornado.application")
 
+# FIXME: remove
 user_records = {
     "bob":{"id":1234, "authenticated":True, "RBAC": "*", "token":"callsignviper"},
     "jim":{"id":5678, "authenticated":False, "RBAC": None, "token":None},
