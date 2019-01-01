@@ -8,3 +8,10 @@ class MavDatabase(object):
     def __init__(self):
         self.backend = options.database_backend
         application_log.info(f"Database backend seleceted: {self.backend}")
+        
+        if self.backend == "mongo":
+            import motor  # async access to mongo database
+        elif self.backend == "sqlite":
+            import aiosqlite # async access to sqlite3 database
+        else:
+            pass

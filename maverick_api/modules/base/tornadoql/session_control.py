@@ -1,20 +1,25 @@
 from functools import wraps
 from uuid import uuid4
-from graphql.error import GraphQLError
 import hashlib
 import binascii
 import os
-import motor  # async access to mongo database
 import logging
 
-# FIXME: remove
-import random
+from graphql.error import GraphQLError
 
+import random # FIXME: remove
+
+application_log = logging.getLogger("tornado.application")
+
+user_records = {
+    "bob":{"id":1234, "authenticated":True, "RBAC": "*", "token":"callsignviper"},
+    "jim":{"id":5678, "authenticated":False, "RBAC": None, "token":None},
+}
 
 class GraphQLSession(object):
     def __init__(self, session_id):
         self.session_id = session_id
-        self.user_authenticated = True
+        self.user_authenticated = False
         self.RBAC = {}  # TODO: define RBAC 'levels'
 
     def create_document(self):
@@ -32,22 +37,30 @@ class GraphQLSession(object):
         # TODO: Expand and include LDAP
         # TODO: Make database layer general to mongo, sqlite, etc...
         db = client.session_database
-        print(self.session_id.decode("utf-8"))
         document = await db.session_collection.find_one(
             {"session_id": self.session_id.decode("utf-8")}
         )
         return document["user_authenticated"]
-
-    def verify_RBAC(self, *, RBAC=None):
+        
+    @staticmethod
+    def verify_RBAC(self, *, API_RBAC=None, user_RBAC=None):
         """Check to see if current user meets role based
             access control requirements"""
-        print("supplied RBAC", RBAC)
-        if RBAC is None:
+        application_log.debug(f"supplied RBAC: {user_RBAC}")
+        if API_RBAC is None:
+            # no RBAC check required
             return True
         else:
-            # TODO: perform check against user RBAC
-            # and return True / False
-            return False
+            if user_RBAC is None:
+                # no access
+                return False
+            elif user_RBAC == "*":
+                # full access
+                return True
+            else:
+                # TODO: perform check against user RBAC
+                # FIXME: return True for now
+                return True
 
     @staticmethod
     def hash_password(password):
@@ -73,38 +86,50 @@ class GraphQLSession(object):
         def _decorate(func):
             @wraps(func)
             async def wrapper_authenticated(self, *args, **kwargs):
+                user_record = None
+                user_is_authenticated = False
+                user_RBAC = None
                 (root, info) = args
                 if (info is None) and (root is None):
                     # the call is being made directly from the api
                     # authentication is not required
                     return await func(self, *args, **kwargs)
+                    
                 # self.session = info.context.get("session")
                 # client = info.context.get("db_client")
                 # is_authenticated = await self.session.is_authenticated(client)
-
-                # FIXME: a quick hack to return an error 50% of the time
-                is_authenticated = random.choice([True, False])
-                if not is_authenticated:
-                    logging.warn("Un-authenticated access attempt")
-                    # FIXME: need a default behavior for non-auth'd session
+                
+                token = info.context.get('authorization', None)
+                if token:
+                    # TODO search database via token
+                    # TODO: perform database lookup against token to obtain user auth & RBAC levels
+                    for user in user_records:
+                        if user_records[user]["token"] == token:
+                            user_record = user_records[user]
+                            user_is_authenticated = user_record["authenticated"]
+                            user_RBAC = user_record["RBAC"]
+                            break
+                    
+                if not user_is_authenticated:
+                    logging.warn("Un-authenticated API access attempt")
                     return AuthError(
                         message="Current session is not authenticated", status_code=401
                     )
-                    # return GraphQLError(message="Current session is not authenticated")
-                if RBAC is not None:
-                    # FIXME: a quick hack to return an error
-                    return AuthError(
-                        message="Current user is not authorized", status_code=403
-                    )
-                    # RBAC requirements have been passed to the function
-                    if self.session.verify_RBAC(RBAC=RBAC):
-                        # The RBAC requirements have been met
-                        return await func(self, *args, **kwargs)
-                    else:
+                logging.info(f"{user_record[id]} is authenticated")
+                if RBAC:
+                    # a RBAC check is required
+                    RBAC_result = GraphQLSession.verify_RBAC(API_RBAC=RBAC, user_RBAC=user_RBAC)
+                    if not RBAC_result:
+                        logging.warn("Un-authorized API usage attempt")
                         return AuthError(
                             message="Current user is not authorized", status_code=403
                         )
+                    else:
+                        # The RBAC requirements have been met by the user
+                        logging.info(f"RBAC requirements met by {user_record[id]}")
+                        return await func(self, *args, **kwargs)
                 else:
+                    # There are no RBAC requirements to check
                     return await func(self, *args, **kwargs)
 
             return wrapper_authenticated
