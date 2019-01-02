@@ -49,19 +49,19 @@ class MAVROSSchema(schemaBase):
     def __init__(self):
         super().__init__()
 
-        self.nav_sat_fix_data = {"id": "test"}
-        self.imu_data = {"id": "test"}
-        self.state_data = {"id": "test"}
-        self.pose_data = {"id": "test"}
-        self.vfr_hud_data = {"id": "test"}
-        self.status_text_data = {"id": "test"}
+        self.nav_sat_fix_data = {"uuid": "test"}
+        self.imu_data = {"uuid": "test"}
+        self.state_data = {"uuid": "test"}
+        self.pose_data = {"uuid": "test"}
+        self.vfr_hud_data = {"uuid": "test"}
+        self.status_text_data = {"uuid": "test"}
         self.mission_data = {}
         self.mission_meta = {"meta": {"total": 0, "updateTime": int(time.time())}}
 
         self.nav_sat_fix_message_type = GraphQLObjectType(
             "NavSatFix",
             lambda: {
-                "id": GraphQLField(GraphQLString, description="The id of the message."),
+                "uuid": GraphQLField(GraphQLString, description="The uuid of the vehicle."),
                 "seq": GraphQLField(
                     GraphQLInt, description="The sequence number of the message."
                 ),
@@ -82,7 +82,7 @@ class MAVROSSchema(schemaBase):
         self.imu_message_type = GraphQLObjectType(
             "Imu",
             lambda: {
-                "id": GraphQLField(GraphQLString, description="The id of the message."),
+                "uuid": GraphQLField(GraphQLString, description="The uuid of the vehicle."),
                 "seq": GraphQLField(
                     GraphQLInt, description="The sequence number of the message."
                 ),
@@ -106,7 +106,7 @@ class MAVROSSchema(schemaBase):
         self.state_message_type = GraphQLObjectType(
             "VehicleState",
             lambda: {
-                "id": GraphQLField(GraphQLString, description="The id of the message."),
+                "uuid": GraphQLField(GraphQLString, description="The uuid of the vehicle."),
                 "seq": GraphQLField(
                     GraphQLInt, description="The sequence number of the message."
                 ),
@@ -125,7 +125,7 @@ class MAVROSSchema(schemaBase):
         self.pose_stamped_message_type = GraphQLObjectType(
             "PoseStamped",
             lambda: {
-                "id": GraphQLField(GraphQLString, description="The id of the message."),
+                "uuid": GraphQLField(GraphQLString, description="The uuid of the vehicle."),
                 "seq": GraphQLField(
                     GraphQLInt, description="The sequence number of the message."
                 ),
@@ -146,7 +146,7 @@ class MAVROSSchema(schemaBase):
         self.vfr_hud_message_type = GraphQLObjectType(
             "VfrHud",
             lambda: {
-                "id": GraphQLField(GraphQLString, description="The id of the message."),
+                "uuid": GraphQLField(GraphQLString, description="The uuid of the vehicle."),
                 "seq": GraphQLField(
                     GraphQLInt, description="The sequence number of the message."
                 ),
@@ -168,9 +168,9 @@ class MAVROSSchema(schemaBase):
         )
 
         self.status_text_message_type = GraphQLObjectType(
-            "StatusTextMessage",
+            "StatusText",
             lambda: {
-                "id": GraphQLField(GraphQLString, description="The id of the message."),
+                "uuid": GraphQLField(GraphQLString, description="The uuid of the vehicle."),
                 "seq": GraphQLField(
                     GraphQLInt, description="The sequence number of the message."
                 ),
