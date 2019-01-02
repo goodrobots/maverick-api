@@ -59,7 +59,7 @@ class MAVROSSchema(schemaBase):
         self.mission_meta = {"meta": {"total": 0, "updateTime": int(time.time())}}
 
         self.nav_sat_fix_message_type = GraphQLObjectType(
-            "NavSatFixMessage",
+            "NavSatFix",
             lambda: {
                 "id": GraphQLField(GraphQLString, description="The id of the message."),
                 "seq": GraphQLField(
@@ -67,20 +67,20 @@ class MAVROSSchema(schemaBase):
                 ),
                 "secs": GraphQLField(GraphQLInt, description=""),
                 "nsecs": GraphQLField(GraphQLInt, description=""),
-                "frame_id": GraphQLField(GraphQLString, description=""),
-                "status_status": GraphQLField(GraphQLInt, description=""),
-                "status_service": GraphQLField(GraphQLInt, description=""),
+                "frameId": GraphQLField(GraphQLString, description=""),
+                "statusStatus": GraphQLField(GraphQLInt, description=""),
+                "statusService": GraphQLField(GraphQLInt, description=""),
                 "latitude": GraphQLField(GraphQLFloat, description=""),
                 "longitude": GraphQLField(GraphQLFloat, description=""),
                 "altitude": GraphQLField(GraphQLFloat, description=""),
                 # TODO: position_covariance array
-                "position_covariance_type": GraphQLField(GraphQLInt, description=""),
+                "positionCovarianceType": GraphQLField(GraphQLInt, description=""),
             },
             description="MAVROS NavSatFixMessage",
         )
 
         self.imu_message_type = GraphQLObjectType(
-            "ImuMessage",
+            "Imu",
             lambda: {
                 "id": GraphQLField(GraphQLString, description="The id of the message."),
                 "seq": GraphQLField(
@@ -88,23 +88,23 @@ class MAVROSSchema(schemaBase):
                 ),
                 "secs": GraphQLField(GraphQLInt, description=""),
                 "nsecs": GraphQLField(GraphQLInt, description=""),
-                "frame_id": GraphQLField(GraphQLString, description=""),
-                "orientation_x": GraphQLField(GraphQLFloat, description=""),
-                "orientation_y": GraphQLField(GraphQLFloat, description=""),
-                "orientation_z": GraphQLField(GraphQLFloat, description=""),
-                "orientation_w": GraphQLField(GraphQLFloat, description=""),
-                "angular_velocity_x": GraphQLField(GraphQLFloat, description=""),
-                "angular_velocity_y": GraphQLField(GraphQLFloat, description=""),
-                "angular_velocity_z": GraphQLField(GraphQLFloat, description=""),
-                "linear_acceleration_x": GraphQLField(GraphQLFloat, description=""),
-                "linear_acceleration_y": GraphQLField(GraphQLFloat, description=""),
-                "linear_acceleration_z": GraphQLField(GraphQLFloat, description=""),
+                "frameId": GraphQLField(GraphQLString, description=""),
+                "orientationX": GraphQLField(GraphQLFloat, description=""),
+                "orientationY": GraphQLField(GraphQLFloat, description=""),
+                "orientationZ": GraphQLField(GraphQLFloat, description=""),
+                "orientationW": GraphQLField(GraphQLFloat, description=""),
+                "angularVelocityX": GraphQLField(GraphQLFloat, description=""),
+                "angularVelocityY": GraphQLField(GraphQLFloat, description=""),
+                "angularVelocityZ": GraphQLField(GraphQLFloat, description=""),
+                "linearAccelerationX": GraphQLField(GraphQLFloat, description=""),
+                "linearAccelerationY": GraphQLField(GraphQLFloat, description=""),
+                "linearAccelerationZ": GraphQLField(GraphQLFloat, description=""),
             },
             description="MAVROS ImuMessage",
         )
 
         self.state_message_type = GraphQLObjectType(
-            "StateMessage",
+            "VehicleState",
             lambda: {
                 "id": GraphQLField(GraphQLString, description="The id of the message."),
                 "seq": GraphQLField(
@@ -112,18 +112,18 @@ class MAVROSSchema(schemaBase):
                 ),
                 "secs": GraphQLField(GraphQLInt, description=""),
                 "nsecs": GraphQLField(GraphQLInt, description=""),
-                "frame_id": GraphQLField(GraphQLString, description=""),
+                "frameId": GraphQLField(GraphQLString, description=""),
                 "connected": GraphQLField(GraphQLBoolean, description=""),
                 "armed": GraphQLField(GraphQLBoolean, description=""),
                 "guided": GraphQLField(GraphQLBoolean, description=""),
                 "mode": GraphQLField(GraphQLString, description=""),
-                "system_status": GraphQLField(GraphQLInt, description=""),
+                "systemStatus": GraphQLField(GraphQLInt, description=""),
             },
             description="MAVROS StateMessage",
         )
 
         self.pose_stamped_message_type = GraphQLObjectType(
-            "PoseStampedMessage",
+            "PoseStamped",
             lambda: {
                 "id": GraphQLField(GraphQLString, description="The id of the message."),
                 "seq": GraphQLField(
@@ -131,20 +131,20 @@ class MAVROSSchema(schemaBase):
                 ),
                 "secs": GraphQLField(GraphQLInt, description=""),
                 "nsecs": GraphQLField(GraphQLInt, description=""),
-                "frame_id": GraphQLField(GraphQLString, description=""),
-                "pose_position_x": GraphQLField(GraphQLFloat, description=""),
-                "pose_position_y": GraphQLField(GraphQLFloat, description=""),
-                "pose_position_z": GraphQLField(GraphQLFloat, description=""),
-                "pose_orientation_x": GraphQLField(GraphQLFloat, description=""),
-                "pose_orientation_y": GraphQLField(GraphQLFloat, description=""),
-                "pose_orientation_z": GraphQLField(GraphQLFloat, description=""),
-                "pose_orientation_w": GraphQLField(GraphQLFloat, description=""),
+                "frameId": GraphQLField(GraphQLString, description=""),
+                "posePositionX": GraphQLField(GraphQLFloat, description=""),
+                "posePositionY": GraphQLField(GraphQLFloat, description=""),
+                "posePositionZ": GraphQLField(GraphQLFloat, description=""),
+                "poseOrientationX": GraphQLField(GraphQLFloat, description=""),
+                "poseOrientationY": GraphQLField(GraphQLFloat, description=""),
+                "poseOrientationZ": GraphQLField(GraphQLFloat, description=""),
+                "poseOrientationW": GraphQLField(GraphQLFloat, description=""),
             },
             description="MAVROS PoseStampedMessage",
         )
 
         self.vfr_hud_message_type = GraphQLObjectType(
-            "VfrHudMessage",
+            "VfrHud",
             lambda: {
                 "id": GraphQLField(GraphQLString, description="The id of the message."),
                 "seq": GraphQLField(
@@ -152,7 +152,7 @@ class MAVROSSchema(schemaBase):
                 ),
                 "secs": GraphQLField(GraphQLInt, description=""),
                 "nsecs": GraphQLField(GraphQLInt, description=""),
-                "frame_id": GraphQLField(GraphQLString, description=""),
+                "frameId": GraphQLField(GraphQLString, description=""),
                 "airspeed": GraphQLField(GraphQLFloat, description=""),
                 "groundspeed": GraphQLField(GraphQLFloat, description=""),
                 "heading": GraphQLField(GraphQLInt, description=""),
@@ -176,7 +176,7 @@ class MAVROSSchema(schemaBase):
                 ),
                 "secs": GraphQLField(GraphQLInt, description=""),
                 "nsecs": GraphQLField(GraphQLInt, description=""),
-                "frame_id": GraphQLField(GraphQLString, description=""),
+                "frameId": GraphQLField(GraphQLString, description=""),
                 "level": GraphQLField(GraphQLInt, description=""),
                 "message": GraphQLField(GraphQLString, description=""),
             },
@@ -228,22 +228,22 @@ class MAVROSSchema(schemaBase):
         )
 
         self.q = {
-            "NavSatFixMessage": GraphQLField(
+            "NavSatFix": GraphQLField(
                 self.nav_sat_fix_message_type, resolve=self.get_nav_sat_fix_message
             ),
-            "ImuMessage": GraphQLField(
+            "Imu": GraphQLField(
                 self.imu_message_type, resolve=self.get_imu_message
             ),
-            "StateMessage": GraphQLField(
+            "VehicleState": GraphQLField(
                 self.state_message_type, resolve=self.get_state_message
             ),
-            "PoseStampedMessage": GraphQLField(
+            "PoseStamped": GraphQLField(
                 self.pose_stamped_message_type, resolve=self.get_pose_stamped_message
             ),
-            "VfrHudMessage": GraphQLField(
+            "VfrHud": GraphQLField(
                 self.vfr_hud_message_type, resolve=self.get_vfr_hud_message
             ),
-            "StatusTextMessage": GraphQLField(
+            "StatusText": GraphQLField(
                 self.status_text_message_type, resolve=self.get_status_text_message
             ),
             "Mission": GraphQLField(
@@ -269,32 +269,32 @@ class MAVROSSchema(schemaBase):
         }
 
         self.m = {
-            "NavSatFixMessage": GraphQLField(
+            "NavSatFix": GraphQLField(
                 self.nav_sat_fix_message_type,
                 args=self.get_mutation_args(self.nav_sat_fix_message_type),
                 resolve=self.set_nav_sat_fix_message,
             ),
-            "ImuMessage": GraphQLField(
+            "Imu": GraphQLField(
                 self.imu_message_type,
                 args=self.get_mutation_args(self.imu_message_type),
                 resolve=self.set_imu_message,
             ),
-            "StateMessage": GraphQLField(
+            "VehicleState": GraphQLField(
                 self.state_message_type,
                 args=self.get_mutation_args(self.state_message_type),
                 resolve=self.set_state_message,
             ),
-            "PoseStampedMessage": GraphQLField(
+            "PoseStamped": GraphQLField(
                 self.state_message_type,
                 args=self.get_mutation_args(self.pose_stamped_message_type),
                 resolve=self.set_pose_stamped_message,
             ),
-            "VfrHudMessage": GraphQLField(
+            "VfrHud": GraphQLField(
                 self.vfr_hud_message_type,
                 args=self.get_mutation_args(self.vfr_hud_message_type),
                 resolve=self.set_vfr_hud_message,
             ),
-            "StatusTextMessage": GraphQLField(
+            "StatusText": GraphQLField(
                 self.status_text_message_type,
                 args=self.get_mutation_args(self.status_text_message_type),
                 resolve=self.set_status_text_message,
@@ -307,28 +307,28 @@ class MAVROSSchema(schemaBase):
         }
 
         self.s = {
-            "NavSatFixMessage": GraphQLField(
+            "NavSatFix": GraphQLField(
                 self.nav_sat_fix_message_type,
                 subscribe=self.sub_nav_sat_fix_message,
                 resolve=None,
             ),
-            "ImuMessage": GraphQLField(
+            "Imu": GraphQLField(
                 self.imu_message_type, subscribe=self.sub_imu_message, resolve=None
             ),
-            "StateMessage": GraphQLField(
+            "VehicleState": GraphQLField(
                 self.state_message_type, subscribe=self.sub_state_message, resolve=None
             ),
-            "PoseStampedMessage": GraphQLField(
+            "PoseStamped": GraphQLField(
                 self.pose_stamped_message_type,
                 subscribe=self.sub_pose_stamped_message,
                 resolve=None,
             ),
-            "VfrHudMessage": GraphQLField(
+            "VfrHud": GraphQLField(
                 self.vfr_hud_message_type,
                 subscribe=self.sub_vfr_hud_message,
                 resolve=None,
             ),
-            "StatusTextMessage": GraphQLField(
+            "StatusText": GraphQLField(
                 self.status_text_message_type,
                 subscribe=self.sub_imu_message,
                 resolve=None,
@@ -720,10 +720,10 @@ class MAVROSConnection(moduleBase):
     def state_callback(self, data):
         kwargs = {
             "seq": data.header.seq,
-            "frame_id": data.header.frame_id,
+            "frameId": data.header.frame_id,
             "guided": data.guided,
             "nsecs": data.header.stamp.nsecs,
-            "system_status": data.system_status,
+            "systemStatus": data.system_status,
             "secs": data.header.stamp.secs,
             "connected": data.connected,
             "mode": data.mode,
@@ -736,7 +736,7 @@ class MAVROSConnection(moduleBase):
             "seq": data.header.seq,
             "secs": data.header.stamp.secs,
             "nsecs": data.header.stamp.nsecs,
-            "frame_id": data.header.frame_id,
+            "frameId": data.header.frame_id,
             "airspeed": data.airspeed,
             "groundspeed": data.groundspeed,
             "heading": data.heading,
@@ -751,13 +751,13 @@ class MAVROSConnection(moduleBase):
             "seq": data.header.seq,
             "secs": data.header.stamp.secs,
             "nsecs": data.header.stamp.nsecs,
-            "frame_id": data.header.frame_id,
-            "status_status": data.status.status,
-            "status_service": data.status.service,
+            "frameId": data.header.frame_id,
+            "statusStatus": data.status.status,
+            "statusService": data.status.service,
             "latitude": data.latitude,
             "longitude": data.longitude,
             "altitude": data.altitude,
-            "position_covariance_type": data.position_covariance_type,
+            "positionCovarianceType": data.position_covariance_type,
         }
         api_callback(self.loop, self.module[__name__].set_nav_sat_fix_message, **kwargs)
 
@@ -766,14 +766,14 @@ class MAVROSConnection(moduleBase):
             "seq": data.header.seq,
             "secs": data.header.stamp.secs,
             "nsecs": data.header.stamp.nsecs,
-            "frame_id": data.header.frame_id,
-            "pose_position_x": data.pose.position.x,
-            "pose_position_y": data.pose.position.y,
-            "pose_position_z": data.pose.position.z,
-            "pose_orientation_x": data.pose.orientation.x,
-            "pose_orientation_y": data.pose.orientation.y,
-            "pose_orientation_z": data.pose.orientation.z,
-            "pose_orientation_w": data.pose.orientation.w,
+            "frameId": data.header.frame_id,
+            "posePositionX": data.pose.position.x,
+            "posePositionY": data.pose.position.y,
+            "posePositionZ": data.pose.position.z,
+            "poseOrientationX": data.pose.orientation.x,
+            "poseOrientationY": data.pose.orientation.y,
+            "poseOrientationZ": data.pose.orientation.z,
+            "poseOrientationW": data.pose.orientation.w,
         }
         api_callback(
             self.loop, self.module[__name__].set_pose_stamped_message, **kwargs
@@ -784,17 +784,17 @@ class MAVROSConnection(moduleBase):
             "seq": data.header.seq,
             "secs": data.header.stamp.secs,
             "nsecs": data.header.stamp.nsecs,
-            "frame_id": data.header.frame_id,
-            "orientation_x": data.orientation.x,
-            "orientation_y": data.orientation.y,
-            "orientation_z": data.orientation.z,
-            "orientation_w": data.orientation.w,
-            "angular_velocity_x": data.angular_velocity.x,
-            "angular_velocity_y": data.angular_velocity.y,
-            "angular_velocity_z": data.angular_velocity.z,
-            "linear_acceleration_x": data.linear_acceleration.x,
-            "linear_acceleration_y": data.linear_acceleration.y,
-            "linear_acceleration_z": data.linear_acceleration.z,
+            "frameId": data.header.frame_id,
+            "orientationX": data.orientation.x,
+            "orientationY": data.orientation.y,
+            "orientationZ": data.orientation.z,
+            "orientationW": data.orientation.w,
+            "angularVelocityX": data.angular_velocity.x,
+            "angularVelocityY": data.angular_velocity.y,
+            "angularVelocityZ": data.angular_velocity.z,
+            "linearAccelerationX": data.linear_acceleration.x,
+            "linearAccelerationY": data.linear_acceleration.y,
+            "linearAccelerationZ": data.linear_acceleration.z,
         }
         api_callback(self.loop, self.module[__name__].set_imu_message, **kwargs)
 
@@ -815,7 +815,7 @@ class MAVROSConnection(moduleBase):
                 "seq": data.header.seq,
                 "secs": data.header.stamp.secs,
                 "nsecs": data.header.stamp.nsecs,
-                "frame_id": data.header.frame_id,
+                "frameId": data.header.frame_id,
                 "level": data.level,
                 "message": data.msg,
             }
