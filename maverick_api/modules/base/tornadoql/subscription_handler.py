@@ -211,7 +211,12 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
 
     def on_connection_init(self, op_id, payload):
         application_log.debug(f"Subscription connection init payload: {payload}")
-        self.context["authorization"] = payload.get("authorization", None)
+        auth = payload.get("authorization", "")
+        if "Bearer " in auth:
+            auth = auth.lstrip("Bearer ")
+        else:
+            auth = None
+        self.context["authorization"] = auth
         tornado.ioloop.IOLoop.current().spawn_callback(
             self.send_message, op_type=GQL_CONNECTION_ACK
         )

@@ -365,7 +365,7 @@ class MAVROSSchema(schemaBase):
         """ImuMessage mutation handler"""
         updated_dict = {**self.imu_data, **kwargs}
         self.subscriptions.emit(
-            str(__name__) + "ImuMessage", {"ImuMessage": updated_dict}
+            str(__name__) + "Imu", {"Imu": updated_dict}
         )
         self.imu_data = updated_dict
         return updated_dict
@@ -374,7 +374,7 @@ class MAVROSSchema(schemaBase):
         """ImuMessage subscription handler"""
         application_log.info(f"ImuMessage subscription handler {info}")
         return EventEmitterAsyncIterator(
-            self.subscriptions, str(__name__) + "ImuMessage"
+            self.subscriptions, str(__name__) + "Imu"
         )
 
     def get_state_message(self, root, info):
@@ -385,7 +385,7 @@ class MAVROSSchema(schemaBase):
         """StateMessage mutation handler"""
         updated_dict = {**self.state_data, **kwargs}
         self.subscriptions.emit(
-            str(__name__) + "StateMessage", {"StateMessage": updated_dict}
+            str(__name__) + "VehicleState", {"VehicleState": updated_dict}
         )
         self.state_data = updated_dict
         return updated_dict
@@ -393,7 +393,7 @@ class MAVROSSchema(schemaBase):
     def sub_state_message(self, root, info):
         """StateMessage subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, str(__name__) + "StateMessage"
+            self.subscriptions, str(__name__) + "VehicleState"
         )
 
     def get_pose_stamped_message(self, root, info):
@@ -404,7 +404,7 @@ class MAVROSSchema(schemaBase):
         """PoseStampedMessage mutation handler"""
         updated_dict = {**self.pose_data, **kwargs}
         self.subscriptions.emit(
-            str(__name__) + "PoseStampedMessage", {"PoseStampedMessage": updated_dict}
+            str(__name__) + "PoseStamped", {"PoseStamped": updated_dict}
         )
         self.pose_data = updated_dict
         return updated_dict
@@ -412,7 +412,7 @@ class MAVROSSchema(schemaBase):
     def sub_pose_stamped_message(self, root, info):
         """PoseStampedMessage subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, str(__name__) + "PoseStampedMessage"
+            self.subscriptions, str(__name__) + "PoseStamped"
         )
 
     def get_vfr_hud_message(self, root, info):
@@ -423,7 +423,7 @@ class MAVROSSchema(schemaBase):
         """VfrHudMessage mutation handler"""
         updated_dict = {**self.vfr_hud_data, **kwargs}
         self.subscriptions.emit(
-            str(__name__) + "VfrHudMessage", {"VfrHudMessage": updated_dict}
+            str(__name__) + "VfrHud", {"VfrHud": updated_dict}
         )
         self.vfr_hud_data = updated_dict
         return updated_dict
@@ -431,7 +431,7 @@ class MAVROSSchema(schemaBase):
     def sub_vfr_hud_message(self, root, info):
         """VfrHudMessage subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, str(__name__) + "VfrHudMessage"
+            self.subscriptions, str(__name__) + "VfrHud"
         )
 
     def get_status_text_message(self, root, info):
@@ -442,7 +442,7 @@ class MAVROSSchema(schemaBase):
         """StatusTextMessage mutation handler"""
         updated_dict = {**self.status_text_data, **kwargs}
         self.subscriptions.emit(
-            str(__name__) + "StatusTextMessage", {"StatusTextMessage": updated_dict}
+            str(__name__) + "StatusText", {"StatusText": updated_dict}
         )
         self.status_text_data = updated_dict
         return updated_dict
@@ -450,7 +450,7 @@ class MAVROSSchema(schemaBase):
     def sub_status_text_message(self, root, info):
         """StatusTextMessage subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, str(__name__) + "StatusTextMessage"
+            self.subscriptions, str(__name__) + "StatusText"
         )
 
     def get_mission(self, root, info, **kwargs):
