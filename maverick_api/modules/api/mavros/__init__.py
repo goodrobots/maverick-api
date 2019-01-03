@@ -61,7 +61,9 @@ class MAVROSSchema(schemaBase):
         self.nav_sat_fix_message_type = GraphQLObjectType(
             "NavSatFix",
             lambda: {
-                "uuid": GraphQLField(GraphQLString, description="The uuid of the vehicle."),
+                "uuid": GraphQLField(
+                    GraphQLString, description="The uuid of the vehicle."
+                ),
                 "seq": GraphQLField(
                     GraphQLInt, description="The sequence number of the message."
                 ),
@@ -82,7 +84,9 @@ class MAVROSSchema(schemaBase):
         self.imu_message_type = GraphQLObjectType(
             "Imu",
             lambda: {
-                "uuid": GraphQLField(GraphQLString, description="The uuid of the vehicle."),
+                "uuid": GraphQLField(
+                    GraphQLString, description="The uuid of the vehicle."
+                ),
                 "seq": GraphQLField(
                     GraphQLInt, description="The sequence number of the message."
                 ),
@@ -106,7 +110,9 @@ class MAVROSSchema(schemaBase):
         self.state_message_type = GraphQLObjectType(
             "VehicleState",
             lambda: {
-                "uuid": GraphQLField(GraphQLString, description="The uuid of the vehicle."),
+                "uuid": GraphQLField(
+                    GraphQLString, description="The uuid of the vehicle."
+                ),
                 "seq": GraphQLField(
                     GraphQLInt, description="The sequence number of the message."
                 ),
@@ -125,7 +131,9 @@ class MAVROSSchema(schemaBase):
         self.pose_stamped_message_type = GraphQLObjectType(
             "PoseStamped",
             lambda: {
-                "uuid": GraphQLField(GraphQLString, description="The uuid of the vehicle."),
+                "uuid": GraphQLField(
+                    GraphQLString, description="The uuid of the vehicle."
+                ),
                 "seq": GraphQLField(
                     GraphQLInt, description="The sequence number of the message."
                 ),
@@ -146,7 +154,9 @@ class MAVROSSchema(schemaBase):
         self.vfr_hud_message_type = GraphQLObjectType(
             "VfrHud",
             lambda: {
-                "uuid": GraphQLField(GraphQLString, description="The uuid of the vehicle."),
+                "uuid": GraphQLField(
+                    GraphQLString, description="The uuid of the vehicle."
+                ),
                 "seq": GraphQLField(
                     GraphQLInt, description="The sequence number of the message."
                 ),
@@ -170,7 +180,9 @@ class MAVROSSchema(schemaBase):
         self.status_text_message_type = GraphQLObjectType(
             "StatusText",
             lambda: {
-                "uuid": GraphQLField(GraphQLString, description="The uuid of the vehicle."),
+                "uuid": GraphQLField(
+                    GraphQLString, description="The uuid of the vehicle."
+                ),
                 "seq": GraphQLField(
                     GraphQLInt, description="The sequence number of the message."
                 ),
@@ -231,9 +243,7 @@ class MAVROSSchema(schemaBase):
             "NavSatFix": GraphQLField(
                 self.nav_sat_fix_message_type, resolve=self.get_nav_sat_fix_message
             ),
-            "Imu": GraphQLField(
-                self.imu_message_type, resolve=self.get_imu_message
-            ),
+            "Imu": GraphQLField(self.imu_message_type, resolve=self.get_imu_message),
             "VehicleState": GraphQLField(
                 self.state_message_type, resolve=self.get_state_message
             ),
@@ -364,18 +374,14 @@ class MAVROSSchema(schemaBase):
     def set_imu_message(self, root, info, **kwargs):
         """ImuMessage mutation handler"""
         updated_dict = {**self.imu_data, **kwargs}
-        self.subscriptions.emit(
-            str(__name__) + "Imu", {"Imu": updated_dict}
-        )
+        self.subscriptions.emit(str(__name__) + "Imu", {"Imu": updated_dict})
         self.imu_data = updated_dict
         return updated_dict
 
     def sub_imu_message(self, root, info):
         """ImuMessage subscription handler"""
         application_log.info(f"ImuMessage subscription handler {info}")
-        return EventEmitterAsyncIterator(
-            self.subscriptions, str(__name__) + "Imu"
-        )
+        return EventEmitterAsyncIterator(self.subscriptions, str(__name__) + "Imu")
 
     def get_state_message(self, root, info):
         """StateMessage query handler"""
@@ -422,17 +428,13 @@ class MAVROSSchema(schemaBase):
     def set_vfr_hud_message(self, root, info, **kwargs):
         """VfrHudMessage mutation handler"""
         updated_dict = {**self.vfr_hud_data, **kwargs}
-        self.subscriptions.emit(
-            str(__name__) + "VfrHud", {"VfrHud": updated_dict}
-        )
+        self.subscriptions.emit(str(__name__) + "VfrHud", {"VfrHud": updated_dict})
         self.vfr_hud_data = updated_dict
         return updated_dict
 
     def sub_vfr_hud_message(self, root, info):
         """VfrHudMessage subscription handler"""
-        return EventEmitterAsyncIterator(
-            self.subscriptions, str(__name__) + "VfrHud"
-        )
+        return EventEmitterAsyncIterator(self.subscriptions, str(__name__) + "VfrHud")
 
     def get_status_text_message(self, root, info):
         """StatusTextMessage query handler"""

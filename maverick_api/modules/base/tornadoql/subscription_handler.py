@@ -82,7 +82,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
             "session": self.current_user,
             "db_access": None,
         }
-    
+
     @property
     def uptime(self):
         return time.time() - self.start_time
@@ -121,7 +121,9 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
         if payload is not None:
             message["payload"] = payload
         assert message, "You need to send at least one thing"
-        websocket_log.debug(f"Websocket Send  {self.remote_ip} {self.uptime:.2f} {message}")
+        websocket_log.debug(
+            f"Websocket Send  {self.remote_ip} {self.uptime:.2f} {message}"
+        )
         return await self.write_message(message)
 
     def send_error(self, op_id, error, error_type=None):
@@ -185,7 +187,9 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
 
     def on_message(self, message):
         parsed_message = json_decode(message)
-        websocket_log.debug(f"Websocket Receive {self.remote_ip} {self.uptime:.2f} {parsed_message}")
+        websocket_log.debug(
+            f"Websocket Receive {self.remote_ip} {self.uptime:.2f} {parsed_message}"
+        )
         op_id = parsed_message.get("id")
         op_type = parsed_message.get("type")
         payload = parsed_message.get("payload")
