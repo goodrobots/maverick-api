@@ -348,13 +348,13 @@ class MAVROSSchema(schemaBase):
     def set_nav_sat_fix_message(self, root, info, **kwargs):
         """NavSatFixMessage mutation handler"""
         updated_dict = {**self.nav_sat_fix_data, **kwargs}
-        self.subscriptions.emit(__name__, {"NavSatFixMessage": updated_dict})
+        self.subscriptions.emit(__name__ + "NavSatFix", {"NavSatFix": updated_dict})
         self.nav_sat_fix_data = updated_dict
         return updated_dict
 
     def sub_nav_sat_fix_message(self, root, info):
         """NavSatFixMessage subscription handler"""
-        return EventEmitterAsyncIterator(self.subscriptions, __name__)
+        return EventEmitterAsyncIterator(self.subscriptions, __name__ + "NavSatFix")
 
     def get_imu_message(self, root, info):
         """ImuMessage query handler"""

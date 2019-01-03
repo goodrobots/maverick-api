@@ -1,4 +1,5 @@
 import logging
+import time
 from urllib.parse import urlparse
 
 import tornado.ioloop
@@ -73,12 +74,18 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
     def initialize(self):
         self.handler_sockets = []
         self.handler_subscriptions = {}
+        self.start_time = time.time()
+        self.remote_ip = ""
         # TODO: provide DB object via options to context
         self.context = {
             "authorization": None,
             "session": self.current_user,
             "db_access": None,
         }
+    
+    @property
+    def uptime(self):
+        return time.time() - self.start_time
 
     @property
     def schema(self):
@@ -114,7 +121,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
         if payload is not None:
             message["payload"] = payload
         assert message, "You need to send at least one thing"
-        websocket_log.debug("Websocket Send {0} {1}".format(self.context, message))
+        websocket_log.debug(f"Websocket Send  {self.remote_ip} {self.uptime:.2f} {message}")
         return await self.write_message(message)
 
     def send_error(self, op_id, error, error_type=None):
@@ -178,7 +185,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
 
     def on_message(self, message):
         parsed_message = json_decode(message)
-        websocket_log.debug("Websocket Receive {0}".format(parsed_message))
+        websocket_log.debug(f"Websocket Receive {self.remote_ip} {self.uptime:.2f} {parsed_message}")
         op_id = parsed_message.get("id")
         op_type = parsed_message.get("type")
         payload = parsed_message.get("payload")
@@ -210,6 +217,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
             )
 
     def on_connection_init(self, op_id, payload):
+        self.remote_ip = self.request.remote_ip
         application_log.debug(f"Subscription connection init payload: {payload}")
         auth = payload.get("authorization", "")
         if "Bearer " in auth:
