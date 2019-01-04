@@ -5,6 +5,7 @@ from modules.api import moduleBase
 from modules.api import schemaBase
 from modules.api import api_callback
 
+from modules.base.tornadoql.session_control import GraphQLSession
 from modules.base.util.mavlink import get_meta_string
 
 # mavros & ros imports
@@ -351,6 +352,7 @@ class MAVROSSchema(schemaBase):
             ),
         }
 
+    # @GraphQLSession.authenticated(RBAC="FIXME")
     def get_nav_sat_fix_message(self, root, info):
         """NavSatFixMessage query handler"""
         return self.nav_sat_fix_data
