@@ -83,7 +83,7 @@ class MavLogging(object):
             websoc_handler = logging.handlers.RotatingFileHandler(
                 os.path.join(options.logdir, "websocket.log"),
                 mode="a",
-                maxBytes=1 * 1024,
+                maxBytes=1 * 1024 * 1024,
                 backupCount=2,
                 encoding=None,
                 delay=0,
