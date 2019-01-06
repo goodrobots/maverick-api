@@ -12,10 +12,12 @@ from tornado.options import options
 # module imports
 from modules.base.tornadoql.tornadoql import TornadoQL
 
-# import modules  # noqa E402
+# import modules
 from modules.api.mavros import MAVROSConnection
 from modules.api.status import StatusModule
 from modules.api import module_schema
+
+application_log = logging.getLogger("tornado.application")
 
 
 class ApiServer(object):
@@ -40,23 +42,21 @@ class ApiServer(object):
         application = TornadoQL()
         self.server = tornado.httpserver.HTTPServer(application)
         self.server.listen(port=options.server_port, address=options.server_interface)
-        logging.debug(
-            "Starting Maverick API server: {0}:{1}/{2}".format(
-                options.server_interface, options.server_port, options.app_prefix
+        application_log.info(
+            f"Starting Maverick API server: {options.server_interface}:{options.server_port}/{options.app_prefix}"
             )
-        )
 
     def serve(self):
         tornado.ioloop.IOLoop.current().start()
         # this function blocks at this point until the server
         # is asked to exit via request_stop()
-        logging.debug("Tornado finished")
+        application_log.info("Maverick API server has stopped")
 
     def request_stop(self):
         # TODO: close all websocket connections (required?)
         ioloop = tornado.ioloop.IOLoop.current()
         ioloop.add_callback(ioloop.stop)
-        logging.debug("Asked Tornado to exit")
+        application_log.info("Stopping Maverick API server")
 
     def exit_gracefully(self, signum, frame):
         """called on sigterm"""

@@ -1,4 +1,5 @@
 import sys
+import logging
 import inspect
 import pkgutil
 from pathlib import Path
@@ -7,6 +8,7 @@ import tornado.ioloop
 from graphql import GraphQLField, GraphQLObjectType, GraphQLSchema
 from graphql.pyutils.event_emitter import EventEmitter
 
+application_log = logging.getLogger()
 
 class moduleBase(object):
     def __init__(self, loop, module):
@@ -16,7 +18,7 @@ class moduleBase(object):
 
 
 class schemaBase(object):
-    def __init__(self,):
+    def __init__(self):
         self.q = {}
         self.m = {}
         self.s = {}
@@ -55,11 +57,11 @@ def check_schema_attribute(instance):
     return False
 
 
-def extend_application_schema(name, q, m, s):
+def extend_application_schema(ref_name, q, m, s):
     schema_target_attributes = ["q", "m", "s"]
     for schema_target_attribute in schema_target_attributes:
         schema_attribute = getattr(
-            module_schema[f"{__name__}.{name}"], schema_target_attribute
+            module_schema[ref_name], schema_target_attribute
         )
         if check_schema_attribute(schema_attribute):
             # Extend the application schema with class schema
@@ -81,16 +83,18 @@ s = dict()
 for (_, name, _) in pkgutil.iter_modules([Path(__file__).parent]):
     # import the module
     imported_module = import_module(f"{__name__}.{name}")
-    # print(f"{__name__}.{name}")
+    # print({__name__}, name)
     # search for the schema class
     for i in dir(imported_module):
         attribute = getattr(imported_module, i)
         if check_schema_class(attribute):
             # create an instance of the schema class
-            module_schema[f"{__name__}.{name}"] = attribute()
+            ref_name = f"{__name__}.{name}.{attribute.__name__}"
+            # print(f"{ref_name}", attribute)
+            module_schema[ref_name] = attribute()
             # print(module_schema)
             # add the class schema to the application schema
-            (q, m, s) = extend_application_schema(name, q, m, s)
+            (q, m, s) = extend_application_schema(ref_name, q, m, s)
 
 api_schema = GraphQLSchema(
     query=GraphQLObjectType("query", lambda: q),

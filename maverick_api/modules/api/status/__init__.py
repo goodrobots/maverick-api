@@ -115,13 +115,13 @@ class StatusSchema(schemaBase):
         (status_data["currentStatus"], status_data["status_count"]) = get_status(
             status_data["status_messages"], status_data["status_count"]
         )
-        self.subscriptions.emit(__name__, {"Status": status_data})
+        self.subscriptions.emit("modules.api.status.StatusSchema"+"Status", {"Status": status_data})
         return status_data
 
     def sub_report(self, root, info, **kwargs):
         """API status report subscription handler"""
         application_log.info(f"API status report subscription handler {info}")
-        return EventEmitterAsyncIterator(self.subscriptions, __name__)
+        return EventEmitterAsyncIterator(self.subscriptions, "modules.api.status.StatusSchema"+"Status")
 
 
 class StatusModule(moduleBase):
@@ -132,7 +132,7 @@ class StatusModule(moduleBase):
         self.start_periodic_callbacks()
 
     def install_periodic_callbacks(self):
-        callback = functools.partial(self.module[__name__].get_report, None, None)
+        callback = functools.partial(self.module["modules.api.status.StatusSchema"].get_report, None, None)
         self.periodic_callbacks.append(
             tornado.ioloop.PeriodicCallback(callback, callback_time=1000, jitter=0.1)
         )
