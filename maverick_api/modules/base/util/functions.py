@@ -1,5 +1,7 @@
 import time, os, stat
+import logging
 
+general_log = logging.getLogger("tornado.general")
 
 def mkdirs(dirpath):
     if not os.path.exists(dirpath):
@@ -10,7 +12,7 @@ def file_age_in_seconds(pathname):
     try:
         return time.time() - os.stat(pathname)[stat.ST_MTIME]
     except OSError as e:
-        print("Failed to obtain file age {0}".format(e))
+        general_log.error(f"Failed to obtain file age {e}")
         return None
 
 
