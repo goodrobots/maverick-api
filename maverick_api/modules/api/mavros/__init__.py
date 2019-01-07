@@ -47,10 +47,11 @@ from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterato
 
 application_log = logging.getLogger("tornado.application")
 
+
 class MAVROSSchema(schemaBase):
     def __init__(self):
         super().__init__()
-        
+
         self.imu_data = {"uuid": "test"}
         self.state_data = {"uuid": "test"}
         self.pose_data = {"uuid": "test"}
@@ -247,14 +248,18 @@ class MAVROSSchema(schemaBase):
     def set_imu_message(self, root, info, **kwargs):
         """ImuMessage mutation handler"""
         updated_dict = {**self.imu_data, **kwargs}
-        self.subscriptions.emit("modules.api.mavros.MAVROSSchema" + "Imu", {"Imu": updated_dict})
+        self.subscriptions.emit(
+            "modules.api.mavros.MAVROSSchema" + "Imu", {"Imu": updated_dict}
+        )
         self.imu_data = updated_dict
         return updated_dict
 
     def sub_imu_message(self, root, info):
         """ImuMessage subscription handler"""
         application_log.info(f"ImuMessage subscription handler {info}")
-        return EventEmitterAsyncIterator(self.subscriptions, "modules.api.mavros.MAVROSSchema" + "Imu")
+        return EventEmitterAsyncIterator(
+            self.subscriptions, "modules.api.mavros.MAVROSSchema" + "Imu"
+        )
 
     def get_state_message(self, root, info):
         """StateMessage query handler"""
@@ -264,7 +269,8 @@ class MAVROSSchema(schemaBase):
         """StateMessage mutation handler"""
         updated_dict = {**self.state_data, **kwargs}
         self.subscriptions.emit(
-            "modules.api.mavros.MAVROSSchema" + "VehicleState", {"VehicleState": updated_dict}
+            "modules.api.mavros.MAVROSSchema" + "VehicleState",
+            {"VehicleState": updated_dict},
         )
         self.state_data = updated_dict
         return updated_dict
@@ -283,7 +289,8 @@ class MAVROSSchema(schemaBase):
         """PoseStampedMessage mutation handler"""
         updated_dict = {**self.pose_data, **kwargs}
         self.subscriptions.emit(
-            "modules.api.mavros.MAVROSSchema" + "PoseStamped", {"PoseStamped": updated_dict}
+            "modules.api.mavros.MAVROSSchema" + "PoseStamped",
+            {"PoseStamped": updated_dict},
         )
         self.pose_data = updated_dict
         return updated_dict
@@ -301,13 +308,17 @@ class MAVROSSchema(schemaBase):
     def set_vfr_hud_message(self, root, info, **kwargs):
         """VfrHudMessage mutation handler"""
         updated_dict = {**self.vfr_hud_data, **kwargs}
-        self.subscriptions.emit("modules.api.mavros.MAVROSSchema" + "VfrHud", {"VfrHud": updated_dict})
+        self.subscriptions.emit(
+            "modules.api.mavros.MAVROSSchema" + "VfrHud", {"VfrHud": updated_dict}
+        )
         self.vfr_hud_data = updated_dict
         return updated_dict
 
     def sub_vfr_hud_message(self, root, info):
         """VfrHudMessage subscription handler"""
-        return EventEmitterAsyncIterator(self.subscriptions, "modules.api.mavros.MAVROSSchema" + "VfrHud")
+        return EventEmitterAsyncIterator(
+            self.subscriptions, "modules.api.mavros.MAVROSSchema" + "VfrHud"
+        )
 
     def get_status_text_message(self, root, info):
         """StatusTextMessage query handler"""
@@ -317,7 +328,8 @@ class MAVROSSchema(schemaBase):
         """StatusTextMessage mutation handler"""
         updated_dict = {**self.status_text_data, **kwargs}
         self.subscriptions.emit(
-            "modules.api.mavros.MAVROSSchema" + "StatusText", {"StatusText": updated_dict}
+            "modules.api.mavros.MAVROSSchema" + "StatusText",
+            {"StatusText": updated_dict},
         )
         self.status_text_data = updated_dict
         return updated_dict
@@ -517,7 +529,11 @@ class MAVROSConnection(moduleBase):
             "mode": data.mode,
             "armed": data.armed,
         }
-        api_callback(self.loop, self.module["modules.api.mavros.MAVROSSchema"].set_state_message, **kwargs)
+        api_callback(
+            self.loop,
+            self.module["modules.api.mavros.MAVROSSchema"].set_state_message,
+            **kwargs,
+        )
 
     def vfr_hud_callback(self, data):
         kwargs = {
@@ -532,7 +548,11 @@ class MAVROSConnection(moduleBase):
             "altitude": data.altitude,
             "climb": data.climb,
         }
-        api_callback(self.loop, self.module["modules.api.mavros.MAVROSSchema"].set_vfr_hud_message, **kwargs)
+        api_callback(
+            self.loop,
+            self.module["modules.api.mavros.MAVROSSchema"].set_vfr_hud_message,
+            **kwargs,
+        )
 
     def pose_stamped_callback(self, data):
         kwargs = {
@@ -549,7 +569,9 @@ class MAVROSConnection(moduleBase):
             "poseOrientationW": data.pose.orientation.w,
         }
         api_callback(
-            self.loop, self.module["modules.api.mavros.MAVROSSchema"].set_pose_stamped_message, **kwargs
+            self.loop,
+            self.module["modules.api.mavros.MAVROSSchema"].set_pose_stamped_message,
+            **kwargs,
         )
 
     def imu_callback(self, data):
@@ -569,7 +591,11 @@ class MAVROSConnection(moduleBase):
             "linearAccelerationY": data.linear_acceleration.y,
             "linearAccelerationZ": data.linear_acceleration.z,
         }
-        api_callback(self.loop, self.module["modules.api.mavros.MAVROSSchema"].set_imu_message, **kwargs)
+        api_callback(
+            self.loop,
+            self.module["modules.api.mavros.MAVROSSchema"].set_imu_message,
+            **kwargs,
+        )
 
     def param_callback(self, data):
         # logging.debug('param callback data: {0}  value type: {1} '.format(data, type(data.value)))
@@ -589,9 +615,15 @@ class MAVROSConnection(moduleBase):
                 "message": data.msg,
             }
             api_callback(
-                self.loop, self.module["modules.api.mavros.MAVROSSchema"].set_status_text_message, **kwargs
+                self.loop,
+                self.module["modules.api.mavros.MAVROSSchema"].set_status_text_message,
+                **kwargs,
             )
 
     def rel_alt_callback(self, data):
         kwargs = {"relativeAltitude": data.data}
-        api_callback(self.loop, self.module["modules.api.mavros.MAVROSSchema"].set_vfr_hud_message, **kwargs)
+        api_callback(
+            self.loop,
+            self.module["modules.api.mavros.MAVROSSchema"].set_vfr_hud_message,
+            **kwargs,
+        )

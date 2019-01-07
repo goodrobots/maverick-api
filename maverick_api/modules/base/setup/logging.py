@@ -76,7 +76,7 @@ class MavLogging(object):
         # Log tornado.general into tornado.application
         self.general_log.addHandler(app_handler)
         self.logs.append(self.general_log)
-        
+
         if options.debug == True:
             # Only setup the websocket logging if logging level is set to debug
             self.websocket_log = logging.getLogger("tornado.websocket")

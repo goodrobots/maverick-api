@@ -10,6 +10,7 @@ from graphql.pyutils.event_emitter import EventEmitter
 
 application_log = logging.getLogger()
 
+
 class moduleBase(object):
     def __init__(self, loop, module):
         # Attributes
@@ -60,9 +61,7 @@ def check_schema_attribute(instance):
 def extend_application_schema(ref_name, q, m, s):
     schema_target_attributes = ["q", "m", "s"]
     for schema_target_attribute in schema_target_attributes:
-        schema_attribute = getattr(
-            module_schema[ref_name], schema_target_attribute
-        )
+        schema_attribute = getattr(module_schema[ref_name], schema_target_attribute)
         if check_schema_attribute(schema_attribute):
             # Extend the application schema with class schema
             if schema_target_attribute == "m":

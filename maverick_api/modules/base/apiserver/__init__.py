@@ -44,7 +44,7 @@ class ApiServer(object):
         self.server.listen(port=options.server_port, address=options.server_interface)
         application_log.info(
             f"Starting Maverick API server: {options.server_interface}:{options.server_port}/{options.app_prefix}"
-            )
+        )
 
     def serve(self):
         tornado.ioloop.IOLoop.current().start()

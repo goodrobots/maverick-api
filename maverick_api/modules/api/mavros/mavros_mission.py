@@ -24,12 +24,13 @@ from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterato
 
 application_log = logging.getLogger("tornado.application")
 
+
 class MissionSchema(schemaBase):
     def __init__(self):
         super().__init__()
         self.mission_data = {}
         self.mission_meta = {"meta": {"total": 0, "updateTime": int(time.time())}}
-        
+
         self.mission_type = GraphQLObjectType(
             "Mission",
             lambda: {
@@ -73,7 +74,7 @@ class MissionSchema(schemaBase):
                 "updateTime": GraphQLField(GraphQLInt, description=""),
             },
         )
-        
+
         self.q = {
             "Mission": GraphQLField(
                 self.mission_type,
@@ -96,15 +97,15 @@ class MissionSchema(schemaBase):
                 resolve=self.get_mission_list,
             ),
         }
-        
+
         self.m = {
             "Mission": GraphQLField(
                 self.mission_type,
                 args=self.get_mutation_args(self.mission_type),
                 resolve=self.update_mission,
-            ),
+            )
         }
-        
+
         self.s = {
             "Mission": GraphQLField(
                 self.mission_type, subscribe=self.sub_mission, resolve=None
@@ -113,7 +114,7 @@ class MissionSchema(schemaBase):
                 self.mission_list_type, subscribe=self.sub_mission_list, resolve=None
             ),
         }
-        
+
     def get_mission(self, root, info, **kwargs):
         """Mission query handler"""
         application_log.debug(f"Mission query handler {kwargs}")
@@ -150,7 +151,8 @@ class MissionSchema(schemaBase):
             }
             mission_data[mission_item["seq"]] = mission_item
             self.subscriptions.emit(
-                "modules.api.mavros.MissionSchema" + "Mission", {"Mission": mission_item}
+                "modules.api.mavros.MissionSchema" + "Mission",
+                {"Mission": mission_item},
             )
         self.mission_data = mission_data
         self.subscriptions.emit(
@@ -161,7 +163,9 @@ class MissionSchema(schemaBase):
 
     def sub_mission(self, root, info):
         """Mission subscription handler"""
-        return EventEmitterAsyncIterator(self.subscriptions, "modules.api.mavros.MissionSchema" + "Mission")
+        return EventEmitterAsyncIterator(
+            self.subscriptions, "modules.api.mavros.MissionSchema" + "Mission"
+        )
 
     def get_mission_list(self, root, info, **kwargs):
         """Mission list query handler"""
@@ -193,17 +197,22 @@ class MissionSchema(schemaBase):
         return EventEmitterAsyncIterator(
             self.subscriptions, "modules.api.mavros.MissionSchema" + "MissionList"
         )
-        
+
+
 class MissionInterface(moduleBase):
     def __init__(self, loop, module):
         super().__init__(loop, module)
         self.waypoints = None
-    
+
     def mission_waypoints(self):
         self.waypoints = mission.pull()
         application_log.warn(f"waypoints: {self.waypoints}")
         mission.subscribe_waypoints(self.mission_callback)
-        
+
     def mission_callback(self, data):
         # application_log.debug(f"mission_callback: {data}")
-        api_callback(self.loop, self.module["modules.api.mavros.MissionSchema"].update_mission, data=data)
+        api_callback(
+            self.loop,
+            self.module["modules.api.mavros.MissionSchema"].update_mission,
+            data=data,
+        )

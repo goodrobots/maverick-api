@@ -27,11 +27,12 @@ from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterato
 
 application_log = logging.getLogger("tornado.application")
 
+
 class NavSatFixSchema(schemaBase):
     def __init__(self):
         super().__init__()
         self.nav_sat_fix_data = {"uuid": "test"}
-        
+
         self.nav_sat_fix_message_type = GraphQLObjectType(
             "NavSatFix",
             lambda: {
@@ -54,29 +55,29 @@ class NavSatFixSchema(schemaBase):
             },
             description="MAVROS NavSatFixMessage",
         )
-        
+
         self.q = {
             "NavSatFix": GraphQLField(
                 self.nav_sat_fix_message_type, resolve=self.get_nav_sat_fix_message
-            ),
-            }
-        
+            )
+        }
+
         self.m = {
             "NavSatFix": GraphQLField(
                 self.nav_sat_fix_message_type,
                 args=self.get_mutation_args(self.nav_sat_fix_message_type),
                 resolve=self.set_nav_sat_fix_message,
-            ),
-            }
-            
+            )
+        }
+
         self.s = {
             "NavSatFix": GraphQLField(
                 self.nav_sat_fix_message_type,
                 subscribe=self.sub_nav_sat_fix_message,
                 resolve=None,
-            ),
-            }
-        
+            )
+        }
+
     # @GraphQLSession.authenticated(RBAC="FIXME")
     def get_nav_sat_fix_message(self, root, info):
         """NavSatFixMessage query handler"""
@@ -85,22 +86,28 @@ class NavSatFixSchema(schemaBase):
     def set_nav_sat_fix_message(self, root, info, **kwargs):
         """NavSatFixMessage mutation handler"""
         updated_dict = {**self.nav_sat_fix_data, **kwargs}
-        self.subscriptions.emit("modules.api.mavros.NavSatFixSchema" + "NavSatFix", {"NavSatFix": updated_dict})
+        self.subscriptions.emit(
+            "modules.api.mavros.NavSatFixSchema" + "NavSatFix",
+            {"NavSatFix": updated_dict},
+        )
         self.nav_sat_fix_data = updated_dict
         return updated_dict
 
     def sub_nav_sat_fix_message(self, root, info):
         """NavSatFixMessage subscription handler"""
-        return EventEmitterAsyncIterator(self.subscriptions, "modules.api.mavros.NavSatFixSchema" + "NavSatFix")
-        
+        return EventEmitterAsyncIterator(
+            self.subscriptions, "modules.api.mavros.NavSatFixSchema" + "NavSatFix"
+        )
+
+
 class NavSatFixInterface(moduleBase):
     def __init__(self, loop, module):
         super().__init__(loop, module)
-    
+
         rospy.Subscriber(
-                "/mavros/global_position/global", NavSatFix, self.nav_sat_fix_callback
-            )
-        
+            "/mavros/global_position/global", NavSatFix, self.nav_sat_fix_callback
+        )
+
     def nav_sat_fix_callback(self, data):
         kwargs = {
             "seq": data.header.seq,
@@ -114,4 +121,8 @@ class NavSatFixInterface(moduleBase):
             "altitude": data.altitude,
             "positionCovarianceType": data.position_covariance_type,
         }
-        api_callback(self.loop, self.module["modules.api.mavros.NavSatFixSchema"].set_nav_sat_fix_message, **kwargs)
+        api_callback(
+            self.loop,
+            self.module["modules.api.mavros.NavSatFixSchema"].set_nav_sat_fix_message,
+            **kwargs
+        )
