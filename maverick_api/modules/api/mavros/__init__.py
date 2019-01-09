@@ -18,8 +18,8 @@ from mavros_msgs.msg import State, VFR_HUD
 from mavros_msgs.srv import StreamRate, StreamRateRequest
 from sensor_msgs.msg import Imu
 from geometry_msgs.msg import PoseStamped
-from mavros_maverick.msg import Param  # callback msg on param change
-from mavros_maverick.srv import VehicleInfo
+from mavros_msgs.msg import Param  # callback msg on param change
+from mavros_msgs.srv import VehicleInfoGet
 from mavros.param import param_ret_value
 
 from modules.api.mavros.mavros_mission import MissionSchema, MissionInterface
@@ -380,11 +380,11 @@ class MAVROSConnection(moduleBase):
                         message_rate=stream_rate,
                         on_off=(stream_rate != 0),
                     )
-                    logging.debug(
+                    application_log.debug(
                         "Set stream {} rate {}".format(stream_id, stream_rate)
                     )
                 except rospy.ServiceException as ex:
-                    logging.error(
+                    application_log.error(
                         "An error occurred while setting vehicle stream rates via ROS: {0}".format(
                             ex
                         )
@@ -419,16 +419,20 @@ class MAVROSConnection(moduleBase):
     def vehicle_info(self):
         # Create ROS service definition for VehicleInfo
         get_vehicle_info = rospy.ServiceProxy(
-            mavros.get_topic("get_vehicle_info"), VehicleInfo
+            mavros.get_topic("vehicle_info_get"), VehicleInfoGet
         )
         try:
             self.info = get_vehicle_info()
-            application_log.debug(f"{self.info}")
-            self.meta_string = get_meta_string(self.info)
-            logging.debug(self.info)
-            logging.info(self.meta_string)
+            # FIXME: Make this robust.
+            # For now just return the first vehicle we see
+            vehicle_count = len(self.info.vehicles)
+            application_log.info(f"Obtained info from {vehicle_count} vehicles")
+            if vehicle_count:
+                application_log.debug(f"{self.info}")
+                self.meta_string = get_meta_string(self.info.vehicles[0])
+                application_log.info(self.meta_string)
         except rospy.ServiceException as ex:
-            logging.error(
+            application_log.error(
                 "An error occurred while retrieving vehicle info via ROS: {0}".format(
                     ex
                 )
@@ -450,7 +454,7 @@ class MAVROSConnection(moduleBase):
     def topics(self):
         topics = rospy.get_published_topics()
         for topic in topics:
-            logging.info(topic)
+            application_log.info(topic)
 
     def params(self, meta_string="ArduCopter"):
         # TODO: make vehicle dynamic and chosse between px4 and ardupilot
@@ -462,7 +466,7 @@ class MAVROSConnection(moduleBase):
         # TODO: UPDATE CALLBACK
         # Parameters.callback = self.param_set_callback
         param_received, param_list = param_get_all(False)
-        logging.debug("Parameters received: {0}".format(param_received))
+        application_log.debug("Parameters received: {0}".format(param_received))
 
         param_meta_vehicle = {}
         for param in param_list:
@@ -472,7 +476,7 @@ class MAVROSConnection(moduleBase):
             param_meta_vehicle[param.param_id] = {
                 "group": param.param_id.split("_")[0].strip().rstrip("_").upper()
             }
-            logging.debug(
+            application_log.debug(
                 "param get {0}:{1}  {2}".format(
                     param.param_id, param.param_value, type(param.param_value)
                 )
@@ -482,11 +486,11 @@ class MAVROSConnection(moduleBase):
 
         if options.debug:
             start_time = time.time()
-        logging.debug("starting parameter meta fetch")
+        application_log.debug("starting parameter meta fetch")
         param_meta_server = get_param_meta(meta_string)
-        logging.debug("finished parameter meta fetch")
+        application_log.debug("finished parameter meta fetch")
         if options.debug:
-            logging.debug(
+            application_log.debug(
                 "parameter meta fetch took {0}s".format(time.time() - start_time)
             )
         # Parameters.meta = merge_two_dicts(param_meta_vehicle, param_meta_server)
@@ -511,10 +515,10 @@ class MAVROSConnection(moduleBase):
 
         # # check to see if the set value matches the provided value
         # ret_param = param_get(param_data['id'])
-        logging.debug(
+        application_log.debug(
             "param set {0}:{1}  {2}".format(param_data["id"], param_data["value"], ret)
         )
-        # logging.debug('{0}'.format(ret_param))
+        # application_log.debug('{0}'.format(ret_param))
         return ret
 
     def state_callback(self, data):
@@ -598,14 +602,14 @@ class MAVROSConnection(moduleBase):
         )
 
     def param_callback(self, data):
-        # logging.debug('param callback data: {0}  value type: {1} '.format(data, type(data.value)))
+        # application_log.debug('param callback data: {0}  value type: {1} '.format(data, type(data.value)))
         kwargs = {"id": data.param_id, "value": param_ret_value(data)}
         # api_callback(self.loop, self.module[__name__].set_param, **kwargs)
         # print(kwargs)
 
     def statustext_callback(self, data):
         if data.name == "/mavros":
-            logging.debug("statustext: {0}:{1}".format(data.level, data.msg))
+            # application_log.debug("statustext: {0}:{1}".format(data.level, data.msg))
             kwargs = {
                 "seq": data.header.seq,
                 "secs": data.header.stamp.secs,
