@@ -90,9 +90,9 @@ class GraphQLHandler(web.RequestHandler):
 
     async def handle_graqhql(self):
         result = await self.execute_graphql()
-        application_log.debug("Request header: {0}".format(self.request.headers))
+        application_log.debug(f"Request header: {self.request.headers}")
         application_log.debug(
-            "GraphQL result data: %s errors: %s", result.data, result.errors
+            f"GraphQL result data: {result.data} result errors: {result.errors}"
         )
         if result and result.errors:
             # an error occured during the graphql query
@@ -107,12 +107,17 @@ class GraphQLHandler(web.RequestHandler):
 
     async def execute_graphql(self):
         graphql_req = self.graphql_request
+        application_log.debug(
+            f"GraphQL request data: {graphql_req}"
+        )
         provided_context = graphql_req.get("context", {})
         result = await graphql(
             schema=self.schema,
             source=graphql_req.get("query"),
             root_value=None,  # resolve root
             context_value={**provided_context, **self.context},  # resolve info
+            variable_values=graphql_req.get("variables", {}),
+            operation_name=graphql_req.get("operationName", None),
         )
         return result
 
