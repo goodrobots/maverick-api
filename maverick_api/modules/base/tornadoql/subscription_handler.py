@@ -251,10 +251,10 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
         if isinstance(subscription, ExecutionResult):
             # There was an error during the subscription graphql call
             # TODO: log send errors back to client
-            application_log.warn(f"Subscription failed: {op_id} {subscription.errors} {params}")
-            error = Exception(
-                subscription.errors
+            application_log.warn(
+                f"Subscription failed: {op_id} {subscription.errors} {params}"
             )
+            error = Exception(subscription.errors)
             return self.send_error(op_id, error)
         else:
             # The subscription graphql call successfully created a MapAsyncIterator

@@ -31,7 +31,6 @@ from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterato
 application_log = logging.getLogger("tornado.application")
 
 
-
 class VehicleInfoSchema(schemaBase):
     def __init__(self):
         super().__init__()
@@ -42,65 +41,31 @@ class VehicleInfoSchema(schemaBase):
             "VehicleInfo",
             lambda: {
                 "uuid": GraphQLField(
-                    GraphQLString,
-                    description="The UUID of the vehicle.",
+                    GraphQLString, description="The UUID of the vehicle."
                 ),
-                "sysid": GraphQLField(
-                    GraphQLInt,
-                    description="System ID",
-                ),
-                "compid": GraphQLField(
-                    GraphQLInt,
-                    description="Component ID",
-                ),
+                "sysid": GraphQLField(GraphQLInt, description="System ID"),
+                "compid": GraphQLField(GraphQLInt, description="Component ID"),
                 "autopilot": GraphQLField(
                     GraphQLInt,
                     description="Autopilot ID (maps to value defined in mavlink)",
                 ),
                 "autopilotString": GraphQLField(
-                    GraphQLString,
-                    description="Autopilot string from mavlink mapping",
+                    GraphQLString, description="Autopilot string from mavlink mapping"
                 ),
                 "type": GraphQLField(
-                    GraphQLInt,
-                    description="Type ID (maps to value defined in mavlink)",
+                    GraphQLInt, description="Type ID (maps to value defined in mavlink)"
                 ),
                 "typeString": GraphQLField(
-                    GraphQLString,
-                    description="Type string from mavlink mapping",
+                    GraphQLString, description="Type string from mavlink mapping"
                 ),
-                "capabilities": GraphQLField(
-                    GraphQLInt,
-                    description="Bit field",
-                ),
-                "flightSoftwareVersion": GraphQLField(
-                    GraphQLInt,
-                    description="",
-                ),
-                "middlewareSoftwareVersion": GraphQLField(
-                    GraphQLInt,
-                    description="",
-                ),
-                "osSoftwareVersion": GraphQLField(
-                    GraphQLInt,
-                    description="",
-                ),
-                "boardVersion": GraphQLField(
-                    GraphQLInt,
-                    description="",
-                ),
-                "vendorId": GraphQLField(
-                    GraphQLInt,
-                    description="",
-                ),
-                "productId": GraphQLField(
-                    GraphQLInt,
-                    description="",
-                ),
-                "uid": GraphQLField(
-                    GraphQLInt,
-                    description="",
-                ),
+                "capabilities": GraphQLField(GraphQLInt, description="Bit field"),
+                "flightSoftwareVersion": GraphQLField(GraphQLInt, description=""),
+                "middlewareSoftwareVersion": GraphQLField(GraphQLInt, description=""),
+                "osSoftwareVersion": GraphQLField(GraphQLInt, description=""),
+                "boardVersion": GraphQLField(GraphQLInt, description=""),
+                "vendorId": GraphQLField(GraphQLInt, description=""),
+                "productId": GraphQLField(GraphQLInt, description=""),
+                "uid": GraphQLField(GraphQLInt, description=""),
                 "updateTime": GraphQLField(GraphQLInt, description=""),
             },
             description="Vehicle info",
@@ -129,8 +94,7 @@ class VehicleInfoSchema(schemaBase):
                 resolve=self.get_vehicle_info,
             ),
             "VehicleInfoList": GraphQLField(
-                self.vehicle_info_list_type,
-                resolve=self.get_vehicle_info_list,
+                self.vehicle_info_list_type, resolve=self.get_vehicle_info_list
             ),
         }
 
@@ -147,13 +111,15 @@ class VehicleInfoSchema(schemaBase):
                 self.vehicle_info_type, subscribe=self.sub_vehicle_info, resolve=None
             ),
             "VehicleInfoList": GraphQLField(
-                self.vehicle_info_list_type, subscribe=self.sub_vehicle_info_list, resolve=None
+                self.vehicle_info_list_type,
+                subscribe=self.sub_vehicle_info_list,
+                resolve=None,
             ),
         }
 
     def get_vehicle_info(self, root, info, **kwargs):
         """Vehicle info query handler"""
-        vehicle_uuid = kwargs.get("uuid") # UUID is required
+        vehicle_uuid = kwargs.get("uuid")  # UUID is required
         # FIXME: remove me
         vehicle_uuid = list(self.vehicle_info_data.keys())[0]
         vehicle_info = self.vehicle_info_data.get(vehicle_uuid, {})
@@ -165,7 +131,7 @@ class VehicleInfoSchema(schemaBase):
         info = data["info"]
 
         vehicle_info = {
-            "uuid": str(uuid4()), # generate a random uuid for now
+            "uuid": str(uuid4()),  # generate a random uuid for now
             "sysid": info.sysid,
             "compid": info.sysid,
             "autopilot": info.autopilot,
@@ -189,7 +155,6 @@ class VehicleInfoSchema(schemaBase):
         )
         self.subscriptions.emit(
             "modules.api.mavros.VehicleInfoSchema" + "VehicleInfoList",
-            
             {"VehicleInfoList": self.get_vehicle_info_list(None, None)},
         )
 
@@ -201,7 +166,9 @@ class VehicleInfoSchema(schemaBase):
 
     def get_vehicle_info_list(self, root, info, **kwargs):
         """Vehicle info list query handler"""
-        vehicle_info_list = [self.vehicle_info_data[x] for x in self.vehicle_info_data.keys()]
+        vehicle_info_list = [
+            self.vehicle_info_data[x] for x in self.vehicle_info_data.keys()
+        ]
         application_log.debug(f"Vehicle info list query handler {vehicle_info_list}")
         try:
             update_time = max([x["updateTime"] for x in vehicle_info_list])
@@ -216,7 +183,8 @@ class VehicleInfoSchema(schemaBase):
     def sub_vehicle_info_list(self, root, info):
         """Vehicle info list subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "modules.api.mavros.VehicleInfoSchema" + "VehicleInfoList"
+            self.subscriptions,
+            "modules.api.mavros.VehicleInfoSchema" + "VehicleInfoList",
         )
 
 
@@ -233,21 +201,34 @@ class VehicleInfoInterface(moduleBase):
         #   Need to make sure we dont block this thread waiting for the service
         #   Note that ros2 supports async calls to services (nice!)
         self.run()
-    
+
     def run(self):
         try:
             self.vehicle_info = self.get_ros_vehicle_info()
-            application_log.info(f"Obtained info from {len(self.vehicle_info.vehicles)} vehicles")
+            application_log.info(
+                f"Obtained info from {len(self.vehicle_info.vehicles)} vehicles"
+            )
             update_time = int(time.time())
             for vehicle in self.vehicle_info.vehicles:
                 # application_log.debug(f"{self.vehicle_info}")
-                (autopilot_string, type_string, parameter_string) = get_vehicle_strings(vehicle)
-                application_log.debug(f"{autopilot_string} {type_string}\n{self.vehicle_info}")
-                
+                (autopilot_string, type_string, parameter_string) = get_vehicle_strings(
+                    vehicle
+                )
+                application_log.debug(
+                    f"{autopilot_string} {type_string}\n{self.vehicle_info}"
+                )
+
                 api_callback(
                     self.loop,
-                    self.module["modules.api.mavros.VehicleInfoSchema"].update_vehicle_info,
-                    data={"update_time":update_time, "info":vehicle, "autopilot_string":autopilot_string, "type_string":type_string},
+                    self.module[
+                        "modules.api.mavros.VehicleInfoSchema"
+                    ].update_vehicle_info,
+                    data={
+                        "update_time": update_time,
+                        "info": vehicle,
+                        "autopilot_string": autopilot_string,
+                        "type_string": type_string,
+                    },
                 )
                 # FIXME: get params for this vehicle type and store it somewhere accessable
                 # FIXME: clean up self.params() before we use it again...

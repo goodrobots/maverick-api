@@ -107,9 +107,7 @@ class GraphQLHandler(web.RequestHandler):
 
     async def execute_graphql(self):
         graphql_req = self.graphql_request
-        application_log.debug(
-            f"GraphQL request data: {graphql_req}"
-        )
+        application_log.debug(f"GraphQL request data: {graphql_req}")
         provided_context = graphql_req.get("context", {})
         result = await graphql(
             schema=self.schema,

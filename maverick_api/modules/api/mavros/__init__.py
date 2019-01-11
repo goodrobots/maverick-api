@@ -23,7 +23,10 @@ from mavros.param import param_ret_value
 
 from modules.api.mavros.mavros_mission import MissionSchema, MissionInterface
 from modules.api.mavros.mavros_nav_sat_fix import NavSatFixSchema, NavSatFixInterface
-from modules.api.mavros.mavros_vehicle_info import VehicleInfoSchema, VehicleInfoInterface
+from modules.api.mavros.mavros_vehicle_info import (
+    VehicleInfoSchema,
+    VehicleInfoInterface,
+)
 
 from tornado.options import options
 
@@ -429,7 +432,7 @@ class MAVROSConnection(moduleBase):
         for topic in topics:
             application_log.info(topic)
 
-    @functools.lru_cache(maxsize=10) # cache the param meta for each vehicle
+    @functools.lru_cache(maxsize=10)  # cache the param meta for each vehicle
     def params(self, meta_string="ArduCopter"):
         # TODO: make vehicle dynamic and chosse between px4 and ardupilot
         from modules.base.param.parse_param_xml import get_param_meta
