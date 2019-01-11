@@ -151,6 +151,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
         return result
 
     def get_graphql_params(self, payload):
+        application_log.debug(f"Subscription payload: {payload}")
         provided_context = payload.get("context", {})
 
         params = {
@@ -238,6 +239,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
 
     async def on_start(self, op_id, params):
         """Setup a subscription"""
+        application_log.debug(f"Attempting subscription: {op_id} {params}")
         subscription = await subscribe(
             schema=self.schema,
             document=parse(params["request_string"]),
@@ -249,10 +251,14 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
         if isinstance(subscription, ExecutionResult):
             # There was an error during the subscription graphql call
             # TODO: log send errors back to client
-            application_log.warn("GraphQL Error: %s", subscription.errors)
-            return False
+            application_log.warn(f"Subscription failed: {op_id} {subscription.errors} {params}")
+            error = Exception(
+                subscription.errors
+            )
+            return self.send_error(op_id, error)
         else:
             # The subscription graphql call successfully created a MapAsyncIterator
+            application_log.debug(f"Subscription successful: {op_id} {params}")
             await self.subscribe(op_id, subscription)
 
     async def on_stop(self, op_id):

@@ -1,3 +1,4 @@
+import functools
 import logging
 import time
 
@@ -6,7 +7,6 @@ from modules.api import schemaBase
 from modules.api import api_callback
 
 from modules.base.tornadoql.session_control import GraphQLSession
-from modules.base.util.mavlink import get_meta_string
 
 # mavros & ros imports
 import rospy
@@ -19,11 +19,11 @@ from mavros_msgs.srv import StreamRate, StreamRateRequest
 from sensor_msgs.msg import Imu
 from geometry_msgs.msg import PoseStamped
 from mavros_msgs.msg import Param  # callback msg on param change
-from mavros_msgs.srv import VehicleInfoGet
 from mavros.param import param_ret_value
 
 from modules.api.mavros.mavros_mission import MissionSchema, MissionInterface
 from modules.api.mavros.mavros_nav_sat_fix import NavSatFixSchema, NavSatFixInterface
+from modules.api.mavros.mavros_vehicle_info import VehicleInfoSchema, VehicleInfoInterface
 
 from tornado.options import options
 
@@ -345,18 +345,13 @@ class MAVROSConnection(moduleBase):
     def __init__(self, loop, module):
         super().__init__(loop, module)
         # Attributes
-        self.info = None
-        self.meta_string = ""  # meta string used to load the correct params
         self.mission_interface = MissionInterface(self.loop, self.module)
 
     def run(self):
         self.connect()
         # self.topics()
         self.streams()
-        self.vehicle_info()  # work out the autopilot and vehicle type
-        self.params(
-            meta_string=self.meta_string
-        )  # this is called from the IOloop once we know the vehicle type
+        self.vehicle_info_interface = VehicleInfoInterface(self.loop, self.module)
         self.mission_interface.mission_waypoints()
         self.nav_sat_fix_interface = NavSatFixInterface(self.loop, self.module)
         self.listener()
@@ -416,28 +411,6 @@ class MAVROSConnection(moduleBase):
         for stream, rate in stream_rates.items():
             do_set_rate(rate, getattr(StreamRateRequest, stream))
 
-    def vehicle_info(self):
-        # Create ROS service definition for VehicleInfo
-        get_vehicle_info = rospy.ServiceProxy(
-            mavros.get_topic("vehicle_info_get"), VehicleInfoGet
-        )
-        try:
-            self.info = get_vehicle_info()
-            # FIXME: Make this robust.
-            # For now just return the first vehicle we see
-            vehicle_count = len(self.info.vehicles)
-            application_log.info(f"Obtained info from {vehicle_count} vehicles")
-            if vehicle_count:
-                application_log.debug(f"{self.info}")
-                self.meta_string = get_meta_string(self.info.vehicles[0])
-                application_log.info(self.meta_string)
-        except rospy.ServiceException as ex:
-            application_log.error(
-                "An error occurred while retrieving vehicle info via ROS: {0}".format(
-                    ex
-                )
-            )
-
     def listener(self):
         rospy.Subscriber("/mavros/state", State, self.state_callback)
         rospy.Subscriber("/mavros/vfr_hud", VFR_HUD, self.vfr_hud_callback)
@@ -456,15 +429,12 @@ class MAVROSConnection(moduleBase):
         for topic in topics:
             application_log.info(topic)
 
+    @functools.lru_cache(maxsize=10) # cache the param meta for each vehicle
     def params(self, meta_string="ArduCopter"):
         # TODO: make vehicle dynamic and chosse between px4 and ardupilot
         from modules.base.param.parse_param_xml import get_param_meta
-
-        # from api.schema import Parameters
         from mavros.param import param_get_all
 
-        # TODO: UPDATE CALLBACK
-        # Parameters.callback = self.param_set_callback
         param_received, param_list = param_get_all(False)
         application_log.debug("Parameters received: {0}".format(param_received))
 

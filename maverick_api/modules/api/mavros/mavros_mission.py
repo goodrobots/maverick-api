@@ -206,7 +206,7 @@ class MissionInterface(moduleBase):
 
     def mission_waypoints(self):
         self.waypoints = mission.pull()
-        application_log.warn(f"waypoints: {self.waypoints}")
+        application_log.debug(f"waypoints: {self.waypoints}")
         mission.subscribe_waypoints(self.mission_callback)
 
     def mission_callback(self, data):
