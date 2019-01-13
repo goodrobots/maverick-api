@@ -151,7 +151,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
         return result
 
     def get_graphql_params(self, payload):
-        application_log.debug(f"Subscription payload: {payload}")
+        # application_log.debug(f"Subscription payload: {payload}")
         provided_context = payload.get("context", {})
 
         params = {
@@ -164,7 +164,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
 
     # @Session.ensure_active_session
     async def open(self):
-        application_log.info("open socket %s", self)
+        # application_log.info("open socket %s", self)
         self.sockets.append(self)
         self.subscriptions = {}
 
@@ -172,7 +172,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
         tornado.ioloop.IOLoop.current().spawn_callback(self.close_subscriptions)
 
     async def close_subscriptions(self):
-        application_log.info("close socket %s", self)
+        # application_log.info("close socket %s", self)
         for sub in self.subscriptions:
             await self.subscriptions[sub].dispose()
         try:
@@ -187,10 +187,13 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
         self.subscriptions = {}
 
     def on_message(self, message):
-        parsed_message = json_decode(message)
         websocket_log.debug(
-            f"Websocket Receive {self.remote_ip} {self.uptime:.2f} {parsed_message}"
+            f"Websocket Receive Raw {self.remote_ip} {self.uptime:.2f} {message}"
         )
+        parsed_message = json_decode(message)
+        # websocket_log.debug(
+        #     f"Websocket Receive Parsed {self.remote_ip} {self.uptime:.2f} {parsed_message}"
+        # )
         op_id = parsed_message.get("id")
         op_type = parsed_message.get("type")
         payload = parsed_message.get("payload")
@@ -223,7 +226,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
 
     def on_connection_init(self, op_id, payload):
         self.remote_ip = self.request.remote_ip
-        application_log.debug(f"Subscription connection init payload: {payload}")
+        # application_log.debug(f"Subscription connection init payload: {payload}")
         auth = payload.get("authorization", "")
         if "Bearer " in auth:
             auth = auth.lstrip("Bearer ")
@@ -239,7 +242,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
 
     async def on_start(self, op_id, params):
         """Setup a subscription"""
-        application_log.debug(f"Attempting subscription: {op_id} {params}")
+        # application_log.debug(f"Attempting subscription: {op_id} {params}")
         subscription = await subscribe(
             schema=self.schema,
             document=parse(params["request_string"]),
@@ -258,7 +261,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
             return self.send_error(op_id, error)
         else:
             # The subscription graphql call successfully created a MapAsyncIterator
-            application_log.debug(f"Subscription successful: {op_id} {params}")
+            # application_log.debug(f"Subscription successful: {op_id} {params}")
             await self.subscribe(op_id, subscription)
 
     async def on_stop(self, op_id):
@@ -275,11 +278,11 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
             self.send_error,
             self.on_close,
         )
-        application_log.debug("subscriptions: %s", self.subscriptions)
+        # application_log.debug("subscriptions: %s", self.subscriptions)
         tornado.ioloop.IOLoop.current().spawn_callback(self.subscriptions[op_id].main)
 
     async def unsubscribe(self, op_id):
-        application_log.info("subscrption end: op_id=%s", op_id)
+        # application_log.info("subscrption end: op_id=%s", op_id)
         await self.subscriptions[op_id].dispose()
         self.subscriptions = {n: s for n, s in self.subscriptions.items() if s != op_id}
-        application_log.debug("subscriptions: %s", self.subscriptions)
+        # application_log.debug("subscriptions: %s", self.subscriptions)
