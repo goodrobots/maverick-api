@@ -7,6 +7,7 @@ from importlib import import_module
 import tornado.ioloop
 from graphql import GraphQLField, GraphQLObjectType, GraphQLSchema
 from graphql.pyutils.event_emitter import EventEmitter
+from tornado.options import options
 
 application_log = logging.getLogger()
 
