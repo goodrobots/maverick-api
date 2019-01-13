@@ -1,7 +1,5 @@
 import logging
-import time
 
-from mavros import mission
 from modules.api import api_callback, moduleBase, schemaBase
 
 import rospy
