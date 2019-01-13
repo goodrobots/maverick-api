@@ -48,11 +48,11 @@ class StatusTextSchema(schemaBase):
             },
             description="MAVROS StatusTextMessage",
         )
-        
+
         self.q = {
             "StatusText": GraphQLField(
                 self.status_text_message_type, resolve=self.get_status_text_message
-            ),
+            )
         }
 
         self.m = {
@@ -60,7 +60,7 @@ class StatusTextSchema(schemaBase):
                 self.status_text_message_type,
                 args=self.get_mutation_args(self.status_text_message_type),
                 resolve=self.set_status_text_message,
-            ),
+            )
         }
 
         self.s = {
@@ -68,7 +68,7 @@ class StatusTextSchema(schemaBase):
                 self.status_text_message_type,
                 subscribe=self.sub_status_text_message,
                 resolve=None,
-            ),
+            )
         }
 
     def get_status_text_message(self, root, info):
@@ -91,13 +91,13 @@ class StatusTextSchema(schemaBase):
             self.subscriptions, "modules.api.mavros.StatusTextSchema" + "StatusText"
         )
 
+
 class StatusTextInterface(moduleBase):
     def __init__(self, loop, module):
         super().__init__(loop, module)
 
         rospy.Subscriber("/rosout", Log, self.statustext_callback)
 
-        
     def statustext_callback(self, data):
         if data.name == "/mavros":
             # application_log.debug("statustext: {0}:{1}".format(data.level, data.msg))
@@ -111,6 +111,8 @@ class StatusTextInterface(moduleBase):
             }
             api_callback(
                 self.loop,
-                self.module["modules.api.mavros.StatusTextSchema"].set_status_text_message,
+                self.module[
+                    "modules.api.mavros.StatusTextSchema"
+                ].set_status_text_message,
                 **kwargs,
             )

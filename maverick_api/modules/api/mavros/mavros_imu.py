@@ -29,7 +29,7 @@ application_log = logging.getLogger("tornado.application")
 class ImuSchema(schemaBase):
     def __init__(self):
         super().__init__()
-        
+
         self.imu_data = {"uuid": "test"}
 
         self.imu_message_type = GraphQLObjectType(
@@ -59,7 +59,7 @@ class ImuSchema(schemaBase):
         )
 
         self.q = {
-            "Imu": GraphQLField(self.imu_message_type, resolve=self.get_imu_message),
+            "Imu": GraphQLField(self.imu_message_type, resolve=self.get_imu_message)
         }
 
         self.m = {
@@ -67,13 +67,13 @@ class ImuSchema(schemaBase):
                 self.imu_message_type,
                 args=self.get_mutation_args(self.imu_message_type),
                 resolve=self.set_imu_message,
-            ),
+            )
         }
 
         self.s = {
             "Imu": GraphQLField(
                 self.imu_message_type, subscribe=self.sub_imu_message, resolve=None
-            ),
+            )
         }
 
     def get_imu_message(self, root, info):
@@ -101,7 +101,6 @@ class ImuInterface(moduleBase):
         super().__init__(loop, module)
 
         rospy.Subscriber("/mavros/imu/data", Imu, self.imu_callback)
-
 
     def imu_callback(self, data):
         kwargs = {

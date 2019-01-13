@@ -16,22 +16,13 @@ from mavros_msgs.srv import StreamRate, StreamRateRequest
 from mavros_msgs.msg import Param  # callback msg on param change
 from mavros.param import param_ret_value
 
-from modules.api.mavros.mavros_mission import (
-    MissionSchema,
-    MissionInterface,
-)
-from modules.api.mavros.mavros_nav_sat_fix import (
-    NavSatFixSchema,
-    NavSatFixInterface,
-)
+from modules.api.mavros.mavros_mission import MissionSchema, MissionInterface
+from modules.api.mavros.mavros_nav_sat_fix import NavSatFixSchema, NavSatFixInterface
 from modules.api.mavros.mavros_vehicle_info import (
     VehicleInfoSchema,
     VehicleInfoInterface,
 )
-from modules.api.mavros.mavros_imu import (
-    ImuSchema,
-    ImuInterface,
-)
+from modules.api.mavros.mavros_imu import ImuSchema, ImuInterface
 from modules.api.mavros.mavros_vehicle_state import (
     VehicleStateSchema,
     VehicleStateInterface,
@@ -40,14 +31,8 @@ from modules.api.mavros.mavros_pose_stamped import (
     PoseStampedSchema,
     PoseStampedInterface,
 )
-from modules.api.mavros.mavros_vfr_hud import (
-    VfrHudSchema,
-    VfrHudInterface,
-)
-from modules.api.mavros.mavros_status_text import (
-    StatusTextSchema,
-    StatusTextInterface,
-)
+from modules.api.mavros.mavros_vfr_hud import VfrHudSchema, VfrHudInterface
+from modules.api.mavros.mavros_status_text import StatusTextSchema, StatusTextInterface
 
 from tornado.options import options
 
@@ -96,11 +81,13 @@ class MAVROSConnection(moduleBase):
         self.vehicle_info_interface = VehicleInfoInterface(self.loop, self.module)
         self.mission_interface.mission_waypoints()
         self.nav_sat_fix_interface = NavSatFixInterface(self.loop, self.module)
-        self.vehicle_state_interface = VehicleStateInterface(self.loop, self.module) # <-- causing errors
+        self.vehicle_state_interface = VehicleStateInterface(
+            self.loop, self.module
+        )  # <-- causing errors
         self.status_text_interface = StatusTextInterface(self.loop, self.module)
         self.vfr_hud_interface = VfrHudInterface(self.loop, self.module)
         self.pose_stamped_interface = PoseStampedInterface(self.loop, self.module)
-        self.imu_interface = ImuInterface(self.loop, self.module) # <-- causing errors 
+        self.imu_interface = ImuInterface(self.loop, self.module)  # <-- causing errors
         self.listener()
 
     def connect(self):

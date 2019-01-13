@@ -30,7 +30,7 @@ application_log = logging.getLogger("tornado.application")
 class VehicleStateSchema(schemaBase):
     def __init__(self):
         super().__init__()
-        
+
         self.state_data = {"uuid": "test"}
 
         self.state_message_type = GraphQLObjectType(
@@ -57,21 +57,21 @@ class VehicleStateSchema(schemaBase):
         self.q = {
             "VehicleState": GraphQLField(
                 self.state_message_type, resolve=self.get_state_message
-            ),
+            )
         }
-            
+
         self.m = {
             "VehicleState": GraphQLField(
                 self.state_message_type,
                 args=self.get_mutation_args(self.state_message_type),
                 resolve=self.set_state_message,
-            ),
+            )
         }
 
         self.s = {
             "VehicleState": GraphQLField(
                 self.state_message_type, subscribe=self.sub_state_message, resolve=None
-            ),
+            )
         }
 
     def get_state_message(self, root, info):
@@ -98,9 +98,8 @@ class VehicleStateSchema(schemaBase):
 class VehicleStateInterface(moduleBase):
     def __init__(self, loop, module):
         super().__init__(loop, module)
-        
-        rospy.Subscriber("/mavros/state", State, self.state_callback)
 
+        rospy.Subscriber("/mavros/state", State, self.state_callback)
 
     def state_callback(self, data):
         kwargs = {

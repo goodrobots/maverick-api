@@ -57,7 +57,7 @@ class PoseStampedSchema(schemaBase):
         self.q = {
             "PoseStamped": GraphQLField(
                 self.pose_stamped_message_type, resolve=self.get_pose_stamped_message
-            ),
+            )
         }
 
         self.m = {
@@ -65,7 +65,7 @@ class PoseStampedSchema(schemaBase):
                 self.pose_stamped_message_type,
                 args=self.get_mutation_args(self.pose_stamped_message_type),
                 resolve=self.set_pose_stamped_message,
-            ),
+            )
         }
 
         self.s = {
@@ -73,7 +73,7 @@ class PoseStampedSchema(schemaBase):
                 self.pose_stamped_message_type,
                 subscribe=self.sub_pose_stamped_message,
                 resolve=None,
-            ),
+            )
         }
 
     def get_pose_stamped_message(self, root, info):
@@ -121,6 +121,8 @@ class PoseStampedInterface(moduleBase):
         }
         api_callback(
             self.loop,
-            self.module["modules.api.mavros.PoseStampedSchema"].set_pose_stamped_message,
+            self.module[
+                "modules.api.mavros.PoseStampedSchema"
+            ].set_pose_stamped_message,
             **kwargs,
         )
