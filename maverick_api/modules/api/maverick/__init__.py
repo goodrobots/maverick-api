@@ -136,11 +136,11 @@ class MaverickSchema(schemaBase):
                 self.configure_proc.terminate()
             else:
                 pass
-            
+
         elif self.configure_proc:
             # already running
             pass
-        
+
         else:
             # try to run the command
             loop = tornado.ioloop.IOLoop.current()
@@ -222,5 +222,5 @@ class MaverickSchema(schemaBase):
         line = stddata.decode("ascii").strip()
         # FIXME: this does not quite strip the colour codes from all text
         #   for the moment it does a pretty good job...
-        line = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', "", line, flags=re.IGNORECASE)
+        line = re.sub(r"\x1B\[[0-?]*[ -/]*[@-~]", "", line, flags=re.IGNORECASE)
         return (name, line)
