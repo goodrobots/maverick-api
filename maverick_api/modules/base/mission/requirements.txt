@@ -1,4 +1,4 @@
 scipy
 numpy
-matplotlib
+matplotlib==3.0.2
 shapely
