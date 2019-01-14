@@ -3,6 +3,7 @@ import asyncio
 import copy
 import threading
 import time
+import re
 
 from modules.api import moduleBase
 from modules.api import schemaBase
@@ -129,19 +130,22 @@ class MaverickSchema(schemaBase):
             cmd += f' --module={self.configure_command["module"]}'
         application_log.info(f"Running configure command: {cmd}")
 
-        if self.configure_proc:
+        if self.configure_command["terminate"]:
+            # try to terminate a running command
+            if self.configure_proc:
+                self.configure_proc.terminate()
+            else:
+                pass
+            
+        elif self.configure_proc:
             # already running
             pass
-        elif not self.configure_command["terminate"]:
+        
+        else:
             # try to run the command
             loop = tornado.ioloop.IOLoop.current()
             loop.add_callback(self.run, cmd)
             self.configure_command["running"] = True
-        else:
-            # try to terminate a running command
-            if self.configure_proc:
-                self.configure_proc.terminate()
-                self.configure_command["running"] = False
 
         self.subscriptions.emit(
             "modules.api.maverick.MaverickSchema" + "MaverickConfigure",
@@ -168,8 +172,8 @@ class MaverickSchema(schemaBase):
         pending = None
         while self.configure_proc.returncode is None:
             tasks = [
-                MaverickSchema.read_from(self.configure_proc.stdout, "stdout"),
-                MaverickSchema.read_from(self.configure_proc.stderr, "stderror"),
+                MaverickSchema.read_from("stdout", self.configure_proc.stdout),
+                MaverickSchema.read_from("stderror", self.configure_proc.stderr),
             ]
             out = {"stdout": "", "stderror": ""}
             done, pending = await asyncio.wait(
@@ -213,7 +217,10 @@ class MaverickSchema(schemaBase):
         )
 
     @staticmethod
-    async def read_from(source, name):
+    async def read_from(name, source):
         stddata = await source.readline()
-        line = stddata.decode("ascii").rstrip()
+        line = stddata.decode("ascii").strip()
+        # FIXME: this does not quite strip the colour codes from all text
+        #   for the moment it does a pretty good job...
+        line = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', "", line, flags=re.IGNORECASE)
         return (name, line)
