@@ -36,6 +36,7 @@ if __name__ == "__main__":
     # Instantiate and start api server
     # Import at this point to allow config settings to take place
     from modules.base.apiserver import ApiServer
+
     api = ApiServer()
     api.initialize()
     api.serve()

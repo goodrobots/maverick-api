@@ -40,7 +40,7 @@ class MissionSchema(schemaBase):
         self.mission_database_dir = Path(options.datadir).joinpath("missions")
         # make the path if it does not exist
         mkdirs(self.mission_database_dir)
-        
+
         self.mission_data = {}
         self.mission_meta = {"meta": {"total": 0, "updateTime": int(time.time())}}
 
@@ -88,11 +88,14 @@ class MissionSchema(schemaBase):
             },
             description="Mission",
         )
-        
+
         self.mission_database_type = GraphQLObjectType(
             "MissionDatabase",
             lambda: {
-                "id": GraphQLField(GraphQLString, description="The id of the database use the wildcard '*' to access all avalable databases."),
+                "id": GraphQLField(
+                    GraphQLString,
+                    description="The id of the database use the wildcard '*' to access all avalable databases.",
+                ),
                 "missions": GraphQLField(GraphQLList(self.mission_list_type)),
                 "total": GraphQLField(
                     GraphQLInt, description="Total number of missions in database"
@@ -133,7 +136,6 @@ class MissionSchema(schemaBase):
                 },
                 resolve=self.get_mission_database,
             ),
-
         }
 
         self.m = {
@@ -152,7 +154,9 @@ class MissionSchema(schemaBase):
                 self.mission_list_type, subscribe=self.sub_mission_list, resolve=None
             ),
             "MissionDatabase": GraphQLField(
-                self.mission_database_type, subscribe=self.sub_mission_database, resolve=None
+                self.mission_database_type,
+                subscribe=self.sub_mission_database,
+                resolve=None,
             ),
         }
 
@@ -226,16 +230,18 @@ class MissionSchema(schemaBase):
             update_time = max([x["updateTime"] for x in mission_list])
         except ValueError as e:
             update_time = None
-        
+
         ret = {
             "id": mission_id,
             "mission": mission_list,
             "total": len(mission_list),
             "updateTime": update_time,
         }
-        
+
         # FIXME: write mission to database, use file system for now
-        with open(os.path.join(self.mission_database_dir, ret["id"]+".mission"), "w+") as fid:
+        with open(
+            os.path.join(self.mission_database_dir, ret["id"] + ".mission"), "w+"
+        ) as fid:
             fid.write(json.dumps(ret, indent=4))
         return ret
 
@@ -244,7 +250,7 @@ class MissionSchema(schemaBase):
         return EventEmitterAsyncIterator(
             self.subscriptions, "modules.api.mavros.MissionSchema" + "MissionList"
         )
-        
+
     def get_mission_database(self, root, info, **kwargs):
         """Mission database query handler"""
         application_log.debug(f"Mission list query handler {kwargs}")
@@ -255,7 +261,7 @@ class MissionSchema(schemaBase):
             # look at all databases we have access to
             # open the database (async)
             # load all missions from database into responce (async)
-            for mission_file in self.mission_database_dir.glob('*.mission'):
+            for mission_file in self.mission_database_dir.glob("*.mission"):
                 with open(mission_file, "r+") as fid:
                     mission.append(json.load(fid))
             # missions = [json.load(open(x)) for x in self.mission_database_dir.glob('*.mission')]

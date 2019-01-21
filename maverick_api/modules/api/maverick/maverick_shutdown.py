@@ -37,7 +37,7 @@ class MaverickShutdownSchema(schemaBase):
     def __init__(self):
         super().__init__()
         self.configure_proc = None
-        
+
         self.shutdown_command = {
             "running": False,
             "uptime": None,
@@ -45,8 +45,7 @@ class MaverickShutdownSchema(schemaBase):
             "stderror": None,
             "returncode": None,
         }
-        
-        
+
         self.shutdown_command_type = GraphQLObjectType(
             "MaverickShutdown",
             lambda: {
@@ -62,8 +61,7 @@ class MaverickShutdownSchema(schemaBase):
             },
             description="Maverick shutdown interface",
         )
-        
-    
+
         self.q = {
             "MaverickShutdown": GraphQLField(
                 self.shutdown_command_type, resolve=self.get_shutdown_command_status
@@ -121,7 +119,9 @@ class MaverickShutdownSchema(schemaBase):
         while self.configure_proc.returncode is None:
             tasks = [
                 MaverickShutdownSchema.read_from("stdout", self.configure_proc.stdout),
-                MaverickShutdownSchema.read_from("stderror", self.configure_proc.stderr),
+                MaverickShutdownSchema.read_from(
+                    "stderror", self.configure_proc.stderr
+                ),
             ]
             out = {"stdout": "", "stderror": ""}
             done, pending = await asyncio.wait(

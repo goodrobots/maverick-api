@@ -81,8 +81,6 @@ class MaverickConfigureSchema(schemaBase):
             },
             description="Maverick configure interface",
         )
-        
-        
 
         self.q = {
             "MaverickConfigure": GraphQLField(

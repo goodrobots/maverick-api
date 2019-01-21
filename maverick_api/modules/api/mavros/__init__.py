@@ -82,9 +82,7 @@ class MAVROSConnection(moduleBase):
         self.vehicle_info_interface = VehicleInfoInterface(self.loop, self.module)
         self.mission_interface.mission_waypoints()
         self.nav_sat_fix_interface = NavSatFixInterface(self.loop, self.module)
-        self.vehicle_state_interface = VehicleStateInterface(
-            self.loop, self.module
-        )
+        self.vehicle_state_interface = VehicleStateInterface(self.loop, self.module)
         self.status_text_interface = StatusTextInterface(self.loop, self.module)
         self.vfr_hud_interface = VfrHudInterface(self.loop, self.module)
         self.pose_stamped_interface = PoseStampedInterface(self.loop, self.module)
