@@ -2,7 +2,7 @@ import os
 import logging
 
 from tornado.log import LogFormatter
-from tornado.options import define, options
+from tornado.options import options
 
 from modules.base.util import functions
 

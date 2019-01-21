@@ -80,10 +80,10 @@ q = dict()
 s = dict()
 
 # iterate over all available modules under this folder
-for (_, name, _) in pkgutil.iter_modules([Path(__file__).parent]):
+for (_, name, _) in pkgutil.iter_modules([Path(__file__).parents[0]]):
     # import the module
     imported_module = import_module(f"{__name__}.{name}")
-    # print({__name__}, name)
+    # print({__name__}, name, a, b)
     # search for the schema class
     for i in dir(imported_module):
         attribute = getattr(imported_module, i)
@@ -95,7 +95,6 @@ for (_, name, _) in pkgutil.iter_modules([Path(__file__).parent]):
             # print(module_schema)
             # add the class schema to the application schema
             (q, m, s) = extend_application_schema(ref_name, q, m, s)
-
 api_schema = GraphQLSchema(
     query=GraphQLObjectType("query", lambda: q),
     mutation=GraphQLObjectType("mutation", lambda: m),

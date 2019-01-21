@@ -6,7 +6,9 @@ general_log = logging.getLogger("tornado.general")
 
 def mkdirs(dirpath):
     if not os.path.exists(dirpath):
-        os.makedirs(dirpath)
+        return os.makedirs(dirpath)
+    else:
+        return True
 
 
 def file_age_in_seconds(pathname):

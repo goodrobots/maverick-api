@@ -33,6 +33,7 @@ from modules.api.mavros.mavros_pose_stamped import (
 )
 from modules.api.mavros.mavros_vfr_hud import VfrHudSchema, VfrHudInterface
 from modules.api.mavros.mavros_status_text import StatusTextSchema, StatusTextInterface
+from modules.api.mavros.mavros_mode import ModeSchema, ModeInterface
 
 from tornado.options import options
 
@@ -83,11 +84,12 @@ class MAVROSConnection(moduleBase):
         self.nav_sat_fix_interface = NavSatFixInterface(self.loop, self.module)
         self.vehicle_state_interface = VehicleStateInterface(
             self.loop, self.module
-        )  # <-- causing errors
+        )
         self.status_text_interface = StatusTextInterface(self.loop, self.module)
         self.vfr_hud_interface = VfrHudInterface(self.loop, self.module)
         self.pose_stamped_interface = PoseStampedInterface(self.loop, self.module)
-        self.imu_interface = ImuInterface(self.loop, self.module)  # <-- causing errors
+        self.imu_interface = ImuInterface(self.loop, self.module)
+        self.mode_interface = ModeInterface(self.loop, self.module)
         self.listener()
 
     def connect(self):

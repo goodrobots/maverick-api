@@ -1,8 +1,16 @@
 import logging
 import time
+import os
+import glob
+import json
+from pathlib import Path
 
 from mavros import mission
+
 from modules.api import api_callback, moduleBase, schemaBase
+from modules.base.util.functions import mkdirs
+
+from tornado.options import options
 
 # graphql imports
 from graphql import (
@@ -28,6 +36,11 @@ application_log = logging.getLogger("tornado.application")
 class MissionSchema(schemaBase):
     def __init__(self):
         super().__init__()
+        # create a mission database dir
+        self.mission_database_dir = Path(options.datadir).joinpath("missions")
+        # make the path if it does not exist
+        mkdirs(self.mission_database_dir)
+        
         self.mission_data = {}
         self.mission_meta = {"meta": {"total": 0, "updateTime": int(time.time())}}
 
@@ -73,6 +86,20 @@ class MissionSchema(schemaBase):
                 ),
                 "updateTime": GraphQLField(GraphQLInt, description=""),
             },
+            description="Mission",
+        )
+        
+        self.mission_database_type = GraphQLObjectType(
+            "MissionDatabase",
+            lambda: {
+                "id": GraphQLField(GraphQLString, description="The id of the database use the wildcard '*' to access all avalable databases."),
+                "missions": GraphQLField(GraphQLList(self.mission_list_type)),
+                "total": GraphQLField(
+                    GraphQLInt, description="Total number of missions in database"
+                ),
+                "updateTime": GraphQLField(GraphQLInt, description=""),
+            },
+            description="Collection of missions",
         )
 
         self.q = {
@@ -96,6 +123,17 @@ class MissionSchema(schemaBase):
                 },
                 resolve=self.get_mission_list,
             ),
+            "MissionDatabase": GraphQLField(
+                self.mission_database_type,
+                args={
+                    "id": GraphQLArgument(
+                        GraphQLNonNull(GraphQLString),
+                        description="The id of the database",
+                    )
+                },
+                resolve=self.get_mission_database,
+            ),
+
         }
 
         self.m = {
@@ -112,6 +150,9 @@ class MissionSchema(schemaBase):
             ),
             "MissionList": GraphQLField(
                 self.mission_list_type, subscribe=self.sub_mission_list, resolve=None
+            ),
+            "MissionDatabase": GraphQLField(
+                self.mission_database_type, subscribe=self.sub_mission_database, resolve=None
             ),
         }
 
@@ -185,17 +226,54 @@ class MissionSchema(schemaBase):
             update_time = max([x["updateTime"] for x in mission_list])
         except ValueError as e:
             update_time = None
-        return {
+        
+        ret = {
             "id": mission_id,
             "mission": mission_list,
             "total": len(mission_list),
             "updateTime": update_time,
         }
+        
+        # FIXME: write mission to database, use file system for now
+        with open(os.path.join(self.mission_database_dir, ret["id"]+".mission"), "w+") as fid:
+            fid.write(json.dumps(ret, indent=4))
+        return ret
 
     def sub_mission_list(self, root, info):
         """Mission list subscription handler"""
         return EventEmitterAsyncIterator(
             self.subscriptions, "modules.api.mavros.MissionSchema" + "MissionList"
+        )
+        
+    def get_mission_database(self, root, info, **kwargs):
+        """Mission database query handler"""
+        application_log.debug(f"Mission list query handler {kwargs}")
+        database_id = kwargs.get("id")
+        missions = []
+        database_id = "*"  # FIXME: remove this line to make database_id dynamic
+        if database_id == "*":
+            # look at all databases we have access to
+            # open the database (async)
+            # load all missions from database into responce (async)
+            for mission_file in self.mission_database_dir.glob('*.mission'):
+                with open(mission_file, "r+") as fid:
+                    mission.append(json.load(fid))
+            # missions = [json.load(open(x)) for x in self.mission_database_dir.glob('*.mission')]
+        else:
+            # TODO: add database lookup search
+            # missions = ...
+            pass
+        return {
+            "id": database_id,
+            "missions": missions,
+            "total": len(missions),
+            "updateTime": int(time.time()),
+        }
+
+    def sub_mission_database(self, root, info):
+        """Mission database subscription handler"""
+        return EventEmitterAsyncIterator(
+            self.subscriptions, "modules.api.mavros.MissionSchema" + "MissionDatabase"
         )
 
 
