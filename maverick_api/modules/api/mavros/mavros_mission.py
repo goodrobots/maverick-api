@@ -27,6 +27,8 @@ from graphql import (
     GraphQLBoolean,
     GraphQLInt,
     GraphQLFloat,
+    GraphQLInputObjectType,
+    GraphQLInputField,
 )
 from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
 
@@ -48,8 +50,7 @@ class MissionSchema(schemaBase):
             "Mission",
             lambda: {
                 "seq": GraphQLField(
-                    GraphQLString,
-                    description="The sequence number of the mission item.",
+                    GraphQLInt, description="The sequence number of the mission item."
                 ),
                 "isCurrent": GraphQLField(
                     GraphQLBoolean,
@@ -68,12 +69,51 @@ class MissionSchema(schemaBase):
                 "latitude": GraphQLField(GraphQLFloat, description=""),
                 "longitude": GraphQLField(GraphQLFloat, description=""),
                 "altitude": GraphQLField(GraphQLFloat, description=""),
-                "updateTime": GraphQLField(GraphQLInt, description=""),
-                "total": GraphQLField(
-                    GraphQLInt, description="Total number of mission items"
-                ),
             },
             description="Mission item",
+        )
+
+        self.mission_input_type = GraphQLInputObjectType(
+            "MissionInput",
+            {
+                "seq": GraphQLInputField(
+                    GraphQLNonNull(GraphQLInt),
+                    description="The sequence number of the mission item.",
+                ),
+                "isCurrent": GraphQLInputField(
+                    GraphQLNonNull(GraphQLBoolean),
+                    description="True if this mission item is the active target",
+                ),
+                "autocontinue": GraphQLInputField(
+                    GraphQLNonNull(GraphQLBoolean),
+                    description="Continue mission after this mission item",
+                ),
+                "frame": GraphQLInputField(GraphQLNonNull(GraphQLInt), description=""),
+                "command": GraphQLInputField(
+                    GraphQLNonNull(GraphQLInt), description=""
+                ),
+                "param1": GraphQLInputField(
+                    GraphQLNonNull(GraphQLFloat), description=""
+                ),
+                "param2": GraphQLInputField(
+                    GraphQLNonNull(GraphQLFloat), description=""
+                ),
+                "param3": GraphQLInputField(
+                    GraphQLNonNull(GraphQLFloat), description=""
+                ),
+                "param4": GraphQLInputField(
+                    GraphQLNonNull(GraphQLFloat), description=""
+                ),
+                "latitude": GraphQLInputField(
+                    GraphQLNonNull(GraphQLFloat), description=""
+                ),
+                "longitude": GraphQLInputField(
+                    GraphQLNonNull(GraphQLFloat), description=""
+                ),
+                "altitude": GraphQLInputField(
+                    GraphQLNonNull(GraphQLFloat), description=""
+                ),
+            },
         )
 
         self.mission_list_type = GraphQLObjectType(
@@ -110,7 +150,7 @@ class MissionSchema(schemaBase):
                 self.mission_type,
                 args={
                     "seq": GraphQLArgument(
-                        GraphQLNonNull(GraphQLString),
+                        GraphQLNonNull(GraphQLInt),
                         description="The sequence number of desired mission item",
                     )
                 },
@@ -143,7 +183,17 @@ class MissionSchema(schemaBase):
                 self.mission_type,
                 args=self.get_mutation_args(self.mission_type),
                 resolve=self.update_mission,
-            )
+            ),
+            "MissionList": GraphQLField(
+                self.mission_list_type,
+                args={
+                    "id": GraphQLArgument(GraphQLNonNull(GraphQLString)),
+                    "mission": GraphQLArgument(
+                        GraphQLNonNull(GraphQLList(self.mission_input_type))
+                    ),
+                },
+                resolve=self.update_mission_list,
+            ),
         }
 
         self.s = {
@@ -179,7 +229,7 @@ class MissionSchema(schemaBase):
         mission_data = {}
         for seq, waypoint in enumerate(data.waypoints):
             mission_item = {
-                "seq": str(seq),
+                "seq": seq,
                 "frame": waypoint.frame,
                 "command": waypoint.command,
                 "isCurrent": waypoint.is_current,
@@ -191,8 +241,6 @@ class MissionSchema(schemaBase):
                 "latitude": waypoint.x_lat,
                 "longitude": waypoint.y_long,
                 "altitude": waypoint.z_alt,
-                "updateTime": update_time,
-                "total": total,
             }
             mission_data[mission_item["seq"]] = mission_item
             self.subscriptions.emit(
@@ -218,18 +266,24 @@ class MissionSchema(schemaBase):
         mission_id = kwargs.get("id")
         mission_list = []
 
-        mission_id = "loaded"  # FIXME: remove this line to make mission_id dynamic
         if mission_id == "loaded":
+            # TODO: if mission data is empty peform a mission pull from the FC
+            # mission.pull()
             mission_list = [self.mission_data[x] for x in self.mission_data.keys()]
         else:
-            # TODO: load the mission from file / database based on mission_id
-            # mission_list = ...
-            pass
-        application_log.debug(f"Mission list query handler {mission_list}")
-        try:
-            update_time = max([x["updateTime"] for x in mission_list])
-        except ValueError as e:
-            update_time = None
+            # attempt to load the mission from a database
+            mission_file = self.mission_database_dir.joinpath(f"{mission_id}.mission")
+            # TODO: handle missing files
+            with open(mission_file, "r+") as fid:
+                mission_list = json.load(fid)
+
+        # application_log.debug(f"Mission list query handler {mission_list}")
+        # FIXME: ignore update time for now
+        # try:
+        #     update_time = max([x["updateTime"] for x in mission_list])
+        # except ValueError as e:
+        #     update_time = None
+        update_time = int(time.time())
 
         ret = {
             "id": mission_id,
@@ -244,6 +298,67 @@ class MissionSchema(schemaBase):
         ) as fid:
             fid.write(json.dumps(ret, indent=4))
         return ret
+
+    def update_mission_list(self, root, info, **kwargs):
+        # The following kwargs are enforced by the schema
+        mission_id = kwargs.get("id")
+        mission_list = kwargs.get("mission")
+
+        if mission_id == "loaded":
+            mission_loaded_filepath = os.path.join(
+                self.mission_database_dir, "loaded.csv"
+            )
+            # requesting update to waypoints on flight controller
+            application_log.debug(f"Writing mission to autopilot: {mission}")
+            # Need to save the mission into a csv format and read it back
+            # First save the mission to a csv file
+            # generate the string we want to write
+            # write the string to disk
+            # load the string and push to the autopilot
+            # TODO: FIXME: This is a bit of a hack for now...
+            #   we should make a wps object and load that without the save + load steps
+            mission_string = "QGC WPL 120\r\n"
+            for idx, mission_action in enumerate(mission_list):
+                mission_line = f"{mission_action['seq']}\t\
+                    {int(mission_action['isCurrent'])}\t\
+                    {mission_action['frame']}\t\
+                    {mission_action['command']}\t\
+                    {mission_action['param1']}\t\
+                    {mission_action['param2']}\t\
+                    {mission_action['param3']}\t\
+                    {mission_action['param4']}\t\
+                    {mission_action['latitude']}\t\
+                    {mission_action['longitude']}\t\
+                    {mission_action['altitude']}\t\
+                    {int(mission_action['autocontinue'])}\r\n"
+                mission_string += mission_line
+            with open(mission_loaded_filepath, "w+") as fid:
+                fid.write(mission_string)
+            with open(mission_loaded_filepath, "r+") as fid:
+                wps = [w for w in mission.QGroundControlWP().read(fid)]
+            ret = mission.push(start_index=0, waypoints=wps)
+        else:
+            # write the mission to the database
+            application_log.debug(
+                f"Writing mission to database: {mission_id}:{mission}"
+            )
+            update_time = int(time.time())
+            total = len(mission_list)
+            for mission_val in mission_list:
+                mission_val["total"] = total
+                mission_val["updateTime"] = update_time
+
+            ret = {
+                "id": mission_id,
+                "mission": mission_list,
+                "total": total,
+                "updateTime": update_time,
+            }
+            # FIXME: write mission to database, use file system for now
+            with open(
+                os.path.join(self.mission_database_dir, mission_id + ".mission"), "w+"
+            ) as fid:
+                fid.write(json.dumps(ret, indent=4))
 
     def sub_mission_list(self, root, info):
         """Mission list subscription handler"""
@@ -263,7 +378,7 @@ class MissionSchema(schemaBase):
             # load all missions from database into responce (async)
             for mission_file in self.mission_database_dir.glob("*.mission"):
                 with open(mission_file, "r+") as fid:
-                    mission.append(json.load(fid))
+                    missions.append(json.load(fid))
             # missions = [json.load(open(x)) for x in self.mission_database_dir.glob('*.mission')]
         else:
             # TODO: add database lookup search
@@ -275,6 +390,9 @@ class MissionSchema(schemaBase):
             "total": len(missions),
             "updateTime": int(time.time()),
         }
+
+    def update_mission_database(self, root, info, **kwargs):
+        pass
 
     def sub_mission_database(self, root, info):
         """Mission database subscription handler"""
