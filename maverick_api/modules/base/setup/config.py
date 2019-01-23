@@ -51,7 +51,10 @@ class MavConfig(object):
             type=str,
             help="Interface to listen on: 0.0.0.0 represents all interfaces",
         )
-        define("server_port", default=6795, type=int, help="Port to listen on")
+        define("server_port", default=6795, type=int, help="Port to listen on"),
+        define(
+            "json_errors", default=True, type=bool, help="Return errors JSON formatted"
+        )
 
     # Parse and load config options
     def load_options(self):

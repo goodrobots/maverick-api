@@ -5,6 +5,7 @@ from functools import wraps
 
 from tornado import web
 from tornado.escape import json_decode, json_encode
+from tornado.options import options
 
 from graphql.error import GraphQLError
 from graphql.error import format_error as format_graphql_error
@@ -97,9 +98,26 @@ class GraphQLHandler(web.RequestHandler):
         if result and result.errors:
             # an error occured during the graphql query
             ex = ExecutionError(errors=result.errors)
-            self.set_status(ex.status_code)
-            application_log.warn("GraphQL Error: %s", ex.message)
-            self.write("GraphQL Error: {}".format(ex.message))
+            application_log.warn(
+                f"GraphQL Error: {ex.message}\n{self.graphql_request}\n"
+            )
+            if options.json_errors:
+                response = {
+                    "data": {
+                        "api": {
+                            "error": {
+                                "graphql": {
+                                    "message": f"{ex.message}",
+                                    "submission": f"{self.graphql_request}",
+                                }
+                            }
+                        }
+                    }
+                }
+            else:
+                self.set_status(ex.status_code)
+                response = f"GraphQL Error: {ex.message}\n{self.graphql_request}\n"
+            self.write(response)
             return
         # only return result data if we dont have errors
         response = {"data": result.data}
