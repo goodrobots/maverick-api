@@ -265,38 +265,38 @@ class MissionSchema(schemaBase):
         application_log.debug(f"Mission list query handler {kwargs}")
         mission_id = kwargs.get("id")
         mission_list = []
+        update_time = int(time.time())
+        ret = {}
 
         if mission_id == "loaded":
             # TODO: if mission data is empty peform a mission pull from the FC
             # mission.pull()
             mission_list = [self.mission_data[x] for x in self.mission_data.keys()]
+            application_log.debug(
+                f"Mission list query handler for {mission_id}: {mission_list}"
+            )
+            ret = {
+                "id": mission_id,
+                "mission": mission_list,
+                "total": len(mission_list),
+                "updateTime": update_time,
+            }
+
         else:
             # attempt to load the mission from a database
             mission_file = self.mission_database_dir.joinpath(f"{mission_id}.mission")
             # TODO: handle missing files
             with open(mission_file, "r+") as fid:
                 mission_list = json.load(fid)
-
-        # application_log.debug(f"Mission list query handler {mission_list}")
-        # FIXME: ignore update time for now
-        # try:
-        #     update_time = max([x["updateTime"] for x in mission_list])
-        # except ValueError as e:
-        #     update_time = None
-        update_time = int(time.time())
-
-        ret = {
-            "id": mission_id,
-            "mission": mission_list,
-            "total": len(mission_list),
-            "updateTime": update_time,
-        }
-
-        # FIXME: write mission to database, use file system for now
-        with open(
-            os.path.join(self.mission_database_dir, ret["id"] + ".mission"), "w+"
-        ) as fid:
-            fid.write(json.dumps(ret, indent=4))
+            application_log.debug(
+                f"Mission list query handler for {mission_id}: {mission_list}"
+            )
+            ret = {
+                "id": mission_list["id"],
+                "mission": mission_list["mission"],
+                "total": len(mission_list["mission"]),
+                "updateTime": mission_list["updateTime"],
+            }
         return ret
 
     def update_mission_list(self, root, info, **kwargs):
@@ -368,11 +368,10 @@ class MissionSchema(schemaBase):
 
     def get_mission_database(self, root, info, **kwargs):
         """Mission database query handler"""
-        application_log.debug(f"Mission list query handler {kwargs}")
-        database_id = kwargs.get("id")
+        application_log.debug(f"Mission database query handler {kwargs}")
+        database_id = kwargs.get("id", None)
         missions = []
-        database_id = "*"  # FIXME: remove this line to make database_id dynamic
-        if database_id == "*":
+        if database_id in ["", " ", "*", None]:
             # look at all databases we have access to
             # open the database (async)
             # load all missions from database into responce (async)
@@ -381,9 +380,11 @@ class MissionSchema(schemaBase):
                     missions.append(json.load(fid))
             # missions = [json.load(open(x)) for x in self.mission_database_dir.glob('*.mission')]
         else:
-            # TODO: add database lookup search
-            # missions = ...
-            pass
+            # TODO: add database lookup search, for now just grab the mission with the correct name
+            with open(
+                os.path.join(self.mission_database_dir, database_id + ".mission"), "r+"
+            ) as fid:
+                missions.append(json.load(fid))
         return {
             "id": database_id,
             "missions": missions,
