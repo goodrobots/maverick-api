@@ -4,7 +4,7 @@ atomicwrites==1.2.1
 attrs==18.2.0
 black==18.9b0
 click==7.0
-flake8==3.7.1
+flake8==3.7.3
 mccabe==0.6.1
 more-itertools==5.0.0
 pluggy==0.8.1
