@@ -8,7 +8,7 @@ flake8==3.7.5
 mccabe==0.6.1
 more-itertools==5.0.0
 pluggy==0.8.1
-py==1.7.0
+py==1.8.0
 pycodestyle==2.5.0
 pyflakes==2.1.0
 pytest==4.2.0
