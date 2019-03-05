@@ -1,4 +1,4 @@
 scipy==1.2.1
 numpy==1.16.2
-matplotlib==3.0.2
+matplotlib==3.0.3
 shapely==1.6.4.post2
