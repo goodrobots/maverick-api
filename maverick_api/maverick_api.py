@@ -8,6 +8,10 @@ https://github.com/goodrobots/maverick-api
 """
 __version__ = "0.2"
 
+# allow remote debugging via pycharm
+# import pydevd_pycharm
+# pydevd_pycharm.settrace('dev.maverick.one', port=21000, stdoutToServer=True, stderrToServer=True)
+
 # TODO: setup tests and flake8
 
 from tornado.options import options

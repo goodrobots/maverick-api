@@ -161,7 +161,7 @@ class MaverickShutdownSchema(schemaBase):
         )
 
         application_log.debug(
-            f'[{cmd!r} exited with {self.shutdown_command["returncode"]}]'
+            f'[{cmd} exited with {self.shutdown_command["returncode"]}]'
         )
 
     @staticmethod

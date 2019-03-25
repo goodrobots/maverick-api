@@ -1,2 +1,3 @@
 from modules.api.maverick.maverick_configure import MaverickConfigureSchema
 from modules.api.maverick.maverick_shutdown import MaverickShutdownSchema
+from modules.api.maverick.maverick_configuration import MaverickConfigurationSchema
