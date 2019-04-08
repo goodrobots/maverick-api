@@ -1,5 +1,5 @@
 -i https://pypi.org/simple
-aiosqlite==0.9.0
+aiosqlite==0.10.0
 graphql-core-next==1.0.2
 motor==2.0.0
 pyjwt==1.7.1
