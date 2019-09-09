@@ -86,11 +86,16 @@ class GQLHandler(web.RequestHandler):
         if result and result.errors:
             ex = ExecutionError(errors=result.errors)
             app_log.warn("GraphQL Error: %s", ex.message)
-            self.write("GraphQL Error: {}".format(ex.message))
-            if not self.application.settings.get("debug", False):
-                # Return a 500 server error to the client if we are not running the
-                #     server in debug mode
-                raise ex
+            # TODO: control error handling with a flag
+            #   For now just return the data as json
+                response = {"data": "errors":{ex.message}
+                self.write(response)
+            else:
+                self.write("GraphQL Error: {}".format(ex.message))
+                if not self.application.settings.get("debug", False):
+                    # Return a 500 server error to the client if we are not running the
+                    #     server in debug mode
+                    raise ex
         response = {"data": result.data}
         self.write(response)
 
