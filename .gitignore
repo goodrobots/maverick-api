@@ -1,3 +1,4 @@
+maverick_api/database/*
 database/*
 !database/.gitkeep
 
