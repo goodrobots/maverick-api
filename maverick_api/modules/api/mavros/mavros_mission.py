@@ -120,6 +120,8 @@ class MissionSchema(schemaBase):
             "MissionList",
             lambda: {
                 "id": GraphQLField(GraphQLString, description="The id of the mission."),
+                "name": GraphQLField(GraphQLString, description="Short name of the mission."),
+                "description": GraphQLField(GraphQLString, description="Description of the mission."),
                 "mission": GraphQLField(GraphQLList(self.mission_type)),
                 "total": GraphQLField(
                     GraphQLInt, description="Total number of mission items"
@@ -191,6 +193,8 @@ class MissionSchema(schemaBase):
                     "mission": GraphQLArgument(
                         GraphQLNonNull(GraphQLList(self.mission_input_type))
                     ),
+                    "name": GraphQLArgument(GraphQLString),
+                    "description": GraphQLArgument(GraphQLString),
                 },
                 resolve=self.update_mission_list,
             ),
@@ -252,7 +256,7 @@ class MissionSchema(schemaBase):
             "modules.api.mavros.MissionSchema" + "MissionList",
             {"MissionList": self.get_mission_list(None, None, id="loaded")},
         )
-        application_log.debug(f"Mission mutation handler {self.mission_data}")
+        # application_log.debug(f"Mission mutation handler {self.mission_data}")
 
     def sub_mission(self, root, info):
         """Mission subscription handler"""
@@ -264,6 +268,7 @@ class MissionSchema(schemaBase):
         """Mission list query handler"""
         application_log.debug(f"Mission list query handler {kwargs}")
         mission_id = kwargs.get("id")
+        
         mission_list = []
         update_time = int(time.time())
         ret = {}
@@ -272,44 +277,55 @@ class MissionSchema(schemaBase):
             # TODO: if mission data is empty peform a mission pull from the FC
             # mission.pull()
             mission_list = [self.mission_data[x] for x in self.mission_data.keys()]
-            application_log.debug(
-                f"Mission list query handler for {mission_id}: {mission_list}"
-            )
+            # application_log.debug(
+            #     f"Mission list query handler for {mission_id}: {mission_list}"
+            # )
+            # TODO support name and description in loaded mission
             ret = {
                 "id": mission_id,
                 "mission": mission_list,
                 "total": len(mission_list),
                 "updateTime": update_time,
+                "name": "",
+                "description": "",
             }
 
         else:
-            # attempt to load the mission from a database
-            mission_file = self.mission_database_dir.joinpath(f"{mission_id}.mission")
-            # TODO: handle missing files
-            with open(mission_file, "r+") as fid:
-                mission_list = json.load(fid)
-            application_log.debug(
-                f"Mission list query handler for {mission_id}: {mission_list}"
-            )
-            ret = {
-                "id": mission_list["id"],
-                "mission": mission_list["mission"],
-                "total": len(mission_list["mission"]),
-                "updateTime": mission_list["updateTime"],
-            }
+            try:
+                # attempt to load the mission from a database
+                mission_file = self.mission_database_dir.joinpath(f"{mission_id}.mission")
+                # TODO: handle missing files
+                with open(mission_file, "r+") as fid:
+                    mission_list = json.load(fid)
+                application_log.debug(
+                    f"Mission list query handler for {mission_id}: {mission_list}"
+                )
+                ret = {
+                    "id": mission_list["id"],
+                    "mission": mission_list["mission"],
+                    "total": len(mission_list["mission"]),
+                    "updateTime": mission_list["updateTime"],
+                    "name": mission_list.get("name", ""),
+                    "description": mission_list.get("description", ""),
+                }
+            except Exception as e:
+                application_log.warning(e)
+                return {}
         return ret
 
     def update_mission_list(self, root, info, **kwargs):
         # The following kwargs are enforced by the schema
         mission_id = kwargs.get("id")
         mission_list = kwargs.get("mission")
+        name = kwargs.get("name", "")
+        description = kwargs.get("description", "")
 
         if mission_id == "loaded":
             mission_loaded_filepath = os.path.join(
                 self.mission_database_dir, "loaded.csv"
             )
             # requesting update to waypoints on flight controller
-            application_log.debug(f"Writing mission to autopilot: {mission}")
+            application_log.debug(f"Writing mission to autopilot: {mission_list}")
             # Need to save the mission into a csv format and read it back
             # First save the mission to a csv file
             # generate the string we want to write
@@ -340,7 +356,7 @@ class MissionSchema(schemaBase):
         else:
             # write the mission to the database
             application_log.debug(
-                f"Writing mission to database: {mission_id}:{mission}"
+                f"Writing mission to database: {mission_id}:{mission_list}"
             )
             update_time = int(time.time())
             total = len(mission_list)
@@ -353,12 +369,16 @@ class MissionSchema(schemaBase):
                 "mission": mission_list,
                 "total": total,
                 "updateTime": update_time,
+                "name": name,
+                "description": description,
             }
             # FIXME: write mission to database, use file system for now
             with open(
                 os.path.join(self.mission_database_dir, mission_id + ".mission"), "w+"
             ) as fid:
                 fid.write(json.dumps(ret, indent=4))
+            # TODO: return success?
+            
 
     def sub_mission_list(self, root, info):
         """Mission list subscription handler"""
@@ -377,7 +397,17 @@ class MissionSchema(schemaBase):
             # load all missions from database into responce (async)
             for mission_file in self.mission_database_dir.glob("*.mission"):
                 with open(mission_file, "r+") as fid:
-                    missions.append(json.load(fid))
+                    try:
+                        loaded_mission = json.load(fid)
+                        # TODO: ensure the mission has correct fields
+                        #   for now just make sure its the correct length
+                        if len(loaded_mission) == 6:
+                            missions.append(loaded_mission)
+                        else:
+                            application_log.info(f'Failed to parse the data: {fid}\nfrom the file: {mission_file}')
+                    except json.decoder.JSONDecodeError as e:
+                        application_log.info(f'Failed to parse the data: {fid}\nfrom the file: {mission_file}')
+                    
             # missions = [json.load(open(x)) for x in self.mission_database_dir.glob('*.mission')]
         else:
             # TODO: add database lookup search, for now just grab the mission with the correct name
@@ -409,7 +439,7 @@ class MissionInterface(moduleBase):
 
     def mission_waypoints(self):
         self.waypoints = mission.pull()
-        application_log.debug(f"waypoints: {self.waypoints}")
+        # application_log.debug(f"waypoints: {self.waypoints}")
         mission.subscribe_waypoints(self.mission_callback)
 
     def mission_callback(self, data):

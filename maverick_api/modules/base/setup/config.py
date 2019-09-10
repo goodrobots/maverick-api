@@ -55,6 +55,9 @@ class MavConfig(object):
         define(
             "json_errors", default=True, type=bool, help="Return errors JSON formatted"
         )
+        define(
+            "apirate", default=0, type=float, help="Limit the API data rate in Hz, set to 0 to remove rate limits"
+        )
 
     # Parse and load config options
     def load_options(self):

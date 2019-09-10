@@ -120,6 +120,7 @@ class VehicleInfoSchema(schemaBase):
     def get_vehicle_info(self, root, info, **kwargs):
         """Vehicle info query handler"""
         vehicle_uuid = kwargs.get("uuid")  # UUID is required
+        #application_log.debug(f"Vehicle info query handler: {vehicle_uuid}")
         # FIXME: remove me
         vehicle_uuid = list(self.vehicle_info_data.keys())[0]
         vehicle_info = self.vehicle_info_data.get(vehicle_uuid, {})
@@ -131,7 +132,7 @@ class VehicleInfoSchema(schemaBase):
         info = data["info"]
 
         vehicle_info = {
-            "uuid": str(uuid4()),  # generate a random uuid for now
+            "uuid": data["uuid"],
             "sysid": info.sysid,
             "compid": info.sysid,
             "autopilot": info.autopilot,
@@ -191,7 +192,8 @@ class VehicleInfoSchema(schemaBase):
 class VehicleInfoInterface(moduleBase):
     def __init__(self, loop, module):
         super().__init__(loop, module)
-        self.vehicle_info = []
+        self.vehicle_info = {}
+        self.parameter_string = None
         # Create ROS service definition for VehicleInfo
         self.get_ros_vehicle_info = rospy.ServiceProxy(
             mavros.get_topic("vehicle_info_get"), VehicleInfoGet
@@ -204,36 +206,57 @@ class VehicleInfoInterface(moduleBase):
 
     def run(self):
         try:
-            self.vehicle_info = self.get_ros_vehicle_info()
+            vehicle_info = self.get_ros_vehicle_info()
             application_log.info(
-                f"Obtained info from {len(self.vehicle_info.vehicles)} vehicles"
+                f"Obtained info from {len(vehicle_info.vehicles)} vehicles"
             )
             update_time = int(time.time())
-            for vehicle in self.vehicle_info.vehicles:
+            for vehicle in vehicle_info.vehicles:
                 # application_log.debug(f"{self.vehicle_info}")
                 (autopilot_string, type_string, parameter_string) = get_vehicle_strings(
                     vehicle
                 )
                 application_log.debug(
-                    f"{autopilot_string} {type_string}\n{self.vehicle_info}"
+                    f"{autopilot_string} {type_string}\n{vehicle_info}"
                 )
+                
+                vehicle_uuid = self.get_vehicle_uuid()
+                
+                data = {
+                    "uuid": vehicle_uuid, 
+                    "update_time": update_time,
+                    "info": vehicle,
+                    "autopilot_string": autopilot_string,
+                    "type_string": type_string,
+                    "parameter_string": parameter_string,
+                }
 
                 api_callback(
                     self.loop,
                     self.module[
                         "modules.api.mavros.VehicleInfoSchema"
                     ].update_vehicle_info,
-                    data={
-                        "update_time": update_time,
-                        "info": vehicle,
-                        "autopilot_string": autopilot_string,
-                        "type_string": type_string,
-                    },
+                    data=data,
                 )
-                # FIXME: get params for this vehicle type and store it somewhere accessable
-                # FIXME: clean up self.params() before we use it again...
-                # self.params(parameter_string=parameter_string)
+                self.vehicle_info[data["uuid"]]=data
         except rospy.ServiceException as ex:
             application_log.error(
                 f"An error occurred while retrieving vehicle info via ROS: {ex}"
             )
+    
+    def get_vehicle_uuid(self):
+        # TODO: generate a uuid based off the hardware or system id?
+        return str(uuid4())
+        
+    
+    def get_meta_string(self):
+        parameter_string = None
+        for vehicle in self.vehicle_info:
+            # TODO return more than one string and handle correctly
+            #   for now just return one
+            parameter_string = self.vehicle_info[vehicle]["parameter_string"]
+        return parameter_string
+            
+            
+            
+        
