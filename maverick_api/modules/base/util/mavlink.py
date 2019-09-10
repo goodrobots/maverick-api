@@ -47,10 +47,9 @@ def get_vehicle_strings(msg):
             type_string = "Dodecarotor"
         else:
             type_string = "Copter"
-            
+
         if autopilot_is_ardupilot(autopilot_string):
             parameter_string = "ArduCopter"
-            
 
     elif msg.type in [
         mavutil.mavlink.MAV_TYPE_FIXED_WING,
@@ -68,7 +67,7 @@ def get_vehicle_strings(msg):
             type_string = "VTOL Quadrotor"
         else:
             type_string = "Plane"
-            
+
         if autopilot_is_ardupilot(autopilot_string):
             parameter_string = "ArduPlane"
 
@@ -78,14 +77,14 @@ def get_vehicle_strings(msg):
     ]:
         if msg.type == mavutil.mavlink.MAV_TYPE_GROUND_ROVER:
             type_string = "Rover"
-        elif  msg.type == avutil.mavlink.MAV_TYPE_SURFACE_BOAT:
+        elif msg.type == avutil.mavlink.MAV_TYPE_SURFACE_BOAT:
             type_string = "Boat"
         else:
             type_string = "Rover"
-            
+
         if autopilot_is_ardupilot(autopilot_string):
             parameter_string = "APMrover2"
-            
+
     elif msg.type in [mavutil.mavlink.MAV_TYPE_SUBMARINE]:
         type_string = "Submarine"
         if autopilot_is_ardupilot(autopilot_string):

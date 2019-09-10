@@ -76,7 +76,9 @@ class MAVROSConnection(moduleBase):
         # self.topics()
         self.streams()
         self.vehicle_info_interface = VehicleInfoInterface(self.loop, self.module)
-        self.param_interface.vehicle_params(meta_string = self.vehicle_info_interface.get_meta_string())
+        self.param_interface.vehicle_params(
+            meta_string=self.vehicle_info_interface.get_meta_string()
+        )
         self.mission_interface.mission_waypoints()
         self.nav_sat_fix_interface = NavSatFixInterface(self.loop, self.module)
         self.vehicle_state_interface = VehicleStateInterface(self.loop, self.module)

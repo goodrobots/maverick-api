@@ -73,26 +73,28 @@ class SubscriptionObserver(object):
 
 class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
     def initialize(self):
-        
+
         try:
             if options.apirate:
                 self.rate_limit_data = True
-                self.message_interval_seconds = 1.0/options.apirate
-                application_log.info(f'Setting API rate to {options.apirate}Hz')
+                self.message_interval_seconds = 1.0 / options.apirate
+                application_log.info(f"Setting API rate to {options.apirate}Hz")
             else:
                 self.rate_limit_data = False
                 self.message_interval_seconds = 1.0
-                application_log.info(f'An API rate has not been set')
+                application_log.info(f"An API rate has not been set")
         except Exception as e:
-            application_log.info(f'Error setting API rate, no rate will be enforced: {e}')
+            application_log.info(
+                f"Error setting API rate, no rate will be enforced: {e}"
+            )
             self.rate_limit_data = False
             self.message_interval_seconds = 1.0
         self.last_data_send_time = {}
-            
+
         self.handler_sockets = []
         self.handler_subscriptions = {}
         self.start_time = time.time()
-        
+
         self.remote_ip = ""
         # TODO: provide DB object via options to context
         self.context = {
@@ -139,10 +141,12 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
             if op_type == GQL_DATA and self.rate_limit_data:
                 current_time = time.time()
                 # check to make sure we are within sending rate
-                if ((current_time - self.last_data_send_time.get(op_id, 0)) < self.message_interval_seconds):
+                if (
+                    current_time - self.last_data_send_time.get(op_id, 0)
+                ) < self.message_interval_seconds:
                     return None
                 else:
-                    self.last_data_send_time[op_id] = current_time 
+                    self.last_data_send_time[op_id] = current_time
         if payload is not None:
             message["payload"] = payload
         assert message, "You need to send at least one thing"

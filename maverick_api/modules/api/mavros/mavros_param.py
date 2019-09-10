@@ -38,19 +38,20 @@ application_log = logging.getLogger("tornado.application")
 class ParamSchema(schemaBase):
     def __init__(self):
         super().__init__()
-        
+
         self.q = {}
         self.m = {}
         self.s = {}
-        
+
+
 class ParamInterface(moduleBase):
     def __init__(self, loop, module):
         super().__init__(loop, module)
-        
+
         rospy.Subscriber("/mavros/param_value", Param, self.param_callback)
         self.params = {}
         self.param_meta = {}
-        
+
     def param_callback(self, data):
         """Called every time mavros receives a parameter from the vehicle"""
         # application_log.debug('param callback data: {0}  value type: {1} '.format(data, type(data.value)))
@@ -61,7 +62,7 @@ class ParamInterface(moduleBase):
             **kwargs,
         )
         # print(kwargs)
-    
+
     # The following decorator is only useful if we are supporting more than one vehicle per API instance
     #   Rather than reaching out to calc the meta again we return the cached value for the meta_string
     @functools.lru_cache(maxsize=10)  # cache the param meta for each vehicle
@@ -90,14 +91,11 @@ class ParamInterface(moduleBase):
 
         # TODO: handle IOError when mavlink-router is not connected to the AP but mavros is running
 
-
         start_time = time.time()
         application_log.debug("starting parameter meta fetch")
         param_meta_server = get_param_meta(meta_string)
         application_log.debug("finished parameter meta fetch")
-        application_log.debug(
-            f"parameter meta fetch took {time.time() - start_time}s"
-        )
+        application_log.debug(f"parameter meta fetch took {time.time() - start_time}s")
         self.param_meta = {**param_meta_vehicle, **param_meta_server}
         # application_log.info(
         #     f"self.param_meta {self.param_meta}"
