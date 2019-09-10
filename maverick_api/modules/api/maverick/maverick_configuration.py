@@ -51,7 +51,7 @@ class MaverickConfigurationSchema(schemaBase):
 
         self.config = jjson.loads(config)
         self.make_backup_dir()
-        self.modify_config({"testing":123})
+        # self.modify_config({"testing":123})
         
     def modify_config(self, data):
         """apply a change to the config"""
