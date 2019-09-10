@@ -6,7 +6,7 @@ black==19.3b0
 click==7.0
 flake8==3.7.8
 mccabe==0.6.1
-more-itertools==6.0.0
+more-itertools==7.2.0
 py==1.8.0
 pluggy==0.12.0
 pycodestyle==2.5.0
