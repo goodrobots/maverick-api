@@ -120,7 +120,7 @@ class VehicleInfoSchema(schemaBase):
     def get_vehicle_info(self, root, info, **kwargs):
         """Vehicle info query handler"""
         vehicle_uuid = kwargs.get("uuid")  # UUID is required
-        #application_log.debug(f"Vehicle info query handler: {vehicle_uuid}")
+        # application_log.debug(f"Vehicle info query handler: {vehicle_uuid}")
         # FIXME: remove me
         vehicle_uuid = list(self.vehicle_info_data.keys())[0]
         vehicle_info = self.vehicle_info_data.get(vehicle_uuid, {})
@@ -219,11 +219,11 @@ class VehicleInfoInterface(moduleBase):
                 application_log.debug(
                     f"{autopilot_string} {type_string}\n{vehicle_info}"
                 )
-                
+
                 vehicle_uuid = self.get_vehicle_uuid()
-                
+
                 data = {
-                    "uuid": vehicle_uuid, 
+                    "uuid": vehicle_uuid,
                     "update_time": update_time,
                     "info": vehicle,
                     "autopilot_string": autopilot_string,
@@ -238,17 +238,16 @@ class VehicleInfoInterface(moduleBase):
                     ].update_vehicle_info,
                     data=data,
                 )
-                self.vehicle_info[data["uuid"]]=data
+                self.vehicle_info[data["uuid"]] = data
         except rospy.ServiceException as ex:
             application_log.error(
                 f"An error occurred while retrieving vehicle info via ROS: {ex}"
             )
-    
+
     def get_vehicle_uuid(self):
         # TODO: generate a uuid based off the hardware or system id?
         return str(uuid4())
-        
-    
+
     def get_meta_string(self):
         parameter_string = None
         for vehicle in self.vehicle_info:
@@ -256,7 +255,3 @@ class VehicleInfoInterface(moduleBase):
             #   for now just return one
             parameter_string = self.vehicle_info[vehicle]["parameter_string"]
         return parameter_string
-            
-            
-            
-        

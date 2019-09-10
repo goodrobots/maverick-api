@@ -120,8 +120,12 @@ class MissionSchema(schemaBase):
             "MissionList",
             lambda: {
                 "id": GraphQLField(GraphQLString, description="The id of the mission."),
-                "name": GraphQLField(GraphQLString, description="Short name of the mission."),
-                "description": GraphQLField(GraphQLString, description="Description of the mission."),
+                "name": GraphQLField(
+                    GraphQLString, description="Short name of the mission."
+                ),
+                "description": GraphQLField(
+                    GraphQLString, description="Description of the mission."
+                ),
                 "mission": GraphQLField(GraphQLList(self.mission_type)),
                 "total": GraphQLField(
                     GraphQLInt, description="Total number of mission items"
@@ -268,7 +272,7 @@ class MissionSchema(schemaBase):
         """Mission list query handler"""
         application_log.debug(f"Mission list query handler {kwargs}")
         mission_id = kwargs.get("id")
-        
+
         mission_list = []
         update_time = int(time.time())
         ret = {}
@@ -293,7 +297,9 @@ class MissionSchema(schemaBase):
         else:
             try:
                 # attempt to load the mission from a database
-                mission_file = self.mission_database_dir.joinpath(f"{mission_id}.mission")
+                mission_file = self.mission_database_dir.joinpath(
+                    f"{mission_id}.mission"
+                )
                 # TODO: handle missing files
                 with open(mission_file, "r+") as fid:
                     mission_list = json.load(fid)
@@ -378,7 +384,6 @@ class MissionSchema(schemaBase):
             ) as fid:
                 fid.write(json.dumps(ret, indent=4))
             # TODO: return success?
-            
 
     def sub_mission_list(self, root, info):
         """Mission list subscription handler"""
@@ -404,10 +409,14 @@ class MissionSchema(schemaBase):
                         if len(loaded_mission) == 6:
                             missions.append(loaded_mission)
                         else:
-                            application_log.info(f'Failed to parse the data: {fid}\nfrom the file: {mission_file}')
+                            application_log.info(
+                                f"Failed to parse the data: {fid}\nfrom the file: {mission_file}"
+                            )
                     except json.decoder.JSONDecodeError as e:
-                        application_log.info(f'Failed to parse the data: {fid}\nfrom the file: {mission_file}')
-                    
+                        application_log.info(
+                            f"Failed to parse the data: {fid}\nfrom the file: {mission_file}"
+                        )
+
             # missions = [json.load(open(x)) for x in self.mission_database_dir.glob('*.mission')]
         else:
             # TODO: add database lookup search, for now just grab the mission with the correct name

@@ -4,6 +4,7 @@ import re
 
 from pymavlink import mavutil
 
+
 def get_mavlink_enums():
     mavlink_enums = {}
     for ent in mavutil.mavlink.enums:
@@ -24,12 +25,13 @@ def get_mavlink_enums():
         mavlink_enums[ent] = enum_dict
     return mavlink_enums
 
-def generate_javascript(fn = False):
+
+def generate_javascript(fn=False):
     json_output = json.dumps(mavlink_enums, indent=2, separators=(",", ": "))
     regex = r'(?<!: )"(\S*?)"'
-    javascript_object = re.sub(regex,'\\1',json_output)
+    javascript_object = re.sub(regex, "\\1", json_output)
     if fn:
-        javascript_object = javascript_object.replace('\n', '\n  ')
+        javascript_object = javascript_object.replace("\n", "\n  ")
         output = (
             f"function mavlinkEnumToString (enumValue, enumGroup) {{\n"
             f"  const mavlinkEnums = {javascript_object}\n"
@@ -47,21 +49,24 @@ def generate_javascript(fn = False):
         output = javascript_object
     return output
 
+
 def generate_json():
     json_output = json.dumps(mavlink_enums, indent=4, separators=(",", ": "))
     output = json_output
     return output
-    
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-j", "--javascript",
+        "-j",
+        "--javascript",
         help="output enum as javascript object",
         action="store_true",
     )
     parser.add_argument(
-        "-f", "--function",
+        "-f",
+        "--function",
         help="use with -j to wrap enum in a javascript function",
         action="store_true",
     )
@@ -70,20 +75,15 @@ if __name__ == "__main__":
     js_function = args.function
     output = ""
     filename = ""
-    
+
     mavlink_enums = get_mavlink_enums()
-    
+
     if js_output:
         output = generate_javascript(js_function)
         filename = "mavlinkMeta.js"
     else:
         output = generate_json()
         filename = "mavlink_meta.json"
-    
+
     with open(filename, "w+") as fid:
         fid.write(output)
-    
-    
-    
-
-            
