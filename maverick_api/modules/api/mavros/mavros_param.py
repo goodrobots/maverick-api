@@ -1,3 +1,11 @@
+# This file interacts with the mavros param system to expose the following
+# query params
+# query param meta data
+# update param data
+# similar to the mavros mission we can pass a list of params via graphql
+
+
+
 import functools
 import logging
 import time
