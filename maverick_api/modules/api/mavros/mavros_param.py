@@ -19,9 +19,12 @@ from tornado.options import options
 
 import rospy
 from mavros_msgs.msg import Param  # callback msg on param change
-from mavros.param import param_ret_value
+
+# from mavros.param import param_ret_value
 from modules.base.param.parse_param_xml import get_param_meta
 from mavros.param import param_get_all
+from mavros.param import param_set
+from mavros.param import param_get
 
 # graphql imports
 from graphql import (
@@ -42,6 +45,7 @@ from graphql import (
     GraphQLInputObjectType,
     GraphQLInputField,
 )
+from graphql.language.ast import FloatValueNode, IntValueNode, StringValueNode
 from graphql.error import INVALID
 from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
 
@@ -72,8 +76,8 @@ def coerce_param_value(value):
 
 
 def parse_param_value_literal(value_ast, _variables=None):
-    if isinstance(value_ast, (ast.StringValue, ast.IntValue, ast.FloatValue)):
-        return value_ast.value
+    if isinstance(value_ast, (StringValueNode, IntValueNode, FloatValueNode)):
+        return float(value_ast.value)
     return INVALID
 
 
@@ -164,11 +168,11 @@ class ParamSchema(schemaBase):
             "Parameter": GraphQLField(
                 self.parameter_type, subscribe=self.sub_parameter, resolve=None
             ),
-            "ParameterList": GraphQLField(
-                self.parameter_list_type,
-                subscribe=self.sub_parameter_list,
-                resolve=None,
-            ),
+            # "ParameterList": GraphQLField(
+            #     self.parameter_list_type,
+            #     subscribe=self.sub_parameter_list,
+            #     resolve=None,
+            # ),
         }
 
     def get_parameter(self, root, info, **kwargs):
@@ -179,10 +183,35 @@ class ParamSchema(schemaBase):
         return {"id": param_id, "value": param_value}
 
     def update_parameter(self, root, info, **kwargs):
-        application_log.debug(f"Parameter mutation handler {kwargs}")
+        application_log.debug(
+            f"Parameter mutation handler {kwargs} root:{root} info:{info}"
+        )
         parameter_id = kwargs.get("id")
         parameter_value = kwargs.get("value")
-        self.parameter_data[parameter_id] = parameter_value
+        if (root is None) and (info is None):
+            # The call came from the api, don't action as a param change request
+            self.parameter_data[parameter_id] = parameter_value
+            self.subscriptions.emit(
+                "modules.api.mavros.ParamSchema" + "Parameter",
+                {"Parameter": {"id": parameter_id, "value": parameter_value}},
+            )
+        else:
+            ret = param_set(parameter_id, float(parameter_value))
+            if ret == parameter_value:
+                # param set worked
+                pass
+            else:
+                # param set failed
+                pass
+
+            # check to see if the set value matches the provided value
+            ret_param = param_get(parameter_id)
+            application_log.debug(
+                "param set {0}:{1}  {2}".format(parameter_id, parameter_value, ret)
+            )
+            application_log.debug("{0}".format(ret_param))
+
+            return {"id": parameter_id, "value": parameter_value}
 
     def sub_parameter(self, root, info):
         application_log.debug(f"Parameter subscription handler")
@@ -222,18 +251,18 @@ class ParamSchema(schemaBase):
         application_log.debug(f"Parameter list mutation handler {kwargs}")
         pass
 
-    def sub_parameter_list(self, root, info):
-        application_log.debug(f"Parameter list subscription handler")
-        return EventEmitterAsyncIterator(
-            self.subscriptions, "modules.api.mavros.ParamSchema" + "ParameterList"
-        )
+    # def sub_parameter_list(self, root, info):
+    #     application_log.debug(f"Parameter list subscription handler")
+    #     return EventEmitterAsyncIterator(
+    #         self.subscriptions, "modules.api.mavros.ParamSchema" + "ParameterList"
+    #     )
 
 
 class ParamInterface(moduleBase):
     def __init__(self, loop, module):
         super().__init__(loop, module)
 
-        rospy.Subscriber("/mavros/param_value", Param, self.param_callback)
+        rospy.Subscriber("/mavros/param/param_value", Param, self.param_callback)
         self.params = {}
         self.param_meta = {}
 
