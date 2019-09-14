@@ -11,6 +11,7 @@ import time
 import numbers
 from decimal import Decimal
 import ast
+import re, fnmatch
 
 from modules.api import api_callback, moduleBase, schemaBase
 
@@ -191,10 +192,30 @@ class ParamSchema(schemaBase):
 
     def get_parameter_list(self, root, info, **kwargs):
         application_log.debug(f"Parameter list query handler {kwargs}")
+        q = kwargs.get("query", "*")
         tmp = []
-        for k in self.parameter_data.keys():
-            tmp.append({"id": k, "value": self.parameter_data[k]})
-        tmp.sort(key=lambda i: i["id"])
+        if q == "*":
+            # we want all the parameters
+            for k in self.parameter_data.keys():
+                tmp.append({"id": k, "value": self.parameter_data[k]})
+        elif "*" in q:
+            # the query contains at least one wildcard
+            # create a regular expression from a unix style wildcard pattern
+            regex = fnmatch.translate(q.upper())
+            # compile the regular expression for speed
+            reobj = re.compile(regex)
+            for k in self.parameter_data.keys():
+                # check to see if pattern is present and the matched parameter is not already in our param_list
+                if reobj.match(k) and self.parameter_data[k] not in tmp:
+                    tmp.append({"id": k, "value": self.parameter_data[k]})
+        else:
+            # try to match the supplied id against the parameter list
+            # if it cant be found return the query id with a null value
+            value = self.parameter_data.get(q.upper(), None)
+            if value is not None:
+                tmp.append({"id": q.upper(), "value": value})
+        if tmp:
+            tmp.sort(key=lambda i: i["id"])
         return {"parameters": tmp}
 
     def update_parameter_list(self, root, info, **kwargs):
