@@ -268,8 +268,17 @@ class ParamInterface(moduleBase):
 
     def param_callback(self, data):
         """Called every time mavros receives a parameter from the vehicle"""
-        # application_log.debug('param callback data: {0}  value type: {1} '.format(data, type(data.value)))
-        kwargs = {"id": data.param_id, "value": data.param_value}
+        val_int = data.value.integer
+        val_float = data.value.real
+        param_value = val_int
+        if val_float:
+            param_value = val_float
+        elif val_int:
+            param_value = val_int
+        kwargs = {"id": data.param_id, "value": param_value}
+        self.param_callback_final(**kwargs)
+
+    def param_callback_final(self, **kwargs):
         api_callback(
             self.loop,
             self.module["modules.api.mavros.ParamSchema"].update_parameter,
@@ -291,7 +300,7 @@ class ParamInterface(moduleBase):
         param_meta_vehicle = {}
         for param in param_list:
             kwargs = {"id": param.param_id, "value": param.param_value}
-            self.param_callback(param)
+            self.param_callback_final(**kwargs)
 
             param_meta_vehicle[param.param_id] = {
                 "group": param.param_id.split("_")[0].strip().rstrip("_").upper()
