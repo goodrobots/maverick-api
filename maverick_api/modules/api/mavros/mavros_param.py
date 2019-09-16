@@ -12,6 +12,7 @@ import numbers
 from decimal import Decimal
 import ast
 import re, fnmatch
+from enum import Enum
 
 from modules.api import api_callback, moduleBase, schemaBase
 
@@ -98,6 +99,28 @@ class ParamSchema(schemaBase):
             parse_literal=parse_param_value_literal,
         )
 
+        self.parameter_meta_type = GraphQLObjectType(
+            "Meta",
+            lambda: {
+                "humanName": GraphQLField(GraphQLString, description=""),
+                "humanGroup": GraphQLField(GraphQLString, description=""),
+                "documentation": GraphQLField(GraphQLString, description=""),
+                "group": GraphQLField(GraphQLString, description=""),
+                "increment": GraphQLField(GraphQLParamValue, description=""),
+                "min": GraphQLField(GraphQLParamValue, description=""),
+                "max": GraphQLField(GraphQLParamValue, description=""),
+                "decimal": GraphQLField(GraphQLParamValue, description=""),
+                "rebootRequired": GraphQLField(GraphQLBoolean, description=""),
+                "unitText": GraphQLField(GraphQLString, description=""),
+                "units": GraphQLField(GraphQLString, description=""),
+                "bitmask": GraphQLField(GraphQLEnumType, description=""),
+                "values": GraphQLField(GraphQLEnumType, description=""),
+            },
+        )
+
+        #
+        # Enum('values', dict([(value, key) for key, value in values.items()]))
+        # Enum('bitmask', dict([(value, key) for key, value in bitmask.items()]))
         self.parameter_type = GraphQLObjectType(
             "Parameter",
             lambda: {
@@ -107,6 +130,9 @@ class ParamSchema(schemaBase):
                 "value": GraphQLField(
                     GraphQLParamValue, description="The value of the parameter"
                 ),
+                # "meta": GraphQLField(
+                #     self.parameter_meta_type, description=""
+                # )
             },
             description="Parameter item",
         )
@@ -116,7 +142,6 @@ class ParamSchema(schemaBase):
             lambda: {"parameters": GraphQLField(GraphQLList(self.parameter_type))},
         )
 
-        # TODO: needed?
         self.parameter_input_type = GraphQLInputObjectType(
             "ParameterInput",
             {
@@ -188,6 +213,7 @@ class ParamSchema(schemaBase):
         )
         parameter_id = kwargs.get("id")
         parameter_value = kwargs.get("value")
+        application_log.debug(f"param meta {self.parameter_meta}")
         if (root is None) and (info is None):
             # The call came from the api, don't action as a param change request
             self.parameter_data[parameter_id] = parameter_value
@@ -249,13 +275,12 @@ class ParamSchema(schemaBase):
 
     def update_parameter_list(self, root, info, **kwargs):
         application_log.debug(f"Parameter list mutation handler {kwargs}")
+        # TODO iterate over the list and set all the values
         pass
 
-    # def sub_parameter_list(self, root, info):
-    #     application_log.debug(f"Parameter list subscription handler")
-    #     return EventEmitterAsyncIterator(
-    #         self.subscriptions, "modules.api.mavros.ParamSchema" + "ParameterList"
-    #     )
+    def update_parameter_meta(self, **kwargs):
+        self.parameter_meta = kwargs
+        # application_log.info(f"self.parameter_meta {self.parameter_meta}")
 
 
 class ParamInterface(moduleBase):
@@ -290,7 +315,7 @@ class ParamInterface(moduleBase):
     @functools.lru_cache(maxsize=10)  # cache the param meta for each vehicle
     def vehicle_params(self, meta_string=None):
         """Called once on API start up"""
-        # TODO: make vehicle dynamic and chosse between px4 and ardupilot
+        # TODO: make vehicle dynamic and choose between px4 and ardupilot
         # TODO: If this fails try to run it some time in the future
 
         param_received, param_list = param_get_all(True)
@@ -299,9 +324,6 @@ class ParamInterface(moduleBase):
 
         param_meta_vehicle = {}
         for param in param_list:
-            kwargs = {"id": param.param_id, "value": param.param_value}
-            self.param_callback_final(**kwargs)
-
             param_meta_vehicle[param.param_id] = {
                 "group": param.param_id.split("_")[0].strip().rstrip("_").upper()
             }
@@ -316,7 +338,14 @@ class ParamInterface(moduleBase):
         param_meta_server = get_param_meta(meta_string)
         application_log.debug("finished parameter meta fetch")
         application_log.debug(f"parameter meta fetch took {time.time() - start_time}s")
-        self.param_meta = {**param_meta_vehicle, **param_meta_server}
-        # application_log.info(
-        #     f"self.param_meta {self.param_meta}"
-        # )
+        param_meta = {**param_meta_vehicle, **param_meta_server}
+        # application_log.info(f"self.param_meta {self.param_meta}")
+        api_callback(
+            self.loop,
+            self.module["modules.api.mavros.ParamSchema"].update_parameter_meta,
+            **param_meta,
+        )
+
+        for param in param_list:
+            kwargs = {"id": param.param_id, "value": param.param_value}
+            self.param_callback_final(**kwargs)
