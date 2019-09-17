@@ -99,6 +99,24 @@ class ParamSchema(schemaBase):
             parse_literal=parse_param_value_literal,
         )
 
+        self.parameter_meta_input = GraphQLInputObjectType(
+            "Meta",
+            lambda: {
+                "humanName": GraphQLInputField(GraphQLString),
+                "humanGroup": GraphQLInputField(GraphQLString),
+                "documentation": GraphQLInputField(GraphQLString),
+                "group": GraphQLInputField(GraphQLString),
+                "increment": GraphQLInputField(GraphQLParamValue),
+                "min": GraphQLInputField(GraphQLParamValue),
+                "max": GraphQLInputField(GraphQLParamValue),
+                "decimal": GraphQLInputField(GraphQLParamValue),
+                "rebootRequired": GraphQLInputField(GraphQLBoolean),
+                "unitText": GraphQLInputField(GraphQLString),
+                "units": GraphQLInputField(GraphQLString),
+                "bitmask": GraphQLInputField(GraphQLString),
+                "values": GraphQLInputField(GraphQLString),
+            },
+        )
         self.parameter_meta_type = GraphQLObjectType(
             "Meta",
             lambda: {
@@ -113,8 +131,8 @@ class ParamSchema(schemaBase):
                 "rebootRequired": GraphQLField(GraphQLBoolean, description=""),
                 "unitText": GraphQLField(GraphQLString, description=""),
                 "units": GraphQLField(GraphQLString, description=""),
-                "bitmask": GraphQLField(GraphQLEnumType, description=""),
-                "values": GraphQLField(GraphQLEnumType, description=""),
+                "bitmask": GraphQLField(GraphQLString, description=""),
+                "values": GraphQLField(GraphQLString, description=""),
             },
         )
 
@@ -130,9 +148,7 @@ class ParamSchema(schemaBase):
                 "value": GraphQLField(
                     GraphQLParamValue, description="The value of the parameter"
                 ),
-                # "meta": GraphQLField(
-                #     self.parameter_meta_type, description=""
-                # )
+                # "meta": self.parameter_meta_type,
             },
             description="Parameter item",
         )
@@ -213,7 +229,7 @@ class ParamSchema(schemaBase):
         )
         parameter_id = kwargs.get("id")
         parameter_value = kwargs.get("value")
-        application_log.debug(f"param meta {self.parameter_meta}")
+        # application_log.debug(f"param meta {self.parameter_meta.get(parameter_id, {})}")
         if (root is None) and (info is None):
             # The call came from the api, don't action as a param change request
             self.parameter_data[parameter_id] = parameter_value
@@ -278,7 +294,7 @@ class ParamSchema(schemaBase):
         # TODO iterate over the list and set all the values
         pass
 
-    def update_parameter_meta(self, **kwargs):
+    def update_parameter_meta(self, root, info, **kwargs):
         self.parameter_meta = kwargs
         # application_log.info(f"self.parameter_meta {self.parameter_meta}")
 
@@ -327,9 +343,9 @@ class ParamInterface(moduleBase):
             param_meta_vehicle[param.param_id] = {
                 "group": param.param_id.split("_")[0].strip().rstrip("_").upper()
             }
-            application_log.debug(
-                f"param get {param.param_id}:{param.param_value}  {type(param.param_value)}"
-            )
+            # application_log.debug(
+            #     f"param get {param.param_id}:{param.param_value}  {type(param.param_value)}"
+            # )
 
         # TODO: handle IOError when mavlink-router is not connected to the AP but mavros is running
 
