@@ -13,14 +13,14 @@ application_log = logging.getLogger("tornado.application")
 
 
 class moduleBase(object):
-    def __init__(self, loop, module):
+    def __init__(self, loop, module, **kwargs):
         # Attributes
         self.loop = loop
         self.module = module
 
 
 class schemaBase(object):
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.q = {}
         self.m = {}
         self.s = {}
@@ -48,7 +48,7 @@ def check_schema_attribute(instance):
     if isinstance(instance, dict):
         errors = 0
         for k in instance:
-            # TODO: Check to ensure we dont already have a handler
+            # TODO: Check to ensure we don't already have a handler
             #     by this name (using if key in q)
             if not isinstance(instance[k], GraphQLField):
                 # Ensure we are adding the correct types to the
