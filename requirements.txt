@@ -3,7 +3,7 @@ aiosqlite==0.10.0
 graphql-core-next==1.1.1
 motor==2.0.0
 pyjwt==1.7.1
-pymongo==3.9.0
+pymongo==3.10.0
 tornado==6.0.3
 requests==2.22.0
 jstyleson==0.0.2
