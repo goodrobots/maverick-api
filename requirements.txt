@@ -1,7 +1,7 @@
 -i https://pypi.org/simple
 aiosqlite==0.10.0
 graphql-core-next==1.1.1
-motor==2.0.0
+motor==2.1.0
 pyjwt==1.7.1
 pymongo==3.9.0
 tornado==6.0.3
