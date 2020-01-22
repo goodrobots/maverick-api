@@ -69,15 +69,17 @@ class MAVROSConnection(moduleBase):
         super().__init__(loop, module)
         # Attributes
         self.mission_interface = MissionInterface(self.loop, self.module)
-        self.param_interface = ParamInterface(self.loop, self.module)
 
     def run(self):
         self.connect()
-        # self.topics()
+
+        self.topics()
         self.streams()
         self.vehicle_info_interface = VehicleInfoInterface(self.loop, self.module)
-        self.param_interface.vehicle_params(
-            meta_string=self.vehicle_info_interface.get_meta_string()
+        self.param_interface = ParamInterface(
+            self.loop,
+            self.module,
+            meta_string=self.vehicle_info_interface.get_meta_string(),
         )
         self.mission_interface.mission_waypoints()
         self.nav_sat_fix_interface = NavSatFixInterface(self.loop, self.module)
@@ -147,29 +149,3 @@ class MAVROSConnection(moduleBase):
         topics = rospy.get_published_topics()
         for topic in topics:
             application_log.info(topic)
-
-    def param_set_callback(self, param_data):
-        # from api.schema import Parameters
-        # TODO:
-        # write unit test
-        # clean up logic
-        from mavros.param import param_set
-
-        mavros.set_namespace("mavros")
-        ret = param_set(
-            param_data["id"].encode("ascii", "ignore"), float(param_data["value"])
-        )
-        # if ret == param_value:
-        #     # param set worked
-        #     pass
-        # else:
-        #     # param set failed
-        #     pass
-
-        # # check to see if the set value matches the provided value
-        # ret_param = param_get(param_data['id'])
-        application_log.debug(
-            "param set {0}:{1}  {2}".format(param_data["id"], param_data["value"], ret)
-        )
-        # application_log.debug('{0}'.format(ret_param))
-        return ret
