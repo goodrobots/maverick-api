@@ -4,9 +4,9 @@
 #  - provide a schema and autocomplete format for monaco
 
 import json
-unknown_types = []
+import ast
 
-def get_params(puppet_class):
+def get_params(puppet_class, unknown_types):
     docstrings = puppet_class.get("docstring", {})
     defaults = puppet_class.get("defaults", {})
     class_properties = {}
@@ -19,7 +19,6 @@ def get_params(puppet_class):
             if not property_name_part:
                 continue
             property_name = f"{puppet_class['name']}::{property_name_part}"
-            
             tag_docstring = tag.get("text", "")
             base_class_docstring = docstrings.get("text", "")
             tag_properties["description"] = f"{tag_docstring}\n\n{base_class_docstring}"
@@ -35,83 +34,124 @@ def get_params(puppet_class):
                     pass
                 elif tag_type == "Boolean":
                     tag_properties["type"] = "boolean"
-                elif tag_type == "String":
+                elif tag_type.lower() == "string":
                     tag_properties["type"] = "string"
                 elif tag_type == "Integer":
                     tag_properties["type"] = "number"
+                    tag_properties["_type"] = "integer"
+                elif tag_type == "Float":
+                    tag_properties["type"] = "number"
+                    tag_properties["_type"] = "float"
                 elif tag_type.startswith("Enum"):
-                    import ast
+                   
                     enum = ast.literal_eval(tag_type.lstrip("Enum"))
                     tag_properties["enum"] = enum
+                elif tag_type == "Array[String]":
+                    tag_properties["type"] = "array"
+                    tag_properties["items"] = {"type": "string"}
                 else:
-                    unknown_types.append(tag_type)
+                    unknown_types.append({"type":tag_type, "property_name": property_name, "defaults":defaults.get(property_name_part, None)})
+            elif tag_types:
+                unknown_types.append({"type":tag_type, "property_name": property_name, "defaults":defaults.get(property_name_part, None)})
                     
             tag_default = defaults.get(property_name_part, None)
             if tag_default is not None:
+                if tag_default.startswith('"') or tag_default.startswith("'"):
+                    tag_default = tag_default[1:]
+                if tag_default.endswith('"') or tag_default.endswith("'"):
+                    tag_default = tag_default[:-1]
+
                 tag_type = tag_properties.get("type", None)
-                if tag_type == "boolean":
+
+                if tag_default in ("undef"):
+                    # don't attempt to set defaults for undefined 
+                    continue
+                elif tag_default.startswith("{") and tag_default.endswith("}"):
+                    # don't attempt to set defaults for hashes
+                    continue
+                elif tag_type == "boolean":
                     tag_default = string_to_bool(tag_default)
                 elif tag_type == "number":
-                    tag_default = int(tag_default)
+                    if tag_properties["_type"] == "integer":
+                        tag_default = int(tag_default)
+                    elif tag_properties["_type"] == "float":
+                        tag_default = float(tag_default)
+                elif tag_type is None and tag_default in ("true", "false"):
+                    tag_default = string_to_bool(tag_default)
+                    tag_properties["type"] = "boolean"
+                elif tag_type == "array":
+                    array_types = tag_properties["items"]["type"]
+                    tag_default = ast.literal_eval(tag_default)
+                    if array_types == "string":
+                        tag_default = [str(x) for x in tag_default]
                 tag_properties["default"] = tag_default
-
             class_properties[property_name] = tag_properties
-    return class_properties
+    return class_properties, unknown_types
 
 def string_to_bool(v):
-    return str(v).lower() in ("yes", "true", "1")
-
-
-with open("mavdoc.json", "r+") as fid:
-    config = json.load(fid)
-
-classes = config["puppet_classes"]
-puppet_classes = []
-puppet_classes_docs = []
-puppet_class_properties = {}
-for puppet_class in classes:
-    class_name = str(puppet_class.get("name", ""))
-    if not class_name:
-        # TODO: log error here
-        #  the class must have a name
-        continue
-    if class_name in puppet_classes:
-        # TODO: log error here
-        #  the class name must be unique
-        continue
-    if "::" in class_name:
-        class_properties = get_params(puppet_class)
-        for class_property in class_properties:
-            puppet_class_properties[class_property] = class_properties[class_property]
+    v = v.lower()
+    if v in ("true", "false"):
+        return v in ("yes")
     else:
-        class_docs = puppet_class.get("docstring", {})
-        puppet_classes_docs.append(str(class_docs.get("text", "")))
-        puppet_classes.append(class_name)
+        raise ValueError
 
-monaco_schema = {
-    "allowComments": True,
-    "type": "object",
-    "properties": {
-        "classes": {
-            "type": "array",
-            "description": "puppet classes included in this array are active" ,
-            "items": {
-                "type": "string",
-                "enum": puppet_classes,
-                "enumDescriptions": puppet_classes_docs
+def parse_puppet_strings(input_filepath, output_filepath, debug = False):
+    unknown_types = []
+    with open(input_filepath, "r+") as fid:
+        config = json.load(fid)
+
+    classes = config["puppet_classes"]
+    puppet_classes = []
+    puppet_classes_docs = []
+    puppet_class_properties = {}
+    for puppet_class in classes:
+        class_name = puppet_class.get("name", "")
+        if not class_name:
+            # TODO: log error here
+            #  the class must have a name
+            continue
+        if class_name in puppet_classes:
+            # TODO: log error here
+            #  the class name must be unique
+            continue
+        if "::" in class_name:
+            class_properties, unknown_types = get_params(puppet_class, unknown_types)
+            for class_property in class_properties:
+                puppet_class_properties[class_property] = class_properties[class_property]
+        else:
+            class_docs = puppet_class.get("docstring", {})
+            puppet_classes_docs.append(str(class_docs.get("text", "")))
+            puppet_classes.append(class_name)
+
+    monaco_schema = {
+        "allowComments": True,
+        "type": "object",
+        "properties": {
+            "classes": {
+                "type": "array",
+                "description": "puppet classes included in this array are active" ,
+                "items": {
+                    "type": "string",
+                    "enum": puppet_classes,
+                    "enumDescriptions": puppet_classes_docs
+                }
             }
-        }
-    },
-    "additionalProperties": False,
-}
-for class_property in puppet_class_properties:
-    monaco_schema["properties"][class_property] = puppet_class_properties[class_property]
+        },
+        "additionalProperties": False,
+    }
+    for class_property in puppet_class_properties:
+        monaco_schema["properties"][class_property] = puppet_class_properties[class_property]
 
-with open("monaco_schema.json", "w+") as fid:
-    json.dump(monaco_schema, fid, indent=4, sort_keys=False)
+    with open(output_filepath, "w+") as fid:
+        json.dump(monaco_schema, fid, indent=4, sort_keys=False)
 
-print(unknown_types)
+    if debug:
+        print(unknown_types)
 
+if __name__ == "__main__":
+    input_filepath = "mavdoc.json"
+    output_filepath = "monaco_schema.json"
+    parse_puppet_strings(input_filepath, output_filepath, debug=True)
 
 # {
 #     "allowComments": true,
