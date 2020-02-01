@@ -114,14 +114,26 @@ def parse_puppet_strings(input_filepath, output_filepath, debug = False):
             # TODO: log error here
             #  the class name must be unique
             continue
-        if "::" in class_name:
-            class_properties, unknown_types = get_params(puppet_class, unknown_types)
-            for class_property in class_properties:
-                puppet_class_properties[class_property] = class_properties[class_property]
-        else:
-            class_docs = puppet_class.get("docstring", {})
-            puppet_classes_docs.append(str(class_docs.get("text", "")))
-            puppet_classes.append(class_name)
+        
+        class_docs = puppet_class.get("docstring", {})
+        tags = class_docs.get("tags", [])
+        class_docs_summary = ""
+        for tag in tags:
+            if tag.get("tag_name", "").lower() == "summary":
+                class_docs_summary = tag.get("text", "")
+                break
+        puppet_classes_docs.append(class_docs_summary)
+        puppet_classes.append(class_name)
+
+        class_properties, unknown_types = get_params(puppet_class, unknown_types)
+        for class_property in class_properties:
+            puppet_class_properties[class_property] = class_properties[class_property]
+
+    defined_types = config["defined_types"]
+    for defined_type in defined_types:
+        type_properties, unknown_types = get_params(defined_type, unknown_types)
+        for type_property in type_properties:
+            puppet_class_properties[type_property] = type_properties[type_property]
 
     monaco_schema = {
         "allowComments": True,
