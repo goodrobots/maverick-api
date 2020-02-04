@@ -73,6 +73,7 @@ def extend_application_schema(module_schema, ref_name, q, m, s):
                 s = {**s, **schema_attribute}
     return (q, m, s)
 
+
 def generate_schema():
     module_schema = {}
     m = dict()
@@ -88,13 +89,19 @@ def generate_schema():
         module_folder_name = module_folder_finder.path.name
         # check to see if the module name is in the module deny list to prevent imports
         if options.module_allow_list and module_name in options.module_allow_list:
-            application_log.warning(f"Module allow list match. Loading module: {module_name}")
+            application_log.warning(
+                f"Module allow list match. Loading module: {module_name}"
+            )
         elif module_name in options.module_deny_list:
             # don't import or append to the global schema
-            application_log.warning(f"Module deny list match. Not loading module: {module_name}")
+            application_log.warning(
+                f"Module deny list match. Not loading module: {module_name}"
+            )
             continue
         # otherwise, import the module
-        imported_module = import_module(f"{__name__}.{module_folder_name}.{module_name}")
+        imported_module = import_module(
+            f"{__name__}.{module_folder_name}.{module_name}"
+        )
         application_log.info(f"Loading module: {module_folder_name}.{module_name}")
         # search for the schema class
         for i in dir(imported_module):
@@ -112,4 +119,3 @@ def generate_schema():
         subscription=GraphQLObjectType("subscription", lambda: s),
     )
     return (api_schema, module_schema)
-

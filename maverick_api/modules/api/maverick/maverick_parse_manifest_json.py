@@ -6,6 +6,7 @@
 import json
 import ast
 
+
 def get_params(puppet_class, unknown_types):
     docstrings = puppet_class.get("docstring", {})
     defaults = puppet_class.get("defaults", {})
@@ -22,14 +23,14 @@ def get_params(puppet_class, unknown_types):
             tag_docstring = tag.get("text", "")
             base_class_docstring = docstrings.get("text", "")
             tag_properties["description"] = f"{tag_docstring}\n\n{base_class_docstring}"
-            
+
             tag_types = tag.get("types", [])
             if len(tag_types) == 1:
                 # Try to parse the type
                 tag_type = tag_types[0]
                 if tag_type.startswith("Optional["):
                     tag_type = tag_type.lstrip("Optional[").strip()
-                    tag_type = tag_type[:-1] # remove the final ']'
+                    tag_type = tag_type[:-1]  # remove the final ']'
                 if tag_type == "Any":
                     pass
                 elif tag_type == "Boolean":
@@ -43,17 +44,29 @@ def get_params(puppet_class, unknown_types):
                     tag_properties["type"] = "number"
                     tag_properties["_type"] = "float"
                 elif tag_type.startswith("Enum"):
-                   
+
                     enum = ast.literal_eval(tag_type.lstrip("Enum"))
                     tag_properties["enum"] = enum
                 elif tag_type == "Array[String]":
                     tag_properties["type"] = "array"
                     tag_properties["items"] = {"type": "string"}
                 else:
-                    unknown_types.append({"type":tag_type, "property_name": property_name, "defaults":defaults.get(property_name_part, None)})
+                    unknown_types.append(
+                        {
+                            "type": tag_type,
+                            "property_name": property_name,
+                            "defaults": defaults.get(property_name_part, None),
+                        }
+                    )
             elif tag_types:
-                unknown_types.append({"type":tag_type, "property_name": property_name, "defaults":defaults.get(property_name_part, None)})
-                    
+                unknown_types.append(
+                    {
+                        "type": tag_type,
+                        "property_name": property_name,
+                        "defaults": defaults.get(property_name_part, None),
+                    }
+                )
+
             tag_default = defaults.get(property_name_part, None)
             if tag_default is not None:
                 if tag_default.startswith('"') or tag_default.startswith("'"):
@@ -64,7 +77,7 @@ def get_params(puppet_class, unknown_types):
                 tag_type = tag_properties.get("type", None)
 
                 if tag_default in ("undef"):
-                    # don't attempt to set defaults for undefined 
+                    # don't attempt to set defaults for undefined
                     continue
                 elif tag_default.startswith("{") and tag_default.endswith("}"):
                     # don't attempt to set defaults for hashes
@@ -88,6 +101,7 @@ def get_params(puppet_class, unknown_types):
             class_properties[property_name] = tag_properties
     return class_properties, unknown_types
 
+
 def string_to_bool(v):
     v = v.lower()
     if v in ("true", "false"):
@@ -95,7 +109,8 @@ def string_to_bool(v):
     else:
         raise ValueError
 
-def parse_puppet_strings(input_filepath, output_filepath, debug = False):
+
+def parse_puppet_strings(input_filepath, output_filepath, debug=False):
     unknown_types = []
     with open(input_filepath, "r+") as fid:
         config = json.load(fid)
@@ -114,7 +129,7 @@ def parse_puppet_strings(input_filepath, output_filepath, debug = False):
             # TODO: log error here
             #  the class name must be unique
             continue
-        
+
         class_docs = puppet_class.get("docstring", {})
         tags = class_docs.get("tags", [])
         class_docs_summary = ""
@@ -141,24 +156,27 @@ def parse_puppet_strings(input_filepath, output_filepath, debug = False):
         "properties": {
             "classes": {
                 "type": "array",
-                "description": "puppet classes included in this array are active" ,
+                "description": "puppet classes included in this array are active",
                 "items": {
                     "type": "string",
                     "enum": puppet_classes,
-                    "enumDescriptions": puppet_classes_docs
-                }
+                    "enumDescriptions": puppet_classes_docs,
+                },
             }
         },
         "additionalProperties": False,
     }
     for class_property in puppet_class_properties:
-        monaco_schema["properties"][class_property] = puppet_class_properties[class_property]
+        monaco_schema["properties"][class_property] = puppet_class_properties[
+            class_property
+        ]
 
     with open(output_filepath, "w+") as fid:
         json.dump(monaco_schema, fid, indent=4, sort_keys=False)
 
     if debug:
         print(unknown_types)
+
 
 if __name__ == "__main__":
     input_filepath = "mavdoc.json"

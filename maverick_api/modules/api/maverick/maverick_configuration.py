@@ -46,7 +46,9 @@ class MaverickConfigurationSchema(schemaBase):
         super().__init__()
         pass
 
-    def load_config_from_file(self, filepath="/srv/maverick/config/maverick/localconf.json"):
+    def load_config_from_file(
+        self, filepath="/srv/maverick/config/maverick/localconf.json"
+    ):
         self.config = {}
         config = ""
         with open(filepath, "r+") as fid:

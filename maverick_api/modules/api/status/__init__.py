@@ -138,7 +138,9 @@ class StatusModule(moduleBase):
     def install_periodic_callbacks(self):
         print(self.module)
         callback = functools.partial(
-            self.module["maverick_api.modules.api.status.StatusSchema"].get_report, None, None
+            self.module["maverick_api.modules.api.status.StatusSchema"].get_report,
+            None,
+            None,
         )
         self.periodic_callbacks.append(
             tornado.ioloop.PeriodicCallback(callback, callback_time=1000, jitter=0.1)

@@ -13,8 +13,14 @@ import mavros
 import mavros.utils
 from mavros_msgs.srv import StreamRate, StreamRateRequest
 
-from maverick_api.modules.api.mavros.mavros_mission import MissionSchema, MissionInterface
-from maverick_api.modules.api.mavros.mavros_nav_sat_fix import NavSatFixSchema, NavSatFixInterface
+from maverick_api.modules.api.mavros.mavros_mission import (
+    MissionSchema,
+    MissionInterface,
+)
+from maverick_api.modules.api.mavros.mavros_nav_sat_fix import (
+    NavSatFixSchema,
+    NavSatFixInterface,
+)
 from maverick_api.modules.api.mavros.mavros_vehicle_info import (
     VehicleInfoSchema,
     VehicleInfoInterface,
@@ -29,7 +35,10 @@ from maverick_api.modules.api.mavros.mavros_pose_stamped import (
     PoseStampedInterface,
 )
 from maverick_api.modules.api.mavros.mavros_vfr_hud import VfrHudSchema, VfrHudInterface
-from maverick_api.modules.api.mavros.mavros_status_text import StatusTextSchema, StatusTextInterface
+from maverick_api.modules.api.mavros.mavros_status_text import (
+    StatusTextSchema,
+    StatusTextInterface,
+)
 from maverick_api.modules.api.mavros.mavros_mode import ModeSchema, ModeInterface
 from maverick_api.modules.api.mavros.mavros_param import ParamSchema, ParamInterface
 

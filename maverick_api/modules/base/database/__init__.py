@@ -12,7 +12,7 @@ class MavDatabase(object):
         application_log.info(f"Database backend seleceted: {self.backend}")
 
         if self.backend == "tinydb":
-            import tinydb # lightweight non-async json storage
+            import tinydb  # lightweight non-async json storage
         elif self.backend == "mongo":
             import motor  # async access to mongo database
         elif self.backend == "sqlite":

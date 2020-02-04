@@ -14,7 +14,7 @@ class SchemaHandler(tornado.web.RequestHandler):
 
     async def get(self):
         query = get_introspection_query(descriptions=True)
-        (api_schema,_)=generate_schema()
+        (api_schema, _) = generate_schema()
         introspection_query_result = await graphql(api_schema, query)
         introspection_dict = introspection_query_result.data
         self.write(json.dumps(introspection_dict, indent=4, sort_keys=True))
