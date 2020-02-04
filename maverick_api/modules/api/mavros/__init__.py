@@ -1,11 +1,11 @@
 import logging
 import time
 
-from modules.api import moduleBase
-from modules.api import schemaBase
-from modules.api import api_callback
+from maverick_api.modules import moduleBase
+from maverick_api.modules import schemaBase
+from maverick_api.modules import api_callback
 
-from modules.base.tornadoql.session_control import GraphQLSession
+from maverick_api.modules.base.tornadoql.session_control import GraphQLSession
 
 # mavros & ros imports
 import rospy
@@ -13,25 +13,25 @@ import mavros
 import mavros.utils
 from mavros_msgs.srv import StreamRate, StreamRateRequest
 
-from modules.api.mavros.mavros_mission import MissionSchema, MissionInterface
-from modules.api.mavros.mavros_nav_sat_fix import NavSatFixSchema, NavSatFixInterface
-from modules.api.mavros.mavros_vehicle_info import (
+from maverick_api.modules.api.mavros.mavros_mission import MissionSchema, MissionInterface
+from maverick_api.modules.api.mavros.mavros_nav_sat_fix import NavSatFixSchema, NavSatFixInterface
+from maverick_api.modules.api.mavros.mavros_vehicle_info import (
     VehicleInfoSchema,
     VehicleInfoInterface,
 )
-from modules.api.mavros.mavros_imu import ImuSchema, ImuInterface
-from modules.api.mavros.mavros_vehicle_state import (
+from maverick_api.modules.api.mavros.mavros_imu import ImuSchema, ImuInterface
+from maverick_api.modules.api.mavros.mavros_vehicle_state import (
     VehicleStateSchema,
     VehicleStateInterface,
 )
-from modules.api.mavros.mavros_pose_stamped import (
+from maverick_api.modules.api.mavros.mavros_pose_stamped import (
     PoseStampedSchema,
     PoseStampedInterface,
 )
-from modules.api.mavros.mavros_vfr_hud import VfrHudSchema, VfrHudInterface
-from modules.api.mavros.mavros_status_text import StatusTextSchema, StatusTextInterface
-from modules.api.mavros.mavros_mode import ModeSchema, ModeInterface
-from modules.api.mavros.mavros_param import ParamSchema, ParamInterface
+from maverick_api.modules.api.mavros.mavros_vfr_hud import VfrHudSchema, VfrHudInterface
+from maverick_api.modules.api.mavros.mavros_status_text import StatusTextSchema, StatusTextInterface
+from maverick_api.modules.api.mavros.mavros_mode import ModeSchema, ModeInterface
+from maverick_api.modules.api.mavros.mavros_param import ParamSchema, ParamInterface
 
 from tornado.options import options
 

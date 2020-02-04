@@ -61,6 +61,18 @@ class MavConfig(object):
             type=float,
             help="Limit the API data rate in Hz, set to 0 to remove rate limits",
         )
+        define(
+            "module_allow_list",
+            default=[],
+            type=list,
+            help="List of modules to allow loading. Takes precedence over deny list",
+        )
+        define(
+            "module_deny_list",
+            default=["mavros"],
+            type=list,
+            help="List of modules to deny loading",
+        )
 
     # Parse and load config options
     def load_options(self):

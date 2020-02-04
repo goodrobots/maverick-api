@@ -7,6 +7,8 @@ maverick_api/modules/custom/*
 # Cloud 9 temp files
 *.~*
 
+# VSCode
+.vscode
 
 maverick_api/config/maverick-api.conf
 

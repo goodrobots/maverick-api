@@ -10,12 +10,12 @@ import tornado.ioloop
 from tornado.options import options
 
 # module imports
-from modules.base.tornadoql.tornadoql import TornadoQL
+from maverick_api.modules.base.tornadoql.tornadoql import TornadoQL
 
 # import modules
-from modules.api.mavros import MAVROSConnection
-from modules.api.status import StatusModule
-from modules.api import module_schema
+# from maverick_api.modules.api.mavros import MAVROSConnection
+from maverick_api.modules.api.status import StatusModule
+from maverick_api.modules import generate_schema
 
 application_log = logging.getLogger("tornado.application")
 
@@ -33,10 +33,12 @@ class ApiServer(object):
     def initialize(self):
         # setup the connection to ROS
         loop = tornado.ioloop.IOLoop.current()
-        self.mavros_connection = MAVROSConnection(loop, module_schema)
-        self.mavros_thread = threading.Thread(target=self.mavros_connection.run)
-        self.mavros_thread.daemon = True
-        self.mavros_thread.start()
+        (_, module_schema) = generate_schema()
+        self.mavros_connection = None
+        # self.mavros_connection = MAVROSConnection(loop, module_schema)
+        # self.mavros_thread = threading.Thread(target=self.mavros_connection.run)
+        # self.mavros_thread.daemon = True
+        # self.mavros_thread.start()
         self.status_module = StatusModule(loop, module_schema)
 
         application = TornadoQL()

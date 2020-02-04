@@ -5,9 +5,9 @@ import threading
 import time
 import re
 
-from modules.api import moduleBase
-from modules.api import schemaBase
-from modules.api import api_callback
+from maverick_api.modules import moduleBase
+from maverick_api.modules import schemaBase
+from maverick_api.modules import api_callback
 
 import tornado.ioloop
 from tornado.options import options
