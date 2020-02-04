@@ -4,7 +4,6 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -36,3 +35,13 @@ jobs:
       run: |
         pip install pytest
         pytest
+  
+  document:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '10.x'
+      - run: npm install -g @2fd/graphdoc
+      - run: graphdoc -s ./schema.json -o ./doc/schema
