@@ -4,7 +4,7 @@ import logging
 from tornado.log import LogFormatter
 from tornado.options import options
 
-from modules.base.util import functions
+from maverick_api.modules.base.util import functions
 
 
 class MavLogging(object):

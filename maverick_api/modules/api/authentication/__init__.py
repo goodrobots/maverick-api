@@ -14,8 +14,8 @@ from graphql import (
 )
 from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
 
-from modules.api import schemaBase
-from modules.base.tornadoql.session_control import GraphQLSession
+from maverick_api.modules import schemaBase
+from maverick_api.modules.base.tornadoql.session_control import GraphQLSession
 
 user1 = dict(id="1", userName="sam", password="password1")
 user2 = dict(id="2", userName="ben", password="password2")

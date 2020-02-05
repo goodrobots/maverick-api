@@ -22,8 +22,8 @@ from graphql import (
 )
 from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
 
-from modules.api import moduleBase
-from modules.api import schemaBase
+from maverick_api.modules import moduleBase
+from maverick_api.modules import schemaBase
 
 application_log = logging.getLogger("tornado.application")
 
@@ -136,8 +136,11 @@ class StatusModule(moduleBase):
         self.start_periodic_callbacks()
 
     def install_periodic_callbacks(self):
+        print(self.module)
         callback = functools.partial(
-            self.module["modules.api.status.StatusSchema"].get_report, None, None
+            self.module["maverick_api.modules.api.status.StatusSchema"].get_report,
+            None,
+            None,
         )
         self.periodic_callbacks.append(
             tornado.ioloop.PeriodicCallback(callback, callback_time=1000, jitter=0.1)

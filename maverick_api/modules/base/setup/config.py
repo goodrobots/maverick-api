@@ -19,6 +19,12 @@ class MavConfig(object):
 
     # Define, config options
     def define_options(self):
+        define(
+            "generate_schema_and_exit",
+            default=False,
+            type=bool,
+            help="Generate graphql schema and exit",
+        )
         define("app_prefix", default="maverick-api/", type=str, help="URL prefix")
         define("app_secretkey", default="super_s3cret", type=str, help="Secret Key")
         define(
@@ -60,6 +66,18 @@ class MavConfig(object):
             default=0,
             type=float,
             help="Limit the API data rate in Hz, set to 0 to remove rate limits",
+        )
+        define(
+            "module_allow_list",
+            default=[],
+            type=list,
+            help="List of modules to allow loading. Takes precedence over deny list",
+        )
+        define(
+            "module_deny_list",
+            default=["mavros"],
+            type=list,
+            help="List of modules to deny loading",
         )
 
     # Parse and load config options

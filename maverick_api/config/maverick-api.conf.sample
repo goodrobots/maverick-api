@@ -4,8 +4,8 @@ app_prefix = 'maverick-api/'
 # Secret Key - used to set secure cookie.  KEEP SECRET
 app_secretkey = 'super_s3cret'
 
-# Database backend - used to select the database backend [mongo, sqlite]
-database_backend = "sqlite"
+# Database backend - used to select the database backend [tinydb, mongo, sqlite]
+database_backend = "tinydb"
 
 # Base Directory, defaults to directory of maverick_api.py script if not set or None
 # basedir = None
@@ -27,3 +27,9 @@ server_interface = '0.0.0.0'
 
 # Port to listen on
 server_port = 6795
+
+# List of modules to allow loading. Takes precedence over deny list
+module_allow_list = []
+
+# List of modules to deny loading
+module_deny_list = ["mavros"]

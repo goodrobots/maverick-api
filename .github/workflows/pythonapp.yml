@@ -4,29 +4,76 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8]
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v1
-      with:
-        python-version: 3.7
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r requirements-dev.txt
-    - name: check formatting with black
-      run: |
-        pip install black
-        black .
-        # stop the build if there are Python syntax errors or undefined names
-        # flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        # flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    #- name: Test with pytest
-    #  run: |
-    #    pip install pytest
-    #    pytest
+      - uses: actions/checkout@v2
+      - name: generate default config
+        run: cp maverick_api/config/maverick-api.conf.sample maverick_api/config/maverick-api.conf
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+      - name: check formatting with black
+        run: |
+          pip install black
+          black .
+      # - name: lint with flake8
+      #   run: |
+      #     pip install flake8
+      #     # stop the build if there are Python syntax errors or undefined names
+      #     flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+      #     # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+      #     flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      # - name: test with pytest
+      #   run: |
+      #     pip install pytest
+      #     pytest
+      - name: generate graphql schema json
+        run: |
+          python maverick-api.py --generate-schema-and-exit
+      - name: Upload Schema
+        uses: actions/upload-artifact@v1
+        with:
+          name: schema
+          path: ./schema.graphql
+  
+  document:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v1
+        with:
+          name: schema
+      - run: pwd
+      - run: ls ./schema
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '10.x'
+      - run: npm install -g @2fd/graphdoc
+      - run: graphdoc -s ./schema/schema.graphql -o ./schema-documentation
+      
+      - name: Upload Documentation
+        uses: actions/upload-artifact@v1
+        with:
+          name: schema-documentation
+          path: ./schema-documentation
+
+      - name: Deploy Documentation
+        uses: JamesIves/github-pages-deploy-action@3.2.1
+        with:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }} 
+          BRANCH: gh-pages
+          FOLDER: 'schema-documentation'
+

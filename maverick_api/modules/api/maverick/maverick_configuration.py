@@ -1,10 +1,10 @@
 # expose the api configuration file for the -api server
 # expose ~/config/maverick/localconf.json
 
-import jstyleson as jjson
-from jsondiff import diff as jdiff
+# import jstyleson as jjson
+# from jsondiff import diff as jdiff
 
-from modules.base.util.functions import mkdirs
+from maverick_api.modules.base.util.functions import mkdirs
 
 import logging
 import asyncio
@@ -13,9 +13,9 @@ import threading
 import time
 import re
 
-from modules.api import moduleBase
-from modules.api import schemaBase
-from modules.api import api_callback
+from maverick_api.modules import moduleBase
+from maverick_api.modules import schemaBase
+from maverick_api.modules import api_callback
 
 import tornado.ioloop
 from tornado.options import options
@@ -44,9 +44,14 @@ application_log = logging.getLogger("tornado.application")
 class MaverickConfigurationSchema(schemaBase):
     def __init__(self):
         super().__init__()
+        pass
+
+    def load_config_from_file(
+        self, filepath="/srv/maverick/config/maverick/localconf.json"
+    ):
         self.config = {}
         config = ""
-        with open("/srv/maverick/config/maverick/localconf.json", "r+") as fid:
+        with open(filepath, "r+") as fid:
             config = fid.read()
 
         self.config = jjson.loads(config)

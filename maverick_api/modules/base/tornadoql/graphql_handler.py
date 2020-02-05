@@ -11,10 +11,10 @@ from graphql.error import GraphQLError
 from graphql.error import format_error as format_graphql_error
 from graphql import graphql
 
-from .session_control import GraphQLSession
-from .session_control import AuthError
+from maverick_api.modules.base.tornadoql.session_control import GraphQLSession
+from maverick_api.modules.base.tornadoql.session_control import AuthError
 
-from modules.api import api_schema
+from maverick_api.modules import generate_schema
 
 application_log = logging.getLogger("tornado.application")
 
@@ -147,6 +147,7 @@ class GraphQLHandler(web.RequestHandler):
 
     @property
     def schema(self):
+        (api_schema, _) = generate_schema()
         return api_schema
 
     @property
