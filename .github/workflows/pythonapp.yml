@@ -24,19 +24,23 @@ jobs:
       run: |
         pip install black
         black .
-    - name: lint with flake8
-      run: |
-        pip install flake8
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    # - name: lint with flake8
+    #   run: |
+    #     pip install flake8
+    #     # stop the build if there are Python syntax errors or undefined names
+    #     flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    #     # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+    #     flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: test with pytest
       run: |
         pip install pytest
         pytest
+    - name: generate graphql schema json
+      run: |
+        python maverick-api.py --generate-schema-and-exit
   
   document:
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -45,3 +49,20 @@ jobs:
           node-version: '10.x'
       - run: npm install -g @2fd/graphdoc
       - run: graphdoc -s ./schema.json -o ./doc/schema
+  
+  deploy-document:
+    needs: [document]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - name: Deploy Documentation
+        uses: JamesIves/github-pages-deploy-action@3.2.1
+        with:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }} 
+          BRANCH: gh-pages
+          FOLDER: doc
+

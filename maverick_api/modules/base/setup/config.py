@@ -19,6 +19,7 @@ class MavConfig(object):
 
     # Define, config options
     def define_options(self):
+        define("generate_schema_and_exit", default=False, type=bool, help="Generate graphql schema and exit")
         define("app_prefix", default="maverick-api/", type=str, help="URL prefix")
         define("app_secretkey", default="super_s3cret", type=str, help="Secret Key")
         define(

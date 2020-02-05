@@ -10,6 +10,9 @@ maverick_api/modules/custom/*
 # VSCode
 .vscode
 
+# schema
+schema.json
+
 maverick_api/config/maverick-api.conf
 
 maverick_api/data/parameters/*

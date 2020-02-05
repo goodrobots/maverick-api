@@ -4,10 +4,14 @@ import os
 import sys
 import signal
 import threading
+import json
+from pathlib import Path
 
 # tornado imports
 import tornado.ioloop
 from tornado.options import options
+
+from graphql import graphql_sync, get_introspection_query
 
 # module imports
 from maverick_api.modules.base.tornadoql.tornadoql import TornadoQL
@@ -33,7 +37,16 @@ class ApiServer(object):
     def initialize(self):
         # setup the connection to ROS
         loop = tornado.ioloop.IOLoop.current()
-        (_, module_schema) = generate_schema()
+        (api_schema, module_schema) = generate_schema()
+
+        if options.generate_schema_and_exit:
+            query = get_introspection_query(descriptions=True)
+            introspection_query_result = graphql_sync(api_schema, query)
+            introspection_dict = introspection_query_result.data
+            with open(Path(options.basedir).joinpath("..", "schema.json").resolve(), "w+") as fid:
+                fid.write(json.dumps(introspection_dict, indent=4, sort_keys=True))
+            sys.exit()
+
         self.mavros_connection = None
         # self.mavros_connection = MAVROSConnection(loop, module_schema)
         # self.mavros_thread = threading.Thread(target=self.mavros_connection.run)
