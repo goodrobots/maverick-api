@@ -62,18 +62,18 @@ jobs:
         with:
           node-version: '10.x'
       - run: npm install -g @2fd/graphdoc
-      - run: graphdoc -s ./schema/schema.graphql -o ./doc/schema
+      - run: graphdoc -s ./schema/schema.graphql -o ./schema-documentation
       
       - name: Upload Documentation
         uses: actions/upload-artifact@v1
         with:
-          name: doc
-          path: ./doc
+          name: schema-documentation
+          path: ./schema-documentation
 
       - name: Deploy Documentation
         uses: JamesIves/github-pages-deploy-action@3.2.1
         with:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }} 
           BRANCH: gh-pages
-          FOLDER: doc
+          FOLDER: 'schema-documentation'
 
