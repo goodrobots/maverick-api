@@ -43,7 +43,9 @@ class ApiServer(object):
             query = get_introspection_query(descriptions=True)
             introspection_query_result = graphql_sync(api_schema, query)
             introspection_dict = introspection_query_result.data
-            with open(Path(options.basedir).joinpath("..", "schema.json").resolve(), "w+") as fid:
+            with open(
+                Path(options.basedir).joinpath("..", "schema.json").resolve(), "w+"
+            ) as fid:
                 fid.write(json.dumps(introspection_dict, indent=4, sort_keys=True))
             sys.exit()
 
