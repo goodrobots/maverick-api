@@ -57,13 +57,18 @@ jobs:
         with:
           name: schema
       - run: pwd
-      - run: ls
-      - run: cat schema
+      - run: ls ./schema
       - uses: actions/setup-node@v1
         with:
           node-version: '10.x'
       - run: npm install -g @2fd/graphdoc
-      - run: graphdoc -s ./schema.json -o ./doc/schema
+      - run: graphdoc -s ./schema/schema.json -o ./doc/schema
+      
+      - name: Upload Documentation
+        uses: actions/upload-artifact@v1
+        with:
+          name: doc
+          path: ./doc
 
       - name: Deploy Documentation
         uses: JamesIves/github-pages-deploy-action@3.2.1
