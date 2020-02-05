@@ -12,6 +12,7 @@ maverick_api/modules/custom/*
 
 # schema
 schema.json
+schema.graphql
 
 maverick_api/config/maverick-api.conf
 

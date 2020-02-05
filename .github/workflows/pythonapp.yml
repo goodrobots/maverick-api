@@ -44,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: schema
-          path: ./schema.json
+          path: ./schema.graphql
   
   document:
     needs: [build]
@@ -62,7 +62,7 @@ jobs:
         with:
           node-version: '10.x'
       - run: npm install -g @2fd/graphdoc
-      - run: graphdoc -s ./schema/schema.json -o ./doc/schema
+      - run: graphdoc -s ./schema/schema.graphql -o ./doc/schema
       
       - name: Upload Documentation
         uses: actions/upload-artifact@v1

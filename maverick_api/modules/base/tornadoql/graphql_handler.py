@@ -1,6 +1,7 @@
 import logging
 import sys
 import traceback
+import io
 from functools import wraps
 
 from tornado import web
@@ -62,13 +63,22 @@ class ExecutionError(Exception):
     def __init__(self, status_code=400, errors=None):
         self.status_code = status_code
         self.errors = []
+        self.tracebacks = []
+        self.message = ""
+        self.traceback = ""
         for error in errors:
+            output = io.StringIO()
+            traceback.print_tb(error.__traceback__, file=output)
+            stacktrace = output.getvalue()
+            output.close()
             if isinstance(error.original_error, AuthError):
                 self.status_code = error.original_error.status_code
                 self.errors.append(str(error.original_error))
             else:
                 self.errors.append(str(error))
+                self.tracebacks.append(stacktrace)
         self.message = "\n".join(self.errors)
+        self.traceback = "\n".join(self.tracebacks)
 
 
 class GraphQLHandler(web.RequestHandler):
@@ -96,10 +106,10 @@ class GraphQLHandler(web.RequestHandler):
             f"GraphQL result data: {result.data} result errors: {result.errors}"
         )
         if result and result.errors:
-            # an error occured during the graphql query
+            # an error occurred during the graphql query
             ex = ExecutionError(errors=result.errors)
             application_log.warn(
-                f"GraphQL Error: {ex.message}\n{self.graphql_request}\n"
+                f"GraphQL Error: {ex.message}\n\n{self.graphql_request}\n\n{ex.traceback}"
             )
             if options.json_errors:
                 response = {
@@ -108,6 +118,7 @@ class GraphQLHandler(web.RequestHandler):
                             "error": {
                                 "graphql": {
                                     "message": f"{ex.message}",
+                                    "traceback": f"{ex.traceback}",
                                     "submission": f"{self.graphql_request}",
                                 }
                             }
@@ -116,7 +127,7 @@ class GraphQLHandler(web.RequestHandler):
                 }
             else:
                 self.set_status(ex.status_code)
-                response = f"GraphQL Error: {ex.message}\n{self.graphql_request}\n"
+                response = f"GraphQL Error: {ex.message}\n\n{self.graphql_request}\n\n{ex.traceback}"
             self.write(response)
             return
         # only return result data if we dont have errors
