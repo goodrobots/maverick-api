@@ -12,6 +12,8 @@ import tornado.ioloop
 from tornado.options import options
 
 from graphql import graphql_sync, get_introspection_query
+from graphql import build_client_schema
+from graphql import print_schema
 
 # module imports
 from maverick_api.modules.base.tornadoql.tornadoql import TornadoQL
@@ -42,11 +44,13 @@ class ApiServer(object):
         if options.generate_schema_and_exit:
             query = get_introspection_query(descriptions=True)
             introspection_query_result = graphql_sync(api_schema, query)
-            introspection_dict = introspection_query_result.data
+            client_schema = build_client_schema(introspection_query_result.data)
+            sdl = print_schema(client_schema)
+
             with open(
                 Path(options.basedir).joinpath("..", "schema.json").resolve(), "w+"
             ) as fid:
-                fid.write(json.dumps(introspection_dict, indent=4, sort_keys=True))
+                fid.write(sdl)
             sys.exit()
 
         self.mavros_connection = None
