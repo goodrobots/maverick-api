@@ -148,7 +148,7 @@ class MaverickConfigureSchema(schemaBase):
             self.configure_command["running"] = True
 
         self.subscriptions.emit(
-            "modules.api.maverick.MaverickSchema" + "MaverickConfigure",
+            "modules.api.maverick.MaverickConfigureSchema" + "MaverickConfigure",
             {"MaverickConfigure": self.configure_command},
         )
         return self.configure_command
@@ -156,7 +156,7 @@ class MaverickConfigureSchema(schemaBase):
     def sub_configure_command_status(self, root, info):
         return EventEmitterAsyncIterator(
             self.subscriptions,
-            "modules.api.maverick.MaverickSchema" + "MaverickConfigure",
+            "modules.api.maverick.MaverickConfigureSchema" + "MaverickConfigure",
         )
 
     def get_configure_command_status(self, root, info):
@@ -172,8 +172,10 @@ class MaverickConfigureSchema(schemaBase):
         pending = None
         while self.configure_proc.returncode is None:
             tasks = [
-                MaverickSchema.read_from("stdout", self.configure_proc.stdout),
-                MaverickSchema.read_from("stderror", self.configure_proc.stderr),
+                MaverickConfigureSchema.read_from("stdout", self.configure_proc.stdout),
+                MaverickConfigureSchema.read_from(
+                    "stderror", self.configure_proc.stderr
+                ),
             ]
             out = {"stdout": "", "stderror": ""}
             done, pending = await asyncio.wait(

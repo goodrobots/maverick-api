@@ -1,8 +1,8 @@
 # expose the api configuration file for the -api server
 # expose ~/config/maverick/localconf.json
 
-# import jstyleson as jjson
-# from jsondiff import diff as jdiff
+from jsoncomment import JsonComment
+from jsondiff import diff as jdiff
 
 from maverick_api.modules.base.util.functions import mkdirs
 
@@ -53,7 +53,7 @@ class MaverickConfigurationSchema(schemaBase):
         config = ""
         with open(filepath, "r+") as fid:
             config = fid.read()
-
+        jjson = JsonComment()
         self.config = jjson.loads(config)
         self.make_backup_dir()
         # self.modify_config({"testing":123})

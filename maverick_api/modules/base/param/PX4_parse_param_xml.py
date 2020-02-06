@@ -1,11 +1,3 @@
-#!/usr/bin/env python
-from __future__ import print_function
-
-if __name__ == "__main__" and __package__ is None:
-    from os import sys, path
-
-    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
-
 from util.common import find, file_age_in_seconds
 import xml.etree.ElementTree as ET
 import pprint
@@ -27,30 +19,30 @@ def test_file_age(file_path, max_age):
         return False
 
 
-def get_param_meta(vehicle, remote=True, force_download=False, max_age=60 * 10):
-    if not vehicle in vehicles:
-        # TODO: inform failure
-        return {}
-    if remote:
-        # check to see if we have a recent file from the server
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        file_path = os.path.join(dir_path, "{0}.xml".format(vehicle))
-        if not test_file_age(file_path, max_age) or force_download:
-            url = get_ardupilot_url(vehicle)
-            tree = download_param_meta(url)
+# def get_param_meta(vehicle, remote=True, force_download=False, max_age=60 * 10):
+#     if not vehicle in vehicles:
+#         # TODO: inform failure
+#         return {}
+#     if remote:
+#         # check to see if we have a recent file from the server
+#         dir_path = os.path.dirname(os.path.realpath(__file__))
+#         file_path = os.path.join(dir_path, "{0}.xml".format(vehicle))
+#         if not test_file_age(file_path, max_age) or force_download:
+#             url = get_ardupilot_url(vehicle)
+#             tree = download_param_meta(url)
 
-            if tree is not None:
-                save_param_meta(tree, vehicle)
-            else:
-                # request for meta failed, try to fall back to saved file
-                # TODO: inform user
-                tree = load_param_meta(vehicle)
-        else:
-            tree = load_param_meta(vehicle)
-        return extract_param_meta_from_tree(tree, vehicle)
-    else:
-        # TODO: generate param meta from ardupilot code base
-        return extract_param_meta_from_tree(None, vehicle)
+#             if tree is not None:
+#                 save_param_meta(tree, vehicle)
+#             else:
+#                 # request for meta failed, try to fall back to saved file
+#                 # TODO: inform user
+#                 tree = load_param_meta(vehicle)
+#         else:
+#             tree = load_param_meta(vehicle)
+#         return extract_param_meta_from_tree(tree, vehicle)
+#     else:
+#         # TODO: generate param meta from ardupilot code base
+#         return extract_param_meta_from_tree(None, vehicle)
 
 
 def save_param_meta(tree, file_name, dir_path=None):
@@ -198,13 +190,3 @@ def extract_param_meta_from_tree(tree, vehicle):
 
     pprint.pprint(root)
     return root
-
-
-if __name__ == "__main__":
-    from os import sys, path
-
-    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
-
-    tree = load_param_meta("parameters")
-    meta = extract_param_meta_from_tree(tree, "test")
-    # print(meta)

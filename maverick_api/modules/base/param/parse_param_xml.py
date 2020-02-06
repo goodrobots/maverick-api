@@ -1,14 +1,6 @@
-#!/usr/bin/env python
-from __future__ import print_function
-
-if __name__ == "__main__" and __package__ is None:
-    from os import sys, path
-
-    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
-
 from tornado.options import options
 
-from modules.base.util.functions import find, file_age_in_seconds, mkdirs
+from maverick_api.modules.base.util.functions import find, file_age_in_seconds, mkdirs
 import xml.etree.ElementTree as ET
 import pprint
 import requests
@@ -136,7 +128,7 @@ def extract_text(node):
 def run_bool_test(curr_param):
     """Ardu* specific test to see if a set of values should be a boolean type"""
     if (
-        curr_param["values"] is not None and curr_param["type"] is not "BITMASK"
+        curr_param["values"] != None and curr_param["type"] != "BITMASK"
     ):  # Don't try to turn bitmasks into bools
         if len(curr_param["values"]) == 2 and curr_param["values"].keys() == [
             0,
@@ -402,7 +394,7 @@ def extract_param_meta_from_tree_ardupilot(tree, vehicle):
     for param_group in root:
         for param in root[param_group].keys():
             param_meta = root[param_group][param]
-            # dont use param_group here in order to avoid vehicle name as group
+            # don't use param_group here in order to avoid vehicle name as group
             param_meta["group"] = param.split("_")[0].strip().rstrip("_").upper()
             meta[param] = param_meta
     # pprint.pprint(meta)
@@ -418,16 +410,3 @@ def download_and_save_all_param_meta(timeout=60):
         url = get_ardupilot_url(vehicle)
         tree = download_param_meta(url, timeout=timeout)
         save_param_meta(tree, file_name=vehicle)
-
-
-if __name__ == "__main__":
-    from os import sys, path
-
-    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
-
-    # randomly select a vehicle and obtain the meta for its params
-    vehicle = random.choice(vehicles)
-    print(vehicle)
-    meta = get_param_meta(vehicle, remote=True)
-    # pprint.pprint(meta)
-    # download_and_save_all_param_meta()

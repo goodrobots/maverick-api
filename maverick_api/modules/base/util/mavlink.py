@@ -77,7 +77,7 @@ def get_vehicle_strings(msg):
     ]:
         if msg.type == mavutil.mavlink.MAV_TYPE_GROUND_ROVER:
             type_string = "Rover"
-        elif msg.type == avutil.mavlink.MAV_TYPE_SURFACE_BOAT:
+        elif msg.type == mavutil.mavlink.MAV_TYPE_SURFACE_BOAT:
             type_string = "Boat"
         else:
             type_string = "Rover"

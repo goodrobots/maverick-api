@@ -2,6 +2,11 @@
 tornado==6.0.3
 graphql-core==3.0.3
 
+## database options (choose one)
 tinydb==3.15.2
 # aiosqlite==0.10.0
 # motor==2.0.0
+
+## maverick
+jsoncomment==0.4.2
+jsondiff==1.2.0
