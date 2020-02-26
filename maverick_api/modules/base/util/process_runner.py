@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import time
-import re
+
 
 import tornado.ioloop
 
@@ -92,8 +92,8 @@ class ProcessRunner(object):
             self.append_to_output_log("stdout", stdout)
         if stderror:
             self.append_to_output_log("stderror", stderror)
-        self.returncode = self.process.returncode
-        self.process = None
+
+        # self.process = None
         self.running = False
         self.complete = True
         # application_log.info(f"{pending}")
@@ -101,22 +101,26 @@ class ProcessRunner(object):
             task.cancel()
         if self.post_timeout:
             await asyncio.sleep(self.post_timeout)
+        self.returncode = self.process.returncode
+        application_log.debug(f"[{self.cmd!r} exited with {self.returncode}]")
         if self.complete_callback:
             # let them know we are done...
             self.complete_callback(self.returncode)
-
-        application_log.debug(f"[{self.cmd!r} exited with {self.returncode}]")
         return True
 
     def append_to_output_log(self, name, output):
         should_callback = False
+        try:
+            output = output.decode()
+        except:
+            pass
         if name == "stdout" and output:
             self.stdout = output
-            self.stdout_log.append((self.uptime, self.output))
+            self.stdout_log.append((self.uptime, output))
             should_callback = True
         elif name == "stderror" and output:
             self.stderror = output
-            self.stderror_log.append((self.uptime, self.output))
+            self.stderror_log.append((self.uptime, output))
             should_callback = True
 
         if self.output_callback and should_callback:
@@ -125,8 +129,8 @@ class ProcessRunner(object):
 
     async def read_from(self, name, source):
         stddata = await source.readline()
-        line = stddata.decode("ascii").strip()
+        line = stddata.decode()
         # FIXME: this does not quite strip the colour codes from all text
         #   for the moment it does a pretty good job...
-        line = re.sub(r"\x1B\[[0-?]*[ -/]*[@-~]", "", line, flags=re.IGNORECASE)
+        # line = re.sub(r"\x1B\[[0-?]*[ -/]*[@-~]", "", line, flags=re.IGNORECASE)
         return (name, line)

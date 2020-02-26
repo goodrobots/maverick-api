@@ -1,6 +1,6 @@
 import os
 
-from maverick_api.modules import generate_schema
+from maverick_api.modules import get_api_schema
 from maverick_api.modules.base.tornadoql.dev_graphiql_handler import GraphiQLHandler
 from maverick_api.modules.base.tornadoql.graphql_handler import GraphQLHandler
 from maverick_api.modules.base.tornadoql.subscription_handler import (
@@ -27,6 +27,5 @@ class TornadoQL(tornado.web.Application):
             static_path=os.path.join(options.basedir, "data", "static"),
             xsrf_cookies=False,
         )
-        (api_schema, _) = generate_schema()
-        TornadoQL.schema = api_schema
+        TornadoQL.schema = get_api_schema()
         super(TornadoQL, self).__init__(handlers, **settings)

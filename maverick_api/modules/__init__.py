@@ -1,4 +1,3 @@
-import sys
 import logging
 import inspect
 import pkgutil
@@ -10,6 +9,9 @@ from graphql.pyutils.event_emitter import EventEmitter
 from tornado.options import options
 
 application_log = logging.getLogger("tornado.application")
+
+api_schema = None
+module_schema = None
 
 
 class moduleBase(object):
@@ -75,6 +77,8 @@ def extend_application_schema(module_schema, ref_name, q, m, s):
 
 
 def generate_schema():
+    global module_schema
+    global api_schema
     module_schema = {}
     m = dict()
     q = dict()
@@ -118,4 +122,12 @@ def generate_schema():
         mutation=GraphQLObjectType("mutation", lambda: m),
         subscription=GraphQLObjectType("subscription", lambda: s),
     )
-    return (api_schema, module_schema)
+    # return (api_schema, module_schema)
+
+
+def get_api_schema():
+    return api_schema
+
+
+def get_module_schema():
+    return module_schema

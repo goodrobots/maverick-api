@@ -1,32 +1,19 @@
 import logging
-import asyncio
 import copy
 
-from maverick_api.modules import moduleBase
 from maverick_api.modules import schemaBase
-from maverick_api.modules import api_callback
 from maverick_api.modules.base.util.process_runner import ProcessRunner
-
-import tornado.ioloop
-from tornado.options import options
 
 # graphql imports
 from graphql import (
-    GraphQLArgument,
-    GraphQLEnumType,
-    GraphQLEnumValue,
     GraphQLField,
-    GraphQLInterfaceType,
-    GraphQLList,
-    GraphQLNonNull,
     GraphQLObjectType,
-    GraphQLSchema,
     GraphQLString,
     GraphQLBoolean,
     GraphQLInt,
     GraphQLFloat,
 )
-from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
+from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
 
 application_log = logging.getLogger("tornado.application")
 
@@ -34,6 +21,8 @@ application_log = logging.getLogger("tornado.application")
 class MaverickConfigureSchema(schemaBase):
     def __init__(self):
         super().__init__()
+        self.name = "MaverickConfigure"
+        self.subscription_string = f"{__package__}.{self.__class__.__name__}"
         self.configure_command_defaults = {
             "environment": None,
             "module": None,
@@ -50,7 +39,7 @@ class MaverickConfigureSchema(schemaBase):
         self.configure_proc = None
 
         self.configure_command_type = GraphQLObjectType(
-            "MaverickConfigure",
+            self.name,
             lambda: {
                 "environment": GraphQLField(
                     GraphQLString,
@@ -69,7 +58,7 @@ class MaverickConfigureSchema(schemaBase):
                 ),
                 "running": GraphQLField(GraphQLBoolean, description=""),
                 "uptime": GraphQLField(
-                    GraphQLInt,
+                    GraphQLFloat,
                     description="Number of seconds the process has been running for",
                 ),
                 "terminate": GraphQLField(GraphQLBoolean, description=""),
@@ -81,13 +70,13 @@ class MaverickConfigureSchema(schemaBase):
         )
 
         self.q = {
-            "MaverickConfigure": GraphQLField(
+            self.name: GraphQLField(
                 self.configure_command_type, resolve=self.get_configure_command_status
             )
         }
 
         self.m = {
-            "MaverickConfigure": GraphQLField(
+            self.name: GraphQLField(
                 self.configure_command_type,
                 args=self.get_mutation_args(self.configure_command_type),
                 resolve=self.run_configure_command,
@@ -95,7 +84,7 @@ class MaverickConfigureSchema(schemaBase):
         }
 
         self.s = {
-            "MaverickConfigure": GraphQLField(
+            self.name: GraphQLField(
                 self.configure_command_type,
                 subscribe=self.sub_configure_command_status,
                 resolve=None,
@@ -111,9 +100,6 @@ class MaverickConfigureSchema(schemaBase):
         self.configure_command["module"] = kwargs.get("module", None)
         self.configure_command["environment"] = kwargs.get("environment", None)
         self.configure_command["terminate"] = kwargs.get("terminate", False)
-
-        # TODO: remove this line
-        self.configure_command["dryrun"] = True
 
         cmd = "maverick configure"
         if self.configure_command["environment"] is not None:
@@ -132,10 +118,11 @@ class MaverickConfigureSchema(schemaBase):
             # try to terminate a running command
             if self.configure_proc:
                 self.configure_proc.terminate()
-        elif self.configure_proc:
-            # already running
-            pass
-        else:
+        if self.configure_proc:
+            # already running?
+            if self.configure_proc.complete:
+                self.configure_proc = None
+        if not self.configure_proc:
             # try to run the command
             self.configure_proc = ProcessRunner(
                 cmd,
@@ -144,19 +131,24 @@ class MaverickConfigureSchema(schemaBase):
                 complete_callback=self.process_callback,
             )
             self.configure_proc.start()
+        return self.configure_command
 
     def process_callback(self, *args, **kwargs):
-        # TODO: update the self.configure_command dict with process_callback values
+        self.configure_command["running"] = self.configure_proc.running
+        self.configure_command["uptime"] = self.configure_proc.uptime
+        self.configure_command["stdout"] = self.configure_proc.stdout
+        self.configure_command["stderror"] = self.configure_proc.stderror
+        self.configure_command["returncode"] = self.configure_proc.returncode
+        application_log.debug(self.configure_proc.stdout_log)
+        application_log.debug(self.configure_proc.stderror_log)
         self.subscriptions.emit(
-            "modules.api.maverick.MaverickConfigureSchema" + "MaverickConfigure",
-            {"MaverickConfigure": self.configure_command},
+            self.subscription_string + self.name, {self.name: self.configure_command},
         )
         return self.configure_command
 
     def sub_configure_command_status(self, root, info):
         return EventEmitterAsyncIterator(
-            self.subscriptions,
-            "modules.api.maverick.MaverickConfigureSchema" + "MaverickConfigure",
+            self.subscriptions, self.subscription_string + self.name,
         )
 
     def get_configure_command_status(self, root, info):

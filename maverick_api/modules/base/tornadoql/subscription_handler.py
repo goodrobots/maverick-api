@@ -11,10 +11,8 @@ from graphql import format_error
 from graphql.subscription import subscribe
 from graphql.language import parse
 from graphql.execution import ExecutionResult
-from graphql.subscription.map_async_iterator import MapAsyncIterator
 
-from maverick_api.modules.base.tornadoql.session_control import GraphQLSession
-from maverick_api.modules import generate_schema
+from maverick_api.modules import get_api_schema
 
 GRAPHQL_WS = "graphql-ws"
 WS_PROTOCOL = GRAPHQL_WS
@@ -109,8 +107,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
 
     @property
     def schema(self):
-        (api_schema, _) = generate_schema()
-        return api_schema
+        return get_api_schema()
 
     @property
     def sockets(self):
