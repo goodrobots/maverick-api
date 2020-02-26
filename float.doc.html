@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link type="text/css" rel="stylesheet" href="./styles/graphdoc.css" />
-    <title>query</title>
+    <title>Float</title>
     <link href="https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700" rel="stylesheet"><link type="text/css" rel="stylesheet" href="./assets/code.css" /><link type="text/css" rel="stylesheet" href="./assets/require-by.css" />
 </head>
 <body class="slds-scrollable--y">
@@ -25,7 +25,7 @@
 <div class="slds-grid slds-grid--vertical slds-navigation-list--vertical">
     <h4 class="slds-text-title--caps slds-p-around--medium">Schema</h4>
     <ul>
-        <li class="slds-is-active" title="query">
+        <li  title="query">
             <a href="query.doc.html" class="slds-navigation-list--vertical__action slds-text-link--reset slds-truncate">
                 query
             </a>
@@ -50,7 +50,7 @@
                 Boolean
             </a>
         </li>
-        <li  title="Float">
+        <li class="slds-is-active" title="Float">
             <a href="float.doc.html" class="slds-navigation-list--vertical__action slds-text-link--reset slds-truncate">
                 Float
             </a>
@@ -185,9 +185,10 @@
         </div>
     </div>
     <div class="container">
-        <p class="slds-text-title--caps slds-text-color--weak">OBJECT</p>
-        <h1 class="slds-text-heading--large">query</h1>
-        <div class="slds-text-body--regular"></div>
+        <p class="slds-text-title--caps slds-text-color--weak">SCALAR</p>
+        <h1 class="slds-text-heading--large">Float</h1>
+        <div class="slds-text-body--regular"><p>The <code>Float</code> scalar type represents signed double-precision fractional values as specified by <a href="http://en.wikipedia.org/wiki/IEEE_floating_point">IEEE 754</a>. </p>
+</div>
     </div>
 </section>
 <section>
@@ -198,7 +199,7 @@
             </a>
             GraphQL Schema definition
         </h2>
-        <code class="highlight"><ul class="code" style="padding-left:42px"><li><span class="keyword operator ts">type</span> <span class="identifier">query</span> {</li><li></li><li><span class="tab"><span class="comment line"># Arguments</span></span></li><li><span class="tab"><span class="comment line">#   <strong>id</strong>: </span></span></li><li><span class="tab"><span class="meta">AuthenticationRequest</span>(<span class="meta">id</span>: <a class="support type" href="string.doc.html">String</a>!): <a class="support type" href="authenticationrequest.doc.html">AuthenticationRequest</a> </span></li><li></li><li><span class="tab"><span class="comment line"># Arguments</span></span></li><li><span class="tab"><span class="comment line">#   <strong>id</strong>: </span></span></li><li><span class="tab"><span class="meta">AuthenticationStatus</span>(<span class="meta">id</span>: <a class="support type" href="string.doc.html">String</a>!): <a class="support type" href="authenticationstatus.doc.html">AuthenticationStatus</a> </span></li><li></li><li><span class="tab"><span class="meta">MaverickConfigure</span>: <a class="support type" href="maverickconfigure.doc.html">MaverickConfigure</a> </span></li><li></li><li><span class="tab"><span class="comment line"># Arguments</span></span></li><li><span class="tab"><span class="comment line">#   <strong>name</strong>: </span></span></li><li><span class="tab"><span class="meta">MaverickService</span>(<span class="meta">name</span>: <a class="support type" href="string.doc.html">String</a>!): <a class="support type" href="maverickservice.doc.html">MaverickService</a> </span></li><li></li><li><span class="tab"><span class="meta">MaverickShell</span>: <a class="support type" href="maverickshell.doc.html">MaverickShell</a> </span></li><li></li><li><span class="tab"><span class="meta">MaverickShutdown</span>: <a class="support type" href="maverickshutdown.doc.html">MaverickShutdown</a> </span></li><li></li><li><span class="tab"><span class="meta">Status</span>: <a class="support type" href="status.doc.html">Status</a> </span></li><li>}</li></ul></code>
+        <code class="highlight"><ul class="code" style="padding-left:28px"><li><span class="keyword operator ts">scalar</span> <span class="identifier">Float</span></li></ul></code>
     </div>
 </section>
 <section>
@@ -209,7 +210,7 @@
             </a>
             Require by
         </h2>
-        <div class="require-by anyone">This element is not required by anyone</div>
+        <ul class="require-by"><li><a href="maverickconfigure.doc.html" title="MaverickConfigure - ">MaverickConfigure<em></em></a><li><li><a href="maverickshell.doc.html" title="MaverickShell - ">MaverickShell<em></em></a><li><li><a href="mutation.doc.html" title="mutation - ">mutation<em></em></a><li></ul>
     </div>
 </section>
 <footer>
