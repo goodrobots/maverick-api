@@ -134,10 +134,6 @@ class ModeSchema(schemaBase):
                     f"An error occurred while attempting to set vehicle mode via ROS: {ex}"
                 )
 
-            self.subscriptions.emit(
-                "modules.api.mavros.ModeSchema" + "Mode", {"Mission": mission_item}
-            )
-
     def sub_mode(self, root, info):
         """mode subscription handler"""
         return EventEmitterAsyncIterator(

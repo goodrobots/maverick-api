@@ -1,0 +1,15 @@
+[flake8]
+count
+select=E9,F63,F7,F82,F4
+max-complexity=10
+max-line-length=127
+exclude =
+    .venv,
+    .git,
+    .vscode,
+    .github,
+    .pytest_cache,
+    .mypy_cache,
+    __pycache__
+show-source
+statistics

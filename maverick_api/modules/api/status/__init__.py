@@ -7,20 +7,12 @@ import functools
 import tornado.ioloop
 
 from graphql import (
-    GraphQLArgument,
-    GraphQLEnumType,
-    GraphQLEnumValue,
     GraphQLField,
-    GraphQLInterfaceType,
-    GraphQLList,
     GraphQLNonNull,
     GraphQLObjectType,
-    GraphQLSchema,
     GraphQLString,
-    GraphQLBoolean,
-    GraphQLInt,
 )
-from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
+from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
 
 from maverick_api.modules import moduleBase
 from maverick_api.modules import schemaBase
@@ -116,7 +108,8 @@ class StatusSchema(schemaBase):
             status_data["status_messages"], status_data["status_count"]
         )
         self.subscriptions.emit(
-            "modules.api.status.StatusSchema" + "Status", {"Status": status_data}
+            "maverick_api.modules.api.status.StatusSchema" + "Status",
+            {"Status": status_data},
         )
         return status_data
 
@@ -124,7 +117,8 @@ class StatusSchema(schemaBase):
         """API status report subscription handler"""
         application_log.info(f"API status report subscription handler {info}")
         return EventEmitterAsyncIterator(
-            self.subscriptions, "modules.api.status.StatusSchema" + "Status"
+            self.subscriptions,
+            "maverick_api.modules.api.status.StatusSchema" + "Status",
         )
 
 

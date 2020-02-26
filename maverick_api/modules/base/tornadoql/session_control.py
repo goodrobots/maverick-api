@@ -155,7 +155,7 @@ class GraphQLSession(object):
                 # use current_user alias as it is baked into tornado
                 self.current_user = GraphQLSession(session_id)
                 # connect to the session db
-                # db = self.opts["db_client"].session_database
+                db = self.opts["db_client"].session_database
                 try:
                     self.set_secure_cookie("session", session_id)
                     print("setting secure cookie")

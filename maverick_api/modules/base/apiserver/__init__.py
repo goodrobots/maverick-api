@@ -1,10 +1,7 @@
 # std lib imports
 import logging
-import os
 import sys
 import signal
-import threading
-import json
 from pathlib import Path
 
 # tornado imports
@@ -24,7 +21,7 @@ from maverick_api.modules.base.tornadoql.tornadoql import TornadoQL
 # import modules
 # from maverick_api.modules.api.mavros import MAVROSConnection
 from maverick_api.modules.api.status import StatusModule
-from maverick_api.modules import generate_schema
+from maverick_api.modules import generate_schema, get_api_schema, get_module_schema
 
 application_log = logging.getLogger("tornado.application")
 
@@ -42,7 +39,10 @@ class ApiServer(object):
     def initialize(self):
         # setup the connection to ROS
         loop = tornado.ioloop.IOLoop.current()
-        (api_schema, module_schema) = generate_schema()
+
+        generate_schema()
+        api_schema = get_api_schema()
+        module_schema = get_module_schema()
 
         if options.generate_schema_and_exit:
             query = get_introspection_query(descriptions=False)
