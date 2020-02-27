@@ -94,6 +94,11 @@ class MaverickShellSchema(schemaBase):
             # already running?
             if self.shell_proc.complete:
                 self.shell_proc = None
+            else:
+                application_log.debug("process is still running")
+                cmd += "\n"
+                self.shell_proc.process.stdin.write(cmd.encode())
+                await self.shell_proc.process.stdin.drain()
         if not self.shell_proc:
             # try to run the command
             self.shell_proc = ProcessRunner(
