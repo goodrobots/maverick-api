@@ -98,26 +98,48 @@ class MaverickShellSchema(schemaBase):
             # try to run the command
             self.shell_proc = ProcessRunner(
                 cmd,
-                started_callback=self.process_callback,
-                output_callback=self.process_callback,
-                complete_callback=self.process_callback,
+                started_callback=self.start_process_callback,
+                output_callback=self.output_process_callback,
+                complete_callback=self.complete_process_callback,
             )
             self.shell_proc.start()
         return self.shell_command
 
-    def process_callback(self, *args, **kwargs):
-        self.shell_command["running"] = self.shell_proc.running
-        self.shell_command["uptime"] = self.shell_proc.uptime
-        self.shell_command["stdout"] = self.shell_proc.stdout
-        self.shell_command["stderror"] = self.shell_proc.stderror
-        self.shell_command["returncode"] = self.shell_proc.returncode
+    def start_process_callback(self, *args, **kwargs):
+        ret = {}
+        ret["command"] = kwargs["command"]
+        ret["running"] = kwargs["running"]
+        ret["uptime"] = kwargs["uptime"]
+        ret["stdout"] = kwargs["stdout"]
+        ret["stderror"] = kwargs["stderror"]
+        ret["returncode"] = kwargs["returncode"]
+
+    def output_process_callback(self, *args, **kwargs):
+        ret = {}
+        ret["command"] = kwargs["command"]
+        ret["running"] = kwargs["running"]
+        ret["uptime"] = kwargs["uptime"]
+        ret["stdout"] = kwargs["stdout"]
+        ret["stderror"] = kwargs["stderror"]
+        ret["returncode"] = kwargs["returncode"]
+        # if self.shell_proc.complete:
+        self.subscriptions.emit(
+            self.subscription_string + self.name, {self.name: ret},
+        )
+
+    def complete_process_callback(self, *args, **kwargs):
+        ret = {}
+        ret["command"] = kwargs["command"]
+        ret["running"] = kwargs["running"]
+        ret["uptime"] = kwargs["uptime"]
+        ret["stdout"] = ""
+        ret["stderror"] = ""
+        ret["returncode"] = kwargs["returncode"]
         application_log.debug(self.shell_proc.stdout_log)
         application_log.debug(self.shell_proc.stderror_log)
-        # print(self.shell_command)
         self.subscriptions.emit(
-            self.subscription_string + self.name, {self.name: self.shell_command},
+            self.subscription_string + self.name, {self.name: ret},
         )
-        return self.shell_command
 
     def sub_shell_command_status(self, root, info):
         return EventEmitterAsyncIterator(

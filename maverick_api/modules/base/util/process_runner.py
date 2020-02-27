@@ -36,6 +36,17 @@ class ProcessRunner(object):
         self.stdout_log = []
         self.stderror_log = []
 
+    def to_dict(self):
+        return {
+            "command": self.cmd,
+            "complete": self.complete,
+            "returncode": self.returncode,
+            "running": self.running,
+            "uptime": self.uptime,
+            "stdout": self.stdout,
+            "stderror": self.stderror,
+        }
+
     def start(self):
         if self.process:
             # already running...
@@ -67,9 +78,10 @@ class ProcessRunner(object):
         )
         if self.started_callback:
             # let them know we are running...
-            self.started_callback(self.cmd)
+            self.started_callback(**self.to_dict())
         done = None
         pending = None
+        _input = None
         while self.process.returncode is None:
             tasks = [
                 self.read_from("stdout", self.process.stdout),
@@ -84,8 +96,8 @@ class ProcessRunner(object):
                 application_log.debug(f"{task.result()}")
                 if task.result():
                     (out_name, out_string) = task.result()
-                    if out_string:
-                        self.append_to_output_log(out_name, out_string)
+                    # if out_string:
+                    self.append_to_output_log(out_name, out_string)
 
         stdout, stderror = await self.process.communicate()
         if stdout:
@@ -93,43 +105,47 @@ class ProcessRunner(object):
         if stderror:
             self.append_to_output_log("stderror", stderror)
 
-        # self.process = None
         self.running = False
         self.complete = True
-        # application_log.info(f"{pending}")
-        for task in pending:
-            task.cancel()
+        if pending:
+            for task in pending:
+                task.cancel()
         if self.post_timeout:
             await asyncio.sleep(self.post_timeout)
         self.returncode = self.process.returncode
         application_log.debug(f"[{self.cmd!r} exited with {self.returncode}]")
         if self.complete_callback:
-            # let them know we are done...
-            self.complete_callback(self.returncode)
+            # let the caller that the process is complete...
+            self.complete_callback(**self.to_dict())
+        self.process = None
         return True
 
     def append_to_output_log(self, name, output):
         should_callback = False
         try:
-            output = output.decode()
+            output = output.decode("ascii")
         except:
             pass
-        if name == "stdout" and output:
+        application_log.debug(f"{name}:{output}")
+        if name == "stdout":  # and output:
             self.stdout = output
+            self.stderror = ""
             self.stdout_log.append((self.uptime, output))
             should_callback = True
-        elif name == "stderror" and output:
+        elif name == "stderror":  # and output:
             self.stderror = output
+            self.stdout = ""
             self.stderror_log.append((self.uptime, output))
             should_callback = True
 
         if self.output_callback and should_callback:
             # let them know we have output running...
-            self.output_callback()
+            # print(self.to_dict())
+            self.output_callback(**self.to_dict())
 
     async def read_from(self, name, source):
         stddata = await source.readline()
-        line = stddata.decode()
+        line = stddata.decode("ascii").replace("\t", "")
         # FIXME: this does not quite strip the colour codes from all text
         #   for the moment it does a pretty good job...
         # line = re.sub(r"\x1B\[[0-?]*[ -/]*[@-~]", "", line, flags=re.IGNORECASE)
