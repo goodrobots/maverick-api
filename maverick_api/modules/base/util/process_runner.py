@@ -57,7 +57,10 @@ class ProcessRunner(object):
 
     def terminate(self):
         if self.process:
+            application_log.info("Attempting to terminate shell process")
             self.process.terminate()
+            self.process.kill()
+            self.complete = True
             return True
         else:
             return False
@@ -74,7 +77,10 @@ class ProcessRunner(object):
         self.start_time = time.time()
         self.running = True
         self.process = await asyncio.create_subprocess_shell(
-            self.cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+            self.cmd,
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
         )
         if self.started_callback:
             # let them know we are running...
