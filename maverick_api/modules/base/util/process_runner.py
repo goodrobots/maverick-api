@@ -1,7 +1,9 @@
 import asyncio
 import logging
 import time
-
+import os
+import termios
+import fcntl
 
 import tornado.ioloop
 
@@ -73,21 +75,40 @@ class ProcessRunner(object):
             return None
 
     async def run(self):
+        # https://github.com/QubesOS/qubes-core-admin/blob/master/qubes/backup.py
         """Internal method, do not call directly. Use start()"""
+
+        def set_ctty(ctty_fd, master_fd):
+            os.setsid()
+            os.close(master_fd)
+            fcntl.ioctl(ctty_fd, termios.TIOCSCTTY, 0)
+
+            echo = False
+
+            if not echo:
+                termios_p = termios.tcgetattr(ctty_fd)
+                # termios_p.c_lflags
+                termios_p[3] &= ~termios.ECHO
+                termios.tcsetattr(ctty_fd, termios.TCSANOW, termios_p)
+
         self.start_time = time.time()
         self.running = True
-        self.process = await asyncio.create_subprocess_shell(
+
+        (pty_master, pty_slave) = os.openpty()
+        self.process = await asyncio.create_subprocess_shell(  #  create_subprocess_exec(
             self.cmd,
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+            preexec_fn=lambda: set_ctty(pty_slave, pty_master),
         )
+        os.close(pty_slave)
+        self.pty = open(pty_master, "wb+", buffering=0)
         if self.started_callback:
             # let them know we are running...
             self.started_callback(**self.to_dict())
         done = None
         pending = None
-        _input = None
         while self.process.returncode is None:
             tasks = [
                 self.read_from("stdout", self.process.stdout),
