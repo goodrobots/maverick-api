@@ -12,6 +12,18 @@ import tornado.web
 class SchemaHandler(tornado.web.RequestHandler):
     """introspection of the api schema"""
 
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Credentials", "true")
+        self.set_header(
+            "Access-Control-Allow-Headers",
+            "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+        )
+        self.set_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+
+    def options(self):
+        self.set_status(204)
+
     async def get(self):
         query = get_introspection_query(descriptions=True)
         introspection_query_result = await graphql(get_api_schema(), query)
