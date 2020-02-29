@@ -97,6 +97,8 @@ class MaverickShellSchema(schemaBase):
             else:
                 application_log.debug("process is still running")
                 cmd += "\n"
+                # self.shell_proc.pty.write(cmd.encode())
+                # self.shell_proc.pty.flush()
                 self.shell_proc.process.stdin.write(cmd.encode())
                 await self.shell_proc.process.stdin.drain()
         if not self.shell_proc:
