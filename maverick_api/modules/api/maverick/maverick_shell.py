@@ -1,7 +1,7 @@
 import logging
 import copy
 from maverick_api.modules import schemaBase
-
+import os
 from maverick_api.modules.base.util.process_runner import ProcessRunner
 
 
@@ -97,10 +97,12 @@ class MaverickShellSchema(schemaBase):
             else:
                 application_log.debug("process is still running")
                 cmd += "\n"
+                os.write(self.shell_proc.pty_master, cmd.encode())
+
                 # self.shell_proc.pty.write(cmd.encode())
                 # self.shell_proc.pty.flush()
-                self.shell_proc.process.stdin.write(cmd.encode())
-                await self.shell_proc.process.stdin.drain()
+                # self.shell_proc.process.stdin.write(cmd.encode())
+                # await self.shell_proc.process.stdin.drain()
         if not self.shell_proc:
             # try to run the command
             self.shell_proc = ProcessRunner(
