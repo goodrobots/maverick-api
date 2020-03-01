@@ -11,11 +11,13 @@ from graphql import (
     GraphQLNonNull,
     GraphQLObjectType,
     GraphQLString,
+    GraphQLInt,
 )
 from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
 
 from maverick_api.modules import moduleBase
 from maverick_api.modules import schemaBase
+from maverick_api.modules import get_schema_timestamp
 
 application_log = logging.getLogger("tornado.application")
 
@@ -67,7 +69,8 @@ def get_status(status_messages, status_count):
 status_data = dict(
     id=uuid4().__str__(),
     currentStatus="...",
-    currentTime=str(monotonic_time()),
+    currentTime=int(monotonic_time()),
+    schemaGenerationTime=get_schema_timestamp(),
     status_messages=get_script(),
     status_count=0,
 )
@@ -87,7 +90,11 @@ class StatusSchema(schemaBase):
                     GraphQLString, description="The API status."
                 ),
                 "currentTime": GraphQLField(
-                    GraphQLString, description="The current API time."
+                    GraphQLInt, description="The current API time."
+                ),
+                "schemaGenerationTime": GraphQLField(
+                    GraphQLInt,
+                    description="The time when the graphql schema was last generated.",
                 ),
             },
         )
@@ -103,7 +110,8 @@ class StatusSchema(schemaBase):
     def get_report(self, root, info):
         """API status report query handler"""
         # application_log.info(f"API status report query handler {info}")
-        status_data["currentTime"] = str(monotonic_time())
+        status_data["currentTime"] = int(monotonic_time())
+        status_data["schemaGenerationTime"] = get_schema_timestamp()
         (status_data["currentStatus"], status_data["status_count"]) = get_status(
             status_data["status_messages"], status_data["status_count"]
         )

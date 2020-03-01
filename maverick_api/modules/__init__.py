@@ -3,6 +3,7 @@ import inspect
 import pkgutil
 from pathlib import Path
 from importlib import import_module
+import time
 
 from graphql import GraphQLField, GraphQLObjectType, GraphQLSchema
 from graphql.pyutils.event_emitter import EventEmitter
@@ -12,6 +13,7 @@ application_log = logging.getLogger("tornado.application")
 
 api_schema = None
 module_schema = None
+schema_timestamp = None
 
 
 class moduleBase(object):
@@ -79,6 +81,7 @@ def extend_application_schema(module_schema, ref_name, q, m, s):
 def generate_schema():
     global module_schema
     global api_schema
+    global schema_timestamp
     module_schema = {}
     m = dict()
     q = dict()
@@ -122,7 +125,7 @@ def generate_schema():
         mutation=GraphQLObjectType("mutation", lambda: m),
         subscription=GraphQLObjectType("subscription", lambda: s),
     )
-    # return (api_schema, module_schema)
+    schema_timestamp = int(time.time())
 
 
 def get_api_schema():
@@ -131,3 +134,7 @@ def get_api_schema():
 
 def get_module_schema():
     return module_schema
+
+
+def get_schema_timestamp():
+    return schema_timestamp
