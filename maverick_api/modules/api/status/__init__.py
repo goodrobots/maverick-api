@@ -1,8 +1,8 @@
 import logging
-import ctypes
 from uuid import uuid4
 import os
 import functools
+import time
 
 import tornado.ioloop
 
@@ -11,34 +11,17 @@ from graphql import (
     GraphQLNonNull,
     GraphQLObjectType,
     GraphQLString,
+    GraphQLInt,
 )
 from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
 
 from maverick_api.modules import moduleBase
 from maverick_api.modules import schemaBase
+from maverick_api.modules import get_schema_timestamp
 
 application_log = logging.getLogger("tornado.application")
 
-# Setup monotonic clock
-CLOCK_MONOTONIC_RAW = 4
-
-
-class timespec(ctypes.Structure):
-    _fields_ = [("tv_sec", ctypes.c_long), ("tv_nsec", ctypes.c_long)]
-
-
-librt = ctypes.CDLL("librt.so.1", use_errno=True)
-clock_gettime = librt.clock_gettime
-clock_gettime.argtypes = [ctypes.c_int, ctypes.POINTER(timespec)]
-
-
-def monotonic_time():
-    t = timespec()
-    if clock_gettime(CLOCK_MONOTONIC_RAW, ctypes.pointer(t)) != 0:
-        errno_ = ctypes.get_errno()
-        raise OSError(errno_, os.strerror(errno_))
-    return (t.tv_sec * 1e9) + t.tv_nsec
-
+uuid = str(uuid4())
 
 #################### TODO: REMOVE ME
 def get_script():
@@ -64,18 +47,18 @@ def get_status(status_messages, status_count):
 
 #################### TODO: REMOVE ME
 
-status_data = dict(
-    id=uuid4().__str__(),
-    currentStatus="...",
-    currentTime=str(monotonic_time()),
-    status_messages=get_script(),
-    status_count=0,
-)
-
 
 class StatusSchema(schemaBase):
     def __init__(self):
         super().__init__()
+        self.status_data = {
+            "id": uuid,
+            "currentStatus": "...",
+            "currentTime": time.time(),
+            "schemaGenerationTime": get_schema_timestamp(),
+            "_status_messages": get_script(),
+            "_status_count": 0,
+        }
         self.report_type = GraphQLObjectType(
             "Status",
             lambda: {
@@ -87,7 +70,11 @@ class StatusSchema(schemaBase):
                     GraphQLString, description="The API status."
                 ),
                 "currentTime": GraphQLField(
-                    GraphQLString, description="The current API time."
+                    GraphQLInt, description="The current API time."
+                ),
+                "schemaGenerationTime": GraphQLField(
+                    GraphQLInt,
+                    description="The time when the graphql schema was last generated.",
                 ),
             },
         )
@@ -103,15 +90,19 @@ class StatusSchema(schemaBase):
     def get_report(self, root, info):
         """API status report query handler"""
         # application_log.info(f"API status report query handler {info}")
-        status_data["currentTime"] = str(monotonic_time())
-        (status_data["currentStatus"], status_data["status_count"]) = get_status(
-            status_data["status_messages"], status_data["status_count"]
+        self.status_data["currentTime"] = int(time.time())
+        self.status_data["schemaGenerationTime"] = get_schema_timestamp()
+        (
+            self.status_data["currentStatus"],
+            self.status_data["_status_count"],
+        ) = get_status(
+            self.status_data["_status_messages"], self.status_data["_status_count"]
         )
         self.subscriptions.emit(
             "maverick_api.modules.api.status.StatusSchema" + "Status",
-            {"Status": status_data},
+            {"Status": self.status_data},
         )
-        return status_data
+        return self.status_data
 
     def sub_report(self, root, info, **kwargs):
         """API status report subscription handler"""
@@ -130,7 +121,6 @@ class StatusModule(moduleBase):
         self.start_periodic_callbacks()
 
     def install_periodic_callbacks(self):
-        print(self.module)
         callback = functools.partial(
             self.module["maverick_api.modules.api.status.StatusSchema"].get_report,
             None,
