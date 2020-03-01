@@ -138,7 +138,6 @@ class StatusModule(moduleBase):
         self.start_periodic_callbacks()
 
     def install_periodic_callbacks(self):
-        print(self.module)
         callback = functools.partial(
             self.module["maverick_api.modules.api.status.StatusSchema"].get_report,
             None,

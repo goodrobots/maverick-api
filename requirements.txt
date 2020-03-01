@@ -1,6 +1,7 @@
 
 tornado==6.0.3
 graphql-core==3.0.3
+zeroconf==0.24.4
 
 ## database options (choose one)
 tinydb==3.15.2

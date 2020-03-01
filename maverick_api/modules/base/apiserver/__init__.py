@@ -21,6 +21,9 @@ from maverick_api.modules.base.tornadoql.tornadoql import TornadoQL
 # import modules
 # from maverick_api.modules.api.mavros import MAVROSConnection
 from maverick_api.modules.api.status import StatusModule
+from maverick_api.modules.api.discovery.discovery_zeroconf import (
+    DiscoveryZeroconfModule,
+)
 from maverick_api.modules import generate_schema, get_api_schema, get_module_schema
 
 application_log = logging.getLogger("tornado.application")
@@ -62,6 +65,7 @@ class ApiServer(object):
         # self.mavros_thread.daemon = True
         # self.mavros_thread.start()
         self.status_module = StatusModule(loop, module_schema)
+        self.discovery_zeroconf_module = DiscoveryZeroconfModule(loop, module_schema)
 
         application = TornadoQL()
         self.server = tornado.httpserver.HTTPServer(application)
