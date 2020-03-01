@@ -4,6 +4,8 @@ maverick_api/data/database/*
 maverick_api/modules/custom/*
 !maverick_api/modules/custom/.gitkeep
 
+*.log*
+
 # Cloud 9 temp files
 *.~*
 
