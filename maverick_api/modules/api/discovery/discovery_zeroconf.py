@@ -16,7 +16,7 @@ class DiscoveryZeroconfModule(moduleBase):
         self.periodic_callbacks = []
         self.discovered_api_instances = {}
         ip_version = IPVersion.V4Only  # IPVersion.All
-        self.network = f"{options.server_interface}:{options.server_port}"
+        self.network = f"{socket.getfqdn()}:{options.server_port}"
         desc = {
             "httpEndpoint": f"http://{self.network}/graphql",
             "wsEndpoint": f"ws://{self.network}/subscriptions",
@@ -31,10 +31,17 @@ class DiscoveryZeroconfModule(moduleBase):
             properties=desc,
             server="maverick-api.local.",
         )
-        self.zeroconf = Zeroconf(ip_version=ip_version)
-        self.zeroconf.register_service(self.service_info)
-        self.install_periodic_callbacks()
-        self.start_periodic_callbacks()
+        try:
+            self.zeroconf = Zeroconf(ip_version=ip_version)
+            self.zeroconf.register_service(self.service_info)
+            self.install_periodic_callbacks()
+            self.start_periodic_callbacks()
+        except OSError as e:
+            # the port was blocked
+            application_log.info(
+                f"Unable to start zeroconf server, attempting to register with avahi"
+            )
+            # TODO: register by shell command or find bindings
 
         # TODO: on exit call:
         # zeroconf.unregister_service(self.service_info)
