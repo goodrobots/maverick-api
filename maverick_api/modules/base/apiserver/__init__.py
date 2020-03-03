@@ -2,6 +2,7 @@
 import logging
 import sys
 import signal
+import threading
 from pathlib import Path
 
 # tornado imports
@@ -19,7 +20,7 @@ from graphql import (
 from maverick_api.modules.base.tornadoql.tornadoql import TornadoQL
 
 # import modules
-# from maverick_api.modules.api.mavros import MAVROSConnection
+from maverick_api.modules.api.mavros import MAVROSConnection
 from maverick_api.modules.api.status import StatusModule
 from maverick_api.modules.api.discovery.discovery_zeroconf import (
     DiscoveryZeroconfModule,
@@ -60,10 +61,10 @@ class ApiServer(object):
             sys.exit()
 
         self.mavros_connection = None
-        # self.mavros_connection = MAVROSConnection(loop, module_schema)
-        # self.mavros_thread = threading.Thread(target=self.mavros_connection.run)
-        # self.mavros_thread.daemon = True
-        # self.mavros_thread.start()
+        self.mavros_connection = MAVROSConnection(loop, module_schema)
+        self.mavros_thread = threading.Thread(target=self.mavros_connection.run)
+        self.mavros_thread.daemon = True
+        self.mavros_thread.start()
         self.status_module = StatusModule(loop, module_schema)
         # self.discovery_zeroconf_module = DiscoveryZeroconfModule(loop, module_schema)
 

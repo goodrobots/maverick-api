@@ -94,7 +94,7 @@ class MaverickShutdownSchema(schemaBase):
         self.shutdown_command["running"] = True
 
         self.subscriptions.emit(
-            "modules.api.maverick.MaverickShutdownSchema" + "MaverickShutdown",
+            "maverick_api.modules.api.maverick.MaverickShutdownSchema" + "MaverickShutdown",
             {"MaverickShutdown": self.shutdown_command},
         )
         return self.shutdown_command
@@ -102,7 +102,7 @@ class MaverickShutdownSchema(schemaBase):
     def sub_shutdown_command_status(self, root, info):
         return EventEmitterAsyncIterator(
             self.subscriptions,
-            "modules.api.maverick.MaverickShutdownSchema" + "MaverickShutdown",
+            "maverick_api.modules.api.maverick.MaverickShutdownSchema" + "MaverickShutdown",
         )
 
     def get_shutdown_command_status(self, root, info):
@@ -140,7 +140,7 @@ class MaverickShutdownSchema(schemaBase):
                 if val:
                     self.shutdown_command[key] = val
             self.subscriptions.emit(
-                "modules.api.maverick.MaverickShutdownSchema" + "MaverickShutdown",
+                "maverick_api.modules.api.maverick.MaverickShutdownSchema" + "MaverickShutdown",
                 {"MaverickShutdown": self.shutdown_command},
             )
         stdout, stderr = await self.configure_proc.communicate()
@@ -156,7 +156,7 @@ class MaverickShutdownSchema(schemaBase):
             task.cancel()
         await asyncio.sleep(2)
         self.subscriptions.emit(
-            "modules.api.maverick.MaverickShutdownSchema" + "MaverickShutdown",
+            "maverick_api.modules.api.maverick.MaverickShutdownSchema" + "MaverickShutdown",
             {"MaverickShutdown": self.shutdown_command},
         )
 
