@@ -15,7 +15,7 @@ import json
 import re, fnmatch
 from enum import Enum
 
-from modules.api import api_callback, moduleBase, schemaBase
+from maverick_api.modules import api_callback, moduleBase, schemaBase
 
 from tornado.options import options
 
@@ -23,7 +23,7 @@ import rospy
 from mavros_msgs.msg import Param  # callback msg on param change
 
 # from mavros.param import param_ret_value
-from modules.base.param.parse_param_xml import get_param_meta
+from maverick_api.modules.base.param.parse_param_xml import get_param_meta
 from mavros.param import param_get_all
 from mavros.param import param_set
 from mavros.param import param_get

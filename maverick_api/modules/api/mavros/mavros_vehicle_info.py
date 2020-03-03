@@ -2,9 +2,9 @@ import logging
 import time
 from uuid import uuid4
 
-from modules.base.util.mavlink import get_vehicle_strings
+from maverick_api.modules.base.util.mavlink import get_vehicle_strings
 from mavros_msgs.srv import VehicleInfoGet
-from modules.api import api_callback, moduleBase, schemaBase
+from maverick_api.modules import api_callback, moduleBase, schemaBase
 
 # mavros & ros imports
 import rospy

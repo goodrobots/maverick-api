@@ -7,8 +7,8 @@ from pathlib import Path
 
 from mavros import mission
 
-from modules.api import api_callback, moduleBase, schemaBase
-from modules.base.util.functions import mkdirs
+from maverick_api.modules import api_callback, moduleBase, schemaBase
+from maverick_api.modules.base.util.functions import mkdirs
 
 from tornado.options import options
 

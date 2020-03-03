@@ -1,6 +1,6 @@
 import logging
 
-from modules.api import api_callback, moduleBase, schemaBase
+from maverick_api.modules import api_callback, moduleBase, schemaBase
 
 import rospy
 from sensor_msgs.msg import Imu

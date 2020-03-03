@@ -5,7 +5,7 @@ import rospy
 import mavros
 from mavros_msgs.srv import SetMode
 from mavros_msgs.msg import State
-from modules.api import api_callback, moduleBase, schemaBase
+from maverick_api.modules import api_callback, moduleBase, schemaBase
 
 # graphql imports
 from graphql import (
