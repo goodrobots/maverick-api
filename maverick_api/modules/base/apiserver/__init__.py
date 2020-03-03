@@ -65,7 +65,7 @@ class ApiServer(object):
         # self.mavros_thread.daemon = True
         # self.mavros_thread.start()
         self.status_module = StatusModule(loop, module_schema)
-        self.discovery_zeroconf_module = DiscoveryZeroconfModule(loop, module_schema)
+        # self.discovery_zeroconf_module = DiscoveryZeroconfModule(loop, module_schema)
 
         application = TornadoQL()
         self.server = tornado.httpserver.HTTPServer(application)
