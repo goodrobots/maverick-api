@@ -1,6 +1,6 @@
 import logging
 
-from modules.api import api_callback, moduleBase, schemaBase
+from maverick_api.modules import api_callback, moduleBase, schemaBase
 
 import rospy
 from sensor_msgs.msg import NavSatFix
@@ -85,7 +85,7 @@ class NavSatFixSchema(schemaBase):
         """NavSatFixMessage mutation handler"""
         updated_dict = {**self.nav_sat_fix_data, **kwargs}
         self.subscriptions.emit(
-            "modules.api.mavros.NavSatFixSchema" + "NavSatFix",
+            "maverick_api.modules.api.mavros.NavSatFixSchema" + "NavSatFix",
             {"NavSatFix": updated_dict},
         )
         self.nav_sat_fix_data = updated_dict
@@ -94,7 +94,7 @@ class NavSatFixSchema(schemaBase):
     def sub_nav_sat_fix_message(self, root, info):
         """NavSatFixMessage subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "modules.api.mavros.NavSatFixSchema" + "NavSatFix"
+            self.subscriptions, "maverick_api.modules.api.mavros.NavSatFixSchema" + "NavSatFix"
         )
 
 
@@ -121,6 +121,6 @@ class NavSatFixInterface(moduleBase):
         }
         api_callback(
             self.loop,
-            self.module["modules.api.mavros.NavSatFixSchema"].set_nav_sat_fix_message,
+            self.module["maverick_api.modules.api.mavros.NavSatFixSchema"].set_nav_sat_fix_message,
             **kwargs
         )

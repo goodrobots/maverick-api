@@ -5,7 +5,7 @@ import rospy
 import mavros
 from mavros_msgs.srv import SetMode
 from mavros_msgs.msg import State
-from modules.api import api_callback, moduleBase, schemaBase
+from maverick_api.modules import api_callback, moduleBase, schemaBase
 
 # graphql imports
 from graphql import (
@@ -92,7 +92,7 @@ class ModeSchema(schemaBase):
             # The call came from the api, dont action as a mode change request
             self.mode_data["test"] = kwargs
             self.subscriptions.emit(
-                "modules.api.mavros.ModeSchema" + "Mode", {"Mode": kwargs}
+                "maverick_api.modules.api.mavros.ModeSchema" + "Mode", {"Mode": kwargs}
             )
         else:
             # The web has asked for a mode change
@@ -125,7 +125,7 @@ class ModeSchema(schemaBase):
                 }
 
                 self.subscriptions.emit(
-                    "modules.api.mavros.ModeSchema" + "Mode", {"Mode": mode}
+                    "maverick_api.modules.api.mavros.ModeSchema" + "Mode", {"Mode": mode}
                 )
                 return mode
 
@@ -137,7 +137,7 @@ class ModeSchema(schemaBase):
     def sub_mode(self, root, info):
         """mode subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "modules.api.mavros.ModeSchema" + "Mode"
+            self.subscriptions, "maverick_api.modules.api.mavros.ModeSchema" + "Mode"
         )
 
 
@@ -155,6 +155,6 @@ class ModeInterface(moduleBase):
         }
         api_callback(
             self.loop,
-            self.module["modules.api.mavros.ModeSchema"].update_mode,
+            self.module["maverick_api.modules.api.mavros.ModeSchema"].update_mode,
             **kwargs,
         )

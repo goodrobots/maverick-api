@@ -1,6 +1,6 @@
 import logging
 
-from modules.api import api_callback, moduleBase, schemaBase
+from maverick_api.modules import api_callback, moduleBase, schemaBase
 
 import rospy
 from geometry_msgs.msg import PoseStamped
@@ -84,7 +84,7 @@ class PoseStampedSchema(schemaBase):
         """PoseStampedMessage mutation handler"""
         updated_dict = {**self.pose_data, **kwargs}
         self.subscriptions.emit(
-            "modules.api.mavros.PoseStampedSchema" + "PoseStamped",
+            "maverick_api.modules.api.mavros.PoseStampedSchema" + "PoseStamped",
             {"PoseStamped": updated_dict},
         )
         self.pose_data = updated_dict
@@ -93,7 +93,7 @@ class PoseStampedSchema(schemaBase):
     def sub_pose_stamped_message(self, root, info):
         """PoseStampedMessage subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "modules.api.mavros.PoseStampedSchema" + "PoseStamped"
+            self.subscriptions, "maverick_api.modules.api.mavros.PoseStampedSchema" + "PoseStamped"
         )
 
 
@@ -122,7 +122,7 @@ class PoseStampedInterface(moduleBase):
         api_callback(
             self.loop,
             self.module[
-                "modules.api.mavros.PoseStampedSchema"
+                "maverick_api.modules.api.mavros.PoseStampedSchema"
             ].set_pose_stamped_message,
             **kwargs,
         )

@@ -7,8 +7,8 @@ from pathlib import Path
 
 from mavros import mission
 
-from modules.api import api_callback, moduleBase, schemaBase
-from modules.base.util.functions import mkdirs
+from maverick_api.modules import api_callback, moduleBase, schemaBase
+from maverick_api.modules.base.util.functions import mkdirs
 
 from tornado.options import options
 
@@ -252,12 +252,12 @@ class MissionSchema(schemaBase):
             }
             mission_data[mission_item["seq"]] = mission_item
             self.subscriptions.emit(
-                "modules.api.mavros.MissionSchema" + "Mission",
+                "maverick_api.modules.api.mavros.MissionSchema" + "Mission",
                 {"Mission": mission_item},
             )
         self.mission_data = mission_data
         self.subscriptions.emit(
-            "modules.api.mavros.MissionSchema" + "MissionList",
+            "maverick_api.modules.api.mavros.MissionSchema" + "MissionList",
             {"MissionList": self.get_mission_list(None, None, id="loaded")},
         )
         # application_log.debug(f"Mission mutation handler {self.mission_data}")
@@ -265,7 +265,7 @@ class MissionSchema(schemaBase):
     def sub_mission(self, root, info):
         """Mission subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "modules.api.mavros.MissionSchema" + "Mission"
+            self.subscriptions, "maverick_api.modules.api.mavros.MissionSchema" + "Mission"
         )
 
     def get_mission_list(self, root, info, **kwargs):
@@ -388,7 +388,7 @@ class MissionSchema(schemaBase):
     def sub_mission_list(self, root, info):
         """Mission list subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "modules.api.mavros.MissionSchema" + "MissionList"
+            self.subscriptions, "maverick_api.modules.api.mavros.MissionSchema" + "MissionList"
         )
 
     def get_mission_database(self, root, info, **kwargs):
@@ -437,7 +437,7 @@ class MissionSchema(schemaBase):
     def sub_mission_database(self, root, info):
         """Mission database subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "modules.api.mavros.MissionSchema" + "MissionDatabase"
+            self.subscriptions, "maverick_api.modules.api.mavros.MissionSchema" + "MissionDatabase"
         )
 
 
@@ -455,6 +455,6 @@ class MissionInterface(moduleBase):
         # application_log.debug(f"mission_callback: {data}")
         api_callback(
             self.loop,
-            self.module["modules.api.mavros.MissionSchema"].update_mission,
+            self.module["maverick_api.modules.api.mavros.MissionSchema"].update_mission,
             data=data,
         )

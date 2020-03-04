@@ -15,7 +15,7 @@ import json
 import re, fnmatch
 from enum import Enum
 
-from modules.api import api_callback, moduleBase, schemaBase
+from maverick_api.modules import api_callback, moduleBase, schemaBase
 
 from tornado.options import options
 
@@ -23,7 +23,7 @@ import rospy
 from mavros_msgs.msg import Param  # callback msg on param change
 
 # from mavros.param import param_ret_value
-from modules.base.param.parse_param_xml import get_param_meta
+from maverick_api.modules.base.param.parse_param_xml import get_param_meta
 from mavros.param import param_get_all
 from mavros.param import param_set
 from mavros.param import param_get
@@ -243,7 +243,7 @@ class ParamSchema(schemaBase):
             # The call came from the api, don't action as a param change request
             self.parameter_data[parameter_id] = parameter_value
             self.subscriptions.emit(
-                "modules.api.mavros.ParamSchema" + "Parameter",
+                "maverick_api.modules.api.mavros.ParamSchema" + "Parameter",
                 {
                     "Parameter": {
                         "id": parameter_id,
@@ -273,7 +273,7 @@ class ParamSchema(schemaBase):
     def sub_parameter(self, root, info):
         application_log.debug(f"Parameter subscription handler")
         return EventEmitterAsyncIterator(
-            self.subscriptions, "modules.api.mavros.ParamSchema" + "Parameter"
+            self.subscriptions, "maverick_api.modules.api.mavros.ParamSchema" + "Parameter"
         )
 
     def get_parameter_list(self, root, info, **kwargs):
@@ -380,7 +380,7 @@ class ParamInterface(moduleBase):
     def param_callback_final(self, **kwargs):
         api_callback(
             self.loop,
-            self.module["modules.api.mavros.ParamSchema"].update_parameter,
+            self.module["maverick_api.modules.api.mavros.ParamSchema"].update_parameter,
             **kwargs,
         )
 
@@ -427,7 +427,7 @@ class ParamInterface(moduleBase):
         # application_log.info(f"self.param_meta {self.param_meta}")
         api_callback(
             self.loop,
-            self.module["modules.api.mavros.ParamSchema"].update_parameter_meta,
+            self.module["maverick_api.modules.api.mavros.ParamSchema"].update_parameter_meta,
             **param_meta,
         )
 

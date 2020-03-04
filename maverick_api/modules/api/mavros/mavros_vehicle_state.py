@@ -1,6 +1,6 @@
 import logging
 
-from modules.api import api_callback, moduleBase, schemaBase
+from maverick_api.modules import api_callback, moduleBase, schemaBase
 
 import mavros
 import rospy
@@ -82,7 +82,7 @@ class VehicleStateSchema(schemaBase):
         """StateMessage mutation handler"""
         updated_dict = {**self.state_data, **kwargs}
         self.subscriptions.emit(
-            "modules.api.mavros.VehicleStateSchema" + "VehicleState",
+            "maverick_api.modules.api.mavros.VehicleStateSchema" + "VehicleState",
             {"VehicleState": updated_dict},
         )
         self.state_data = updated_dict
@@ -91,7 +91,7 @@ class VehicleStateSchema(schemaBase):
     def sub_state_message(self, root, info):
         """StateMessage subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "modules.api.mavros.VehicleStateSchema" + "VehicleState"
+            self.subscriptions, "maverick_api.modules.api.mavros.VehicleStateSchema" + "VehicleState"
         )
 
 
@@ -115,6 +115,6 @@ class VehicleStateInterface(moduleBase):
         }
         api_callback(
             self.loop,
-            self.module["modules.api.mavros.VehicleStateSchema"].set_state_message,
+            self.module["maverick_api.modules.api.mavros.VehicleStateSchema"].set_state_message,
             **kwargs,
         )

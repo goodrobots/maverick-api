@@ -1,6 +1,6 @@
 import logging
 
-from modules.api import api_callback, moduleBase, schemaBase
+from maverick_api.modules import api_callback, moduleBase, schemaBase
 
 import rospy
 from rosgraph_msgs.msg import Log
@@ -79,7 +79,7 @@ class StatusTextSchema(schemaBase):
         """StatusTextMessage mutation handler"""
         updated_dict = {**self.status_text_data, **kwargs}
         self.subscriptions.emit(
-            "modules.api.mavros.StatusTextSchema" + "StatusText",
+            "maverick_api.modules.api.mavros.StatusTextSchema" + "StatusText",
             {"StatusText": updated_dict},
         )
         self.status_text_data = updated_dict
@@ -88,7 +88,7 @@ class StatusTextSchema(schemaBase):
     def sub_status_text_message(self, root, info):
         """StatusTextMessage subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "modules.api.mavros.StatusTextSchema" + "StatusText"
+            self.subscriptions, "maverick_api.modules.api.mavros.StatusTextSchema" + "StatusText"
         )
 
 
@@ -112,7 +112,7 @@ class StatusTextInterface(moduleBase):
             api_callback(
                 self.loop,
                 self.module[
-                    "modules.api.mavros.StatusTextSchema"
+                    "maverick_api.modules.api.mavros.StatusTextSchema"
                 ].set_status_text_message,
                 **kwargs,
             )

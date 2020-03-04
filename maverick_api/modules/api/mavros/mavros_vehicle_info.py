@@ -2,9 +2,9 @@ import logging
 import time
 from uuid import uuid4
 
-from modules.base.util.mavlink import get_vehicle_strings
+from maverick_api.modules.base.util.mavlink import get_vehicle_strings
 from mavros_msgs.srv import VehicleInfoGet
-from modules.api import api_callback, moduleBase, schemaBase
+from maverick_api.modules import api_callback, moduleBase, schemaBase
 
 # mavros & ros imports
 import rospy
@@ -122,6 +122,7 @@ class VehicleInfoSchema(schemaBase):
         vehicle_uuid = kwargs.get("uuid")  # UUID is required
         # application_log.debug(f"Vehicle info query handler: {vehicle_uuid}")
         # FIXME: remove me
+        #application_log.debug(repr(self.vehicle_info_data))
         vehicle_uuid = list(self.vehicle_info_data.keys())[0]
         vehicle_info = self.vehicle_info_data.get(vehicle_uuid, {})
         return vehicle_info
@@ -130,6 +131,7 @@ class VehicleInfoSchema(schemaBase):
         """Vehicle info mutation handler"""
         data = kwargs.get("data")
         info = data["info"]
+        #application_log.debug('vehicleinfo data: {}'.format(repr(data)))
 
         vehicle_info = {
             "uuid": data["uuid"],
@@ -151,18 +153,18 @@ class VehicleInfoSchema(schemaBase):
         }
         self.vehicle_info_data[vehicle_info["uuid"]] = vehicle_info
         self.subscriptions.emit(
-            "modules.api.mavros.VehicleInfoSchema" + "VehicleInfo",
+            "maverick_api.modules.api.mavros.VehicleInfoSchema" + "VehicleInfo",
             {"VehicleInfo": vehicle_info},
         )
         self.subscriptions.emit(
-            "modules.api.mavros.VehicleInfoSchema" + "VehicleInfoList",
+            "maverick_api.modules.api.mavros.VehicleInfoSchema" + "VehicleInfoList",
             {"VehicleInfoList": self.get_vehicle_info_list(None, None)},
         )
 
     def sub_vehicle_info(self, root, info):
         """Vehicle info subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "modules.api.mavros.VehicleInfoSchema" + "VehicleInfo"
+            self.subscriptions, "maverick_api.modules.api.mavros.VehicleInfoSchema" + "VehicleInfo"
         )
 
     def get_vehicle_info_list(self, root, info, **kwargs):
@@ -185,7 +187,7 @@ class VehicleInfoSchema(schemaBase):
         """Vehicle info list subscription handler"""
         return EventEmitterAsyncIterator(
             self.subscriptions,
-            "modules.api.mavros.VehicleInfoSchema" + "VehicleInfoList",
+            "maverick_api.modules.api.mavros.VehicleInfoSchema" + "VehicleInfoList",
         )
 
 
@@ -234,7 +236,7 @@ class VehicleInfoInterface(moduleBase):
                 api_callback(
                     self.loop,
                     self.module[
-                        "modules.api.mavros.VehicleInfoSchema"
+                        "maverick_api.modules.api.mavros.VehicleInfoSchema"
                     ].update_vehicle_info,
                     data=data,
                 )

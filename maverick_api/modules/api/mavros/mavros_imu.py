@@ -1,6 +1,6 @@
 import logging
 
-from modules.api import api_callback, moduleBase, schemaBase
+from maverick_api.modules import api_callback, moduleBase, schemaBase
 
 import rospy
 from sensor_msgs.msg import Imu
@@ -84,7 +84,7 @@ class ImuSchema(schemaBase):
         """ImuMessage mutation handler"""
         updated_dict = {**self.imu_data, **kwargs}
         self.subscriptions.emit(
-            "modules.api.mavros.ImuSchema" + "Imu", {"Imu": updated_dict}
+            "maverick_api.modules.api.mavros.ImuSchema" + "Imu", {"Imu": updated_dict}
         )
         self.imu_data = updated_dict
         return updated_dict
@@ -92,7 +92,7 @@ class ImuSchema(schemaBase):
     def sub_imu_message(self, root, info):
         """ImuMessage subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "modules.api.mavros.ImuSchema" + "Imu"
+            self.subscriptions, "maverick_api.modules.api.mavros.ImuSchema" + "Imu"
         )
 
 
@@ -121,6 +121,6 @@ class ImuInterface(moduleBase):
         }
         api_callback(
             self.loop,
-            self.module["modules.api.mavros.ImuSchema"].set_imu_message,
+            self.module["maverick_api.modules.api.mavros.ImuSchema"].set_imu_message,
             **kwargs,
         )
