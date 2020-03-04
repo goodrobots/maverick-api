@@ -5,5 +5,4 @@ from maverick_api.modules.api.maverick.maverick_configuration import (
     MaverickConfigurationSchema,
 )
 from maverick_api.modules.api.maverick.maverick_service import MaverickServiceSchema
-
 from maverick_api.modules.api.maverick.maverick_shell import MaverickShellSchema

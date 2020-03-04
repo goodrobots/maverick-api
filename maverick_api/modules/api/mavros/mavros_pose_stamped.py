@@ -7,21 +7,13 @@ from geometry_msgs.msg import PoseStamped
 
 # graphql imports
 from graphql import (
-    GraphQLArgument,
-    GraphQLEnumType,
-    GraphQLEnumValue,
     GraphQLField,
-    GraphQLInterfaceType,
-    GraphQLList,
-    GraphQLNonNull,
     GraphQLObjectType,
-    GraphQLSchema,
     GraphQLString,
-    GraphQLBoolean,
     GraphQLInt,
     GraphQLFloat,
 )
-from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
+from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
 
 application_log = logging.getLogger("tornado.application")
 
@@ -93,7 +85,8 @@ class PoseStampedSchema(schemaBase):
     def sub_pose_stamped_message(self, root, info):
         """PoseStampedMessage subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "maverick_api.modules.api.mavros.PoseStampedSchema" + "PoseStamped"
+            self.subscriptions,
+            "maverick_api.modules.api.mavros.PoseStampedSchema" + "PoseStamped",
         )
 
 

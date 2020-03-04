@@ -8,23 +8,37 @@ import time
 from graphql import GraphQLField, GraphQLObjectType, GraphQLSchema
 from graphql.pyutils.event_emitter import EventEmitter
 from tornado.options import options
+import tornado.ioloop
 
 application_log = logging.getLogger("tornado.application")
 
 api_schema = None
 module_schema = None
+module_base = None
 schema_timestamp = None
 
 
 class moduleBase(object):
-    def __init__(self, loop, module, **kwargs):
-        # Attributes
+    def __init__(self, loop=tornado.ioloop.IOLoop.current(), module=None, **kwargs):
         self.loop = loop
-        self.module = module
+        self._module = module
+
+    @property
+    def module(self):
+        if self._module:
+            return self._module
+        return get_module_schema()
+
+    def start(self):
+        pass
+
+    def shutdown(self):
+        pass
 
 
 class schemaBase(object):
-    def __init__(self, **kwargs):
+    def __init__(self, child, **kwargs):
+        self.subscription_string = f"{child.__module__}.{child.__class__.__name__}"
         self.q = {}
         self.m = {}
         self.s = {}
@@ -40,11 +54,11 @@ def api_callback(loop, func, **kwargs):
     loop.add_callback(func, None, None, **kwargs)
 
 
-def check_schema_class(attribute):
+def check_class(attribute, class_to_check):
     return (
         inspect.isclass(attribute)
-        and issubclass(attribute, schemaBase)
-        and (attribute.__name__ != schemaBase.__name__)
+        and issubclass(attribute, class_to_check)
+        and (attribute.__name__ != class_to_check.__name__)
     )
 
 
@@ -53,10 +67,10 @@ def check_schema_attribute(instance):
         errors = 0
         for k in instance:
             # TODO: Check to ensure we don't already have a handler
-            #     by this name (using if key in q)
+            #   by this name (using if key in q)
             if not isinstance(instance[k], GraphQLField):
                 # Ensure we are adding the correct types to the
-                #     application_schema
+                #   application_schema
                 errors += 1
         if not errors:
             return True
@@ -82,7 +96,9 @@ def generate_schema():
     global module_schema
     global api_schema
     global schema_timestamp
-    module_schema = {}
+    global module_base
+    _module_schema = dict()
+    _module_base = dict()
     m = dict()
     q = dict()
     s = dict()
@@ -113,19 +129,49 @@ def generate_schema():
         # search for the schema class
         for i in dir(imported_module):
             attribute = getattr(imported_module, i)
-            if check_schema_class(attribute):
+            if check_class(attribute, schemaBase):
                 # create an instance of the schema class
                 ref_name = f"{__name__}.{module_folder_name}.{module_name}.{attribute.__name__}"
-                # print(f"{ref_name}", attribute)
-                module_schema[ref_name] = attribute()
+                application_log.info(f"Appending schema from {ref_name}")
+                _module_schema[ref_name] = attribute()
                 # add the class schema to the application schema
-                (q, m, s) = extend_application_schema(module_schema, ref_name, q, m, s)
+                (q, m, s) = extend_application_schema(_module_schema, ref_name, q, m, s)
+        # search for the module class
+        for i in dir(imported_module):
+            attribute = getattr(imported_module, i)
+            if check_class(attribute, moduleBase):
+                # create an instance of the module class
+                ref_name = f"{__name__}.{module_folder_name}.{module_name}.{attribute.__name__}"
+                application_log.info(f"Creating module instance: {ref_name}")
+                _module_base[ref_name] = attribute()
+
+    # TODO: is a lock needed here to avoid a race when get_module_schema()
+    #   or get_api_schema() is accessed from an external thread?
     api_schema = GraphQLSchema(
         query=GraphQLObjectType("query", lambda: q),
         mutation=GraphQLObjectType("mutation", lambda: m),
         subscription=GraphQLObjectType("subscription", lambda: s),
     )
+    module_schema = _module_schema
     schema_timestamp = int(time.time())
+    module_base = _module_base
+
+
+def start_all_modules():
+    if not module_base:
+        return False
+    for module in module_base:
+        application_log.info(f"Starting module instance: {module}")
+        module_base[module].start()
+    return True
+
+
+def stop_all_modules():
+    if not module_base:
+        return False
+    for module in module_base:
+        module_base[module].shutdown()
+    return True
 
 
 def get_api_schema():
@@ -134,6 +180,10 @@ def get_api_schema():
 
 def get_module_schema():
     return module_schema
+
+
+def get_modules():
+    return module_base
 
 
 def get_schema_timestamp():

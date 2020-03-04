@@ -1,10 +1,8 @@
 from tornado.options import options
 
-from maverick_api.modules.base.util.functions import find, file_age_in_seconds, mkdirs
+from maverick_api.modules.base.util.functions import file_age_in_seconds, mkdirs
 import xml.etree.ElementTree as ET
-import pprint
 import requests
-import random
 import os
 import ast
 import re

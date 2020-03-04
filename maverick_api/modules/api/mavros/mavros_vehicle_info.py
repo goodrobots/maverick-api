@@ -13,20 +13,14 @@ import mavros
 # graphql imports
 from graphql import (
     GraphQLArgument,
-    GraphQLEnumType,
-    GraphQLEnumValue,
     GraphQLField,
-    GraphQLInterfaceType,
     GraphQLList,
     GraphQLNonNull,
     GraphQLObjectType,
-    GraphQLSchema,
     GraphQLString,
-    GraphQLBoolean,
     GraphQLInt,
-    GraphQLFloat,
 )
-from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
+from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
 
 application_log = logging.getLogger("tornado.application")
 
@@ -122,7 +116,7 @@ class VehicleInfoSchema(schemaBase):
         vehicle_uuid = kwargs.get("uuid")  # UUID is required
         # application_log.debug(f"Vehicle info query handler: {vehicle_uuid}")
         # FIXME: remove me
-        #application_log.debug(repr(self.vehicle_info_data))
+        # application_log.debug(repr(self.vehicle_info_data))
         vehicle_uuid = list(self.vehicle_info_data.keys())[0]
         vehicle_info = self.vehicle_info_data.get(vehicle_uuid, {})
         return vehicle_info
@@ -131,7 +125,7 @@ class VehicleInfoSchema(schemaBase):
         """Vehicle info mutation handler"""
         data = kwargs.get("data")
         info = data["info"]
-        #application_log.debug('vehicleinfo data: {}'.format(repr(data)))
+        # application_log.debug('vehicleinfo data: {}'.format(repr(data)))
 
         vehicle_info = {
             "uuid": data["uuid"],
@@ -164,7 +158,8 @@ class VehicleInfoSchema(schemaBase):
     def sub_vehicle_info(self, root, info):
         """Vehicle info subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "maverick_api.modules.api.mavros.VehicleInfoSchema" + "VehicleInfo"
+            self.subscriptions,
+            "maverick_api.modules.api.mavros.VehicleInfoSchema" + "VehicleInfo",
         )
 
     def get_vehicle_info_list(self, root, info, **kwargs):

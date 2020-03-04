@@ -20,9 +20,8 @@ application_log = logging.getLogger("tornado.application")
 
 class MaverickConfigureSchema(schemaBase):
     def __init__(self):
-        super().__init__()
+        super().__init__(self)
         self.name = "MaverickConfigure"
-        self.subscription_string = f"{__package__}.{self.__class__.__name__}"
         self.configure_command_defaults = {
             "environment": None,
             "module": None,

@@ -21,9 +21,8 @@ application_log = logging.getLogger("tornado.application")
 
 class MaverickShellSchema(schemaBase):
     def __init__(self):
-        super().__init__()
+        super().__init__(self)
         self.name = "MaverickShell"
-        self.subscription_string = f"{__package__}.{self.__class__.__name__}"
         self.shell_command_defaults = {
             "command": "",
             "running": False,

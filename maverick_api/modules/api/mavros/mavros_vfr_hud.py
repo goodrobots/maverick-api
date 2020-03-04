@@ -8,21 +8,13 @@ from std_msgs.msg import Float64
 
 # graphql imports
 from graphql import (
-    GraphQLArgument,
-    GraphQLEnumType,
-    GraphQLEnumValue,
     GraphQLField,
-    GraphQLInterfaceType,
-    GraphQLList,
-    GraphQLNonNull,
     GraphQLObjectType,
-    GraphQLSchema,
     GraphQLString,
-    GraphQLBoolean,
     GraphQLInt,
     GraphQLFloat,
 )
-from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
+from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
 
 application_log = logging.getLogger("tornado.application")
 
@@ -88,7 +80,8 @@ class VfrHudSchema(schemaBase):
         """VfrHudMessage mutation handler"""
         updated_dict = {**self.vfr_hud_data, **kwargs}
         self.subscriptions.emit(
-            "maverick_api.modules.api.mavros.VfrHudSchema" + "VfrHud", {"VfrHud": updated_dict}
+            "maverick_api.modules.api.mavros.VfrHudSchema" + "VfrHud",
+            {"VfrHud": updated_dict},
         )
         self.vfr_hud_data = updated_dict
         return updated_dict
@@ -96,7 +89,8 @@ class VfrHudSchema(schemaBase):
     def sub_vfr_hud_message(self, root, info):
         """VfrHudMessage subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "maverick_api.modules.api.mavros.VfrHudSchema" + "VfrHud"
+            self.subscriptions,
+            "maverick_api.modules.api.mavros.VfrHudSchema" + "VfrHud",
         )
 
 
@@ -124,7 +118,9 @@ class VfrHudInterface(moduleBase):
         }
         api_callback(
             self.loop,
-            self.module["maverick_api.modules.api.mavros.VfrHudSchema"].set_vfr_hud_message,
+            self.module[
+                "maverick_api.modules.api.mavros.VfrHudSchema"
+            ].set_vfr_hud_message,
             **kwargs,
         )
 
@@ -132,6 +128,8 @@ class VfrHudInterface(moduleBase):
         kwargs = {"relativeAltitude": data.data}
         api_callback(
             self.loop,
-            self.module["maverick_api.modules.api.mavros.VfrHudSchema"].set_vfr_hud_message,
+            self.module[
+                "maverick_api.modules.api.mavros.VfrHudSchema"
+            ].set_vfr_hud_message,
             **kwargs,
         )

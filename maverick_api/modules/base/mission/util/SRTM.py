@@ -3,7 +3,7 @@
 import json
 import numpy as np
 import os
-from pylab import *
+from pylab import imshow, cm, grid, show
 import random
 import scipy.interpolate
 import struct

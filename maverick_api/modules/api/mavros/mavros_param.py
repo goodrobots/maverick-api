@@ -13,11 +13,8 @@ from decimal import Decimal
 import ast
 import json
 import re, fnmatch
-from enum import Enum
 
 from maverick_api.modules import api_callback, moduleBase, schemaBase
-
-from tornado.options import options
 
 import rospy
 from mavros_msgs.msg import Param  # callback msg on param change
@@ -32,24 +29,18 @@ from mavros.param import param_get
 from graphql import (
     GraphQLScalarType,
     GraphQLArgument,
-    GraphQLEnumType,
-    GraphQLEnumValue,
     GraphQLField,
-    GraphQLInterfaceType,
     GraphQLList,
     GraphQLNonNull,
     GraphQLObjectType,
-    GraphQLSchema,
     GraphQLString,
     GraphQLBoolean,
-    GraphQLInt,
-    GraphQLFloat,
     GraphQLInputObjectType,
     GraphQLInputField,
 )
 from graphql.language.ast import FloatValueNode, IntValueNode, StringValueNode
 from graphql.error import INVALID
-from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
+from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
 
 application_log = logging.getLogger("tornado.application")
 
@@ -273,7 +264,8 @@ class ParamSchema(schemaBase):
     def sub_parameter(self, root, info):
         application_log.debug(f"Parameter subscription handler")
         return EventEmitterAsyncIterator(
-            self.subscriptions, "maverick_api.modules.api.mavros.ParamSchema" + "Parameter"
+            self.subscriptions,
+            "maverick_api.modules.api.mavros.ParamSchema" + "Parameter",
         )
 
     def get_parameter_list(self, root, info, **kwargs):
@@ -427,7 +419,9 @@ class ParamInterface(moduleBase):
         # application_log.info(f"self.param_meta {self.param_meta}")
         api_callback(
             self.loop,
-            self.module["maverick_api.modules.api.mavros.ParamSchema"].update_parameter_meta,
+            self.module[
+                "maverick_api.modules.api.mavros.ParamSchema"
+            ].update_parameter_meta,
             **param_meta,
         )
 

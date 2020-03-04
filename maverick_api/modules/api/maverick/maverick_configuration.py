@@ -7,43 +7,15 @@ from jsondiff import diff as jdiff
 from maverick_api.modules.base.util.functions import mkdirs
 
 import logging
-import asyncio
-import copy
-import threading
-import time
-import re
 
-from maverick_api.modules import moduleBase
 from maverick_api.modules import schemaBase
-from maverick_api.modules import api_callback
-
-import tornado.ioloop
-from tornado.options import options
-
-# graphql imports
-from graphql import (
-    GraphQLArgument,
-    GraphQLEnumType,
-    GraphQLEnumValue,
-    GraphQLField,
-    GraphQLInterfaceType,
-    GraphQLList,
-    GraphQLNonNull,
-    GraphQLObjectType,
-    GraphQLSchema,
-    GraphQLString,
-    GraphQLBoolean,
-    GraphQLInt,
-    GraphQLFloat,
-)
-from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
 
 application_log = logging.getLogger("tornado.application")
 
 
 class MaverickConfigurationSchema(schemaBase):
     def __init__(self):
-        super().__init__()
+        super().__init__(self)
         pass
 
     def load_config_from_file(
