@@ -1,7 +1,6 @@
 import os
 import tornado.web
 from tornado.options import options
-import logging
 
 
 class GraphiQLHandler(tornado.web.RequestHandler):

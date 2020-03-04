@@ -3,7 +3,6 @@
 
 import os, inspect
 from lib import navpy
-from util import transformations as tr
 from util import common, file_tools, mavlink_meta
 
 # avoid SRTM imput for now

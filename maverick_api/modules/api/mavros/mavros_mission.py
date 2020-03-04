@@ -1,7 +1,6 @@
 import logging
 import time
 import os
-import glob
 import json
 from pathlib import Path
 
@@ -15,14 +14,10 @@ from tornado.options import options
 # graphql imports
 from graphql import (
     GraphQLArgument,
-    GraphQLEnumType,
-    GraphQLEnumValue,
     GraphQLField,
-    GraphQLInterfaceType,
     GraphQLList,
     GraphQLNonNull,
     GraphQLObjectType,
-    GraphQLSchema,
     GraphQLString,
     GraphQLBoolean,
     GraphQLInt,
@@ -30,7 +25,7 @@ from graphql import (
     GraphQLInputObjectType,
     GraphQLInputField,
 )
-from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
+from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
 
 application_log = logging.getLogger("tornado.application")
 
@@ -265,7 +260,8 @@ class MissionSchema(schemaBase):
     def sub_mission(self, root, info):
         """Mission subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "maverick_api.modules.api.mavros.MissionSchema" + "Mission"
+            self.subscriptions,
+            "maverick_api.modules.api.mavros.MissionSchema" + "Mission",
         )
 
     def get_mission_list(self, root, info, **kwargs):
@@ -388,7 +384,8 @@ class MissionSchema(schemaBase):
     def sub_mission_list(self, root, info):
         """Mission list subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "maverick_api.modules.api.mavros.MissionSchema" + "MissionList"
+            self.subscriptions,
+            "maverick_api.modules.api.mavros.MissionSchema" + "MissionList",
         )
 
     def get_mission_database(self, root, info, **kwargs):
@@ -437,7 +434,8 @@ class MissionSchema(schemaBase):
     def sub_mission_database(self, root, info):
         """Mission database subscription handler"""
         return EventEmitterAsyncIterator(
-            self.subscriptions, "maverick_api.modules.api.mavros.MissionSchema" + "MissionDatabase"
+            self.subscriptions,
+            "maverick_api.modules.api.mavros.MissionSchema" + "MissionDatabase",
         )
 
 

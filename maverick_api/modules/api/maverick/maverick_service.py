@@ -22,9 +22,8 @@ application_log = logging.getLogger("tornado.application")
 
 class MaverickServiceSchema(schemaBase):
     def __init__(self):
-        super().__init__()
+        super().__init__(self)
         self.name = "MaverickService"
-        self.subscription_string = f"{__package__}.{self.__class__.__name__}"
         self.service_path = "~/software/maverick/bin/status.d"
         self.services = self.read_services()
         self.service_command_defaults = {"name": "", "enabled": None, "running": None}

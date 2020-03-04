@@ -7,21 +7,13 @@ from sensor_msgs.msg import Imu
 
 # graphql imports
 from graphql import (
-    GraphQLArgument,
-    GraphQLEnumType,
-    GraphQLEnumValue,
     GraphQLField,
-    GraphQLInterfaceType,
-    GraphQLList,
-    GraphQLNonNull,
     GraphQLObjectType,
-    GraphQLSchema,
     GraphQLString,
-    GraphQLBoolean,
     GraphQLInt,
     GraphQLFloat,
 )
-from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
+from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
 
 application_log = logging.getLogger("tornado.application")
 

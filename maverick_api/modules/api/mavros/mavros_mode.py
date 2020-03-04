@@ -10,20 +10,13 @@ from maverick_api.modules import api_callback, moduleBase, schemaBase
 # graphql imports
 from graphql import (
     GraphQLArgument,
-    GraphQLEnumType,
-    GraphQLEnumValue,
     GraphQLField,
-    GraphQLInterfaceType,
-    GraphQLList,
     GraphQLNonNull,
     GraphQLObjectType,
-    GraphQLSchema,
     GraphQLString,
-    GraphQLBoolean,
     GraphQLInt,
-    GraphQLFloat,
 )
-from graphql.pyutils.event_emitter import EventEmitter, EventEmitterAsyncIterator
+from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
 
 application_log = logging.getLogger("tornado.application")
 
@@ -125,7 +118,8 @@ class ModeSchema(schemaBase):
                 }
 
                 self.subscriptions.emit(
-                    "maverick_api.modules.api.mavros.ModeSchema" + "Mode", {"Mode": mode}
+                    "maverick_api.modules.api.mavros.ModeSchema" + "Mode",
+                    {"Mode": mode},
                 )
                 return mode
 

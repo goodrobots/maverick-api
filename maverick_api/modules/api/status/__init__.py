@@ -50,7 +50,7 @@ def get_status(status_messages, status_count):
 
 class StatusSchema(schemaBase):
     def __init__(self):
-        super().__init__()
+        super().__init__(self)
         self.status_data = {
             "id": uuid,
             "currentStatus": "...",
@@ -114,9 +114,11 @@ class StatusSchema(schemaBase):
 
 
 class StatusModule(moduleBase):
-    def __init__(self, loop, module):
-        super().__init__(loop, module)
+    def __init__(self):
+        super().__init__()
         self.periodic_callbacks = []
+
+    def start(self):
         self.install_periodic_callbacks()
         self.start_periodic_callbacks()
 

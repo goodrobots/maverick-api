@@ -10,20 +10,22 @@ application_log = logging.getLogger("tornado.application")
 
 
 class DiscoveryZeroconfModule(moduleBase):
-    def __init__(self, loop, module):
-        super().__init__(loop, module)
+    def __init__(self):
+        super().__init__()
         logging.getLogger("zeroconf").setLevel(logging.DEBUG)
         self.periodic_callbacks = []
         self.discovered_api_instances = {}
-        ip_version = IPVersion.V4Only  # IPVersion.All
-        self.network = f"{options.server_interface}:{options.server_port}"
+        self.ip_version = IPVersion.V4Only  # IPVersion.All
+        self.secure = False
+        self.network = f"{socket.getfqdn()}:{options.server_port}"
         desc = {
-            "httpEndpoint": f"http://{self.network}/graphql",
-            "wsEndpoint": f"ws://{self.network}/subscriptions",
-            "introspectionEndpoint": f"http://{self.network}/schema",
+            "httpEndpoint": f"{self.http_protocol}://{self.network}/graphql",
+            "wsEndpoint": f"{self.ws_protocol}://{self.network}/subscriptions",
+            "schemaEndpoint": f"{self.http_protocol}://{self.network}/schema",
             "websocketsOnly": False,
         }
         self.service_info = ServiceInfo(
+            # TODO: FIXME come up with useful values for the info below
             "_http._tcp.local.",
             "Maverick API._http._tcp.local.",
             addresses=[socket.inet_aton(options.server_interface)],
@@ -31,14 +33,39 @@ class DiscoveryZeroconfModule(moduleBase):
             properties=desc,
             server="maverick-api.local.",
         )
-        self.zeroconf = Zeroconf(ip_version=ip_version)
-        self.zeroconf.register_service(self.service_info)
-        self.install_periodic_callbacks()
-        self.start_periodic_callbacks()
 
+    def start(self):
+        try:
+            self.zeroconf = Zeroconf(ip_version=self.ip_version)
+            self.zeroconf.register_service(self.service_info)
+            self.install_periodic_callbacks()
+            self.start_periodic_callbacks()
+        except OSError as e:
+            # the port was blocked
+            application_log.info(
+                f"Unable to start zeroconf server, attempting to register with avahi"
+            )
+            # TODO: register by shell command or find bindings
+
+    def shutdown(self):
         # TODO: on exit call:
         # zeroconf.unregister_service(self.service_info)
         # zeroconf.close()
+        pass
+
+    @property
+    def http_protocol(self):
+        if self.secure:
+            return "https"
+        else:
+            return "http"
+
+    @property
+    def ws_protocol(self):
+        if self.secure:
+            return "wss"
+        else:
+            return "ws"
 
     def scan_for_api_instances(self):
         queried_info = self.zeroconf.get_service_info(

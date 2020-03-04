@@ -1,8 +1,6 @@
-from util.common import find, file_age_in_seconds
+from util.common import file_age_in_seconds
 import xml.etree.ElementTree as ET
 import pprint
-import requests
-import random
 import os, re
 import ast
 
