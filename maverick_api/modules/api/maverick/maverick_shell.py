@@ -52,6 +52,9 @@ class MaverickShellSchema(schemaBase):
                 "stdout": GraphQLField(GraphQLString, description=""),
                 "stderror": GraphQLField(GraphQLString, description=""),
                 "returncode": GraphQLField(GraphQLInt, description=""),
+                "width": GraphQLField(GraphQLInt, description=""),
+                "height": GraphQLField(GraphQLInt, description=""),
+                "special": GraphQLField(GraphQLString, description=""),
             },
             description="Maverick shell interface",
         )
@@ -83,6 +86,8 @@ class MaverickShellSchema(schemaBase):
 
         self.shell_command["command"] = kwargs.get("command", "")
         self.shell_command["terminate"] = kwargs.get("terminate", False)
+        self.shell_command["width"] = kwargs.get("width", 50)
+        self.shell_command["height"] = kwargs.get("height", 50)
         cmd = self.shell_command["command"]
         application_log.info(f"Running shell command: {cmd}")
 
@@ -95,18 +100,19 @@ class MaverickShellSchema(schemaBase):
             if self.shell_proc.complete:
                 self.shell_proc = None
             else:
-                application_log.debug("process is still running")
-                cmd += "\n"
+                application_log.debug("Process is still running. Providing input")
+                special_cmd = kwargs.get("special", False)
+                if special_cmd:
+                    cmd += special_cmd
+                else:
+                    cmd += "\n"
                 os.write(self.shell_proc.pty_master, cmd.encode())
-
-                # self.shell_proc.pty.write(cmd.encode())
-                # self.shell_proc.pty.flush()
-                # self.shell_proc.process.stdin.write(cmd.encode())
-                # await self.shell_proc.process.stdin.drain()
         if not self.shell_proc:
             # try to run the command
             self.shell_proc = ProcessRunner(
                 cmd,
+                width=self.shell_command["width"],
+                height=self.shell_command["height"],
                 started_callback=self.start_process_callback,
                 output_callback=self.output_process_callback,
                 complete_callback=self.complete_process_callback,
