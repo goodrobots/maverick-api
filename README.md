@@ -2,6 +2,7 @@
 API for Maverick Web Interface - Highly Experimental - DO NOT USE FOR REAL WORLD APPLICATIONS YET!
 
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+![Python application](https://github.com/goodrobots/maverick-api/workflows/Python%20application/badge.svg)
 
 ## About
 Maverick-api is the backend code which is used to drive [maverick-web](https://github.com/goodrobots/maverick-web). The two projects are designed work together to provide a next generation web based configuration tool and ground station application for your [ArduPilot](http://ardupilot.org/) and [PX4](https://px4.io/) based autonomous vehicles.
