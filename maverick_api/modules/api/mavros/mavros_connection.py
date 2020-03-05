@@ -24,8 +24,8 @@ application_log = logging.getLogger("tornado.application")
 
 
 class MAVROSConnection(moduleBase):
-    def __init__(self, loop, module):
-        super().__init__(self, loop, module)
+    def __init__(self):
+        super().__init__()
         # Attributes
         self.mission_interface = MissionInterface(self.loop, self.module)
         self._thread = None
