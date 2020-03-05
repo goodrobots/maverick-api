@@ -21,7 +21,7 @@ from maverick_api.modules import get_schema_timestamp
 
 application_log = logging.getLogger("tornado.application")
 
-uuid = str(uuid4())
+api_instance_uuid = str(uuid4())
 
 #################### TODO: REMOVE ME
 def get_script():
@@ -52,7 +52,7 @@ class StatusSchema(schemaBase):
     def __init__(self):
         super().__init__(self)
         self.status_data = {
-            "id": uuid,
+            "id": api_instance_uuid,
             "currentStatus": "...",
             "currentTime": time.time(),
             "schemaGenerationTime": get_schema_timestamp(),
