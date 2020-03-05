@@ -20,7 +20,7 @@ application_log = logging.getLogger("tornado.application")
 
 class PoseStampedSchema(schemaBase):
     def __init__(self):
-        super().__init__()
+        super().__init__(self)
         self.pose_data = {"uuid": "test"}
 
         self.pose_stamped_message_type = GraphQLObjectType(

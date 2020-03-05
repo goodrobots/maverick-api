@@ -32,7 +32,7 @@ application_log = logging.getLogger("tornado.application")
 
 class MissionSchema(schemaBase):
     def __init__(self):
-        super().__init__()
+        super().__init__(self)
         # create a mission database dir
         self.mission_database_dir = Path(options.datadir).joinpath("missions")
         # make the path if it does not exist

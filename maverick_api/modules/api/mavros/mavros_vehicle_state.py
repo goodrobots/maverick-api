@@ -20,7 +20,7 @@ application_log = logging.getLogger("tornado.application")
 
 class VehicleStateSchema(schemaBase):
     def __init__(self):
-        super().__init__()
+        super().__init__(self)
 
         self.state_data = {"uuid": "test"}
 

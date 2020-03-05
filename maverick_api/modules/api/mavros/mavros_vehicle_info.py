@@ -27,7 +27,7 @@ application_log = logging.getLogger("tornado.application")
 
 class VehicleInfoSchema(schemaBase):
     def __init__(self):
-        super().__init__()
+        super().__init__(self)
         self.vehicle_info_data = {}
         self.vehicle_info_meta = {"meta": {"total": 0, "updateTime": int(time.time())}}
 

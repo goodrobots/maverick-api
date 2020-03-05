@@ -20,7 +20,7 @@ application_log = logging.getLogger("tornado.application")
 
 class NavSatFixSchema(schemaBase):
     def __init__(self):
-        super().__init__()
+        super().__init__(self)
         self.nav_sat_fix_data = {"uuid": "test"}
 
         self.nav_sat_fix_message_type = GraphQLObjectType(

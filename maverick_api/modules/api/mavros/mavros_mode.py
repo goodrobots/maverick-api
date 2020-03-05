@@ -23,7 +23,7 @@ application_log = logging.getLogger("tornado.application")
 
 class ModeSchema(schemaBase):
     def __init__(self):
-        super().__init__()
+        super().__init__(self)
         self.mode_data = {}
         mavros.set_namespace("mavros")
         # register mode control

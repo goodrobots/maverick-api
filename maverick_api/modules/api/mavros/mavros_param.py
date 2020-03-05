@@ -76,7 +76,7 @@ def parse_param_value_literal(value_ast, _variables=None):
 
 class ParamSchema(schemaBase):
     def __init__(self):
-        super(ParamSchema, self).__init__()
+        super(ParamSchema, self).__init__(self)
 
         self.parameter_data = {}
         self.parameter_meta = {}

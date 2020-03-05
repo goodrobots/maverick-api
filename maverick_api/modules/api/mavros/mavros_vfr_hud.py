@@ -21,7 +21,7 @@ application_log = logging.getLogger("tornado.application")
 
 class VfrHudSchema(schemaBase):
     def __init__(self):
-        super().__init__()
+        super().__init__(self)
         self.vfr_hud_data = {"uuid": "test"}
 
         self.vfr_hud_message_type = GraphQLObjectType(

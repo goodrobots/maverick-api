@@ -14,7 +14,7 @@ application_log = logging.getLogger("tornado.application")
 
 class StatusTextSchema(schemaBase):
     def __init__(self):
-        super().__init__()
+        super().__init__(self)
         self.status_text_data = {"uuid": "test"}
 
         self.status_text_message_type = GraphQLObjectType(
