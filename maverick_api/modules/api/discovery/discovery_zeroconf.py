@@ -44,15 +44,15 @@ class DiscoveryZeroconfModule(moduleBase):
         except OSError as e:
             # the port was blocked
             application_log.info(
-                f"Unable to start zeroconf server, attempting to register with avahi"
+                f"Unable to start zeroconf server due to {e}, attempting to register with avahi"
             )
             # TODO: register by shell command or find bindings
 
     def shutdown(self):
-        # TODO: on exit call:
-        # zeroconf.unregister_service(self.service_info)
-        # zeroconf.close()
-        pass
+        self.stop_periodic_callbacks()
+        if self.zeroconf:
+            self.zeroconf.unregister_service(self.service_info)
+            self.zeroconf.close()
 
     @property
     def http_protocol(self):
@@ -83,3 +83,7 @@ class DiscoveryZeroconfModule(moduleBase):
     def start_periodic_callbacks(self):
         for periodic_callback in self.periodic_callbacks:
             periodic_callback.start()
+
+    def stop_periodic_callbacks(self):
+        for periodic_callback in self.periodic_callbacks:
+            periodic_callback.stop()

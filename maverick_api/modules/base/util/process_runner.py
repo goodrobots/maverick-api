@@ -144,7 +144,7 @@ class ProcessRunner(object):
             # let the caller that the process is complete...
             self.complete_callback(**self.to_dict())
         self.process = None
-        return True
+        return self.returncode
 
     def append_to_output_log(self, name, output):
         should_callback = False

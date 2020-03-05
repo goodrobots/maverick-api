@@ -79,6 +79,12 @@ class MavConfig(object):
             type=list,
             help="List of modules to deny loading",
         )
+        define(
+            "service_definition_path",
+            default="~/software/maverick/bin/status.d",
+            type=str,
+            help="Path to search for the service definition file that is used to populate maverick_service",
+        )
 
     # Parse and load config options
     def load_options(self):
@@ -108,4 +114,4 @@ class MavConfig(object):
         config_callback = functools.partial(
             reload_options_on_update, options.config_file
         )
-        ioloop.PeriodicCallback(config_callback, 1000).start()
+        ioloop.PeriodicCallback(config_callback, 2000).start()

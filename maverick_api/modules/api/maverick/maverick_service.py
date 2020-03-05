@@ -19,12 +19,14 @@ from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
 
 application_log = logging.getLogger("tornado.application")
 
+from tornado.options import options
+
 
 class MaverickServiceSchema(schemaBase):
     def __init__(self):
         super().__init__(self)
         self.name = "MaverickService"
-        self.service_path = "~/software/maverick/bin/status.d"
+        self.service_definition_path = options.service_definition_path
         self.services = self.read_services()
         self.service_command_defaults = {"name": "", "enabled": None, "running": None}
         self.service_command = copy.deepcopy(self.service_command_defaults)
@@ -94,11 +96,14 @@ class MaverickServiceSchema(schemaBase):
 
         services = []
         if self.service_command["name"] == "all":
+            # select all available services
             services = self.services.keys()
         else:
+            # just pick the one service
             services.append(self.service_command["name"])
 
         for service in services:
+            # TODO: refactor duplicated code segments
             self.service_command["name"] = service
 
             if self.service_command["enabled"] is None:
@@ -140,7 +145,11 @@ class MaverickServiceSchema(schemaBase):
                     self.service_command["running"] = None
                 self.emit_subscription()
 
+            if len(services) == 1:
+                await self._get_service_status()
+        if len(services) >= 1:
             await self._get_service_status()
+
         return self.service_command
 
     async def get_service_status(self, root, info, **kwargs):
@@ -178,8 +187,7 @@ class MaverickServiceSchema(schemaBase):
     async def run_command(self, cmd):
         if cmd and self.okay_to_run():
             self.service_proc = ProcessRunner(cmd)
-            await self.service_proc.run()
-            if self.service_proc.returncode == 0:
+            if await self.service_proc.run() == 0:
                 return True
             else:
                 return False
@@ -193,6 +201,7 @@ class MaverickServiceSchema(schemaBase):
                 self.service_proc = None
             else:
                 return False
+        # re-check the service_proc after the above has run
         if not self.service_proc:
             return True
 
