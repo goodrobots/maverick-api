@@ -7,6 +7,7 @@ from tornado.options import options
 from maverick_api.modules import moduleBase
 
 application_log = logging.getLogger("tornado.application")
+from maverick_api.modules.api.status import api_instance_uuid
 
 
 class DiscoveryZeroconfModule(moduleBase):
@@ -27,11 +28,11 @@ class DiscoveryZeroconfModule(moduleBase):
         self.service_info = ServiceInfo(
             # TODO: FIXME come up with useful values for the info below
             "_http._tcp.local.",
-            "Maverick API._http._tcp.local.",
+            f"Maverick API {api_instance_uuid}._http._tcp.local.",
             addresses=[socket.inet_aton(options.server_interface)],
             port=options.server_port,
             properties=desc,
-            server="maverick-api.local.",
+            server=f"{socket.getfqdn()}.",
         )
 
     def start(self):
