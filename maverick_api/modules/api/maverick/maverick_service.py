@@ -74,13 +74,13 @@ class MaverickServiceSchema(schemaBase):
         # TODO: finish this
         try:
             service_folders = [
-                f.name for f in os.scandir(self.service_path) if f.is_dir()
+                f.name for f in os.scandir(self.service_definition_path) if f.is_dir()
             ]
             for service_folder in service_folders:
                 category = service_folder.split(".")[-1].strip()  # e.g.: dev
         except FileNotFoundError:
             application_log.warning(
-                f"Could not find service folder at: {self.service_path}"
+                f"Could not find service folder at: {self.service_definition_path}"
             )
 
         return {
