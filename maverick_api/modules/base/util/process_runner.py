@@ -5,6 +5,7 @@ import os, pty
 import termios
 import fcntl
 import re
+import functools
 
 import tornado.ioloop
 
@@ -25,6 +26,7 @@ class ProcessRunner(object):
         post_timeout=0,
         echo=False,
         strip_output=False,
+        shell=True,
     ):
         self.cmd = cmd
         self.width = width
@@ -51,6 +53,7 @@ class ProcessRunner(object):
         )
         self.echo = echo
         self.strip_output = strip_output
+        self.shell = shell
 
     def to_dict(self):
         return {
@@ -68,7 +71,7 @@ class ProcessRunner(object):
             # already running...
             return False
         else:
-            self.loop.add_callback(self.run)
+            self.loop.add_callback(functools.partial(self.run, self.shell))
             return True
 
     def terminate(self):
@@ -91,7 +94,7 @@ class ProcessRunner(object):
     def fileCallback(self, fd, event, **kwargs):
         self.append_to_output_log("stdout", os.read(fd, 10240))
 
-    async def run(self):
+    async def run(self, shell=True):
         # https://github.com/QubesOS/qubes-core-admin/blob/master/qubes/backup.py
         my_env = os.environ.copy()
         my_env["TERM"] = "xterm-256color"
@@ -115,15 +118,28 @@ class ProcessRunner(object):
         (self.pty_master, pty_slave) = pty.openpty()
 
         # application_log.debug(my_env)
-        self.process = await asyncio.create_subprocess_shell(
-            self.cmd,
-            env=my_env,
-            bufsize=0,
-            stdin=pty_slave,
-            stdout=pty_slave,
-            stderr=pty_slave,
-            preexec_fn=lambda: set_ctty(pty_slave, self.pty_master),
-        )
+        if shell:
+            self.process = await asyncio.create_subprocess_shell(
+                self.cmd,
+                env=my_env,
+                bufsize=0,
+                stdin=pty_slave,
+                stdout=pty_slave,
+                stderr=pty_slave,
+                preexec_fn=lambda: set_ctty(pty_slave, self.pty_master),
+            )
+        else:
+            # TODO: trim down the operation if a shell is not required
+            self.process = await asyncio.create_subprocess_exec(
+                self.cmd,
+                env=my_env,
+                bufsize=0,
+                stdin=pty_slave,
+                stdout=pty_slave,
+                stderr=pty_slave,
+                preexec_fn=lambda: set_ctty(pty_slave, self.pty_master),
+            )
+
         if self.started_callback:
             # let them know we are running...
             self.started_callback(**self.to_dict())
