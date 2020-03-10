@@ -11,6 +11,7 @@ from maverick_api.modules.base.util.process_runner import ProcessRunner
 
 # graphql imports
 from graphql import (
+    GraphQLArgument,
     GraphQLField,
     GraphQLObjectType,
     GraphQLInt,
@@ -81,7 +82,16 @@ class MaverickServiceSchema(schemaBase):
 
         self.q = {
             self.service_command_name: GraphQLField(
-                self.service_command_type, resolve=self.get_service_status,
+                self.service_command_type,
+                args={
+                    "name": GraphQLArgument(
+                        GraphQLString, description="Service identifier name",
+                    ),
+                    "category": GraphQLArgument(
+                        GraphQLString, description="Service category identifier",
+                    ),
+                },
+                resolve=self.get_service_status,
             ),
             self.service_command_list_name: GraphQLField(
                 self.service_command_list_type, resolve=self.get_service_status_list,
@@ -166,15 +176,15 @@ class MaverickServiceSchema(schemaBase):
         service_status = {}
         default_state = {"enabled": None, "running": None, "last_update": None}
         for service in self.services:
-            service_status[service["service_name"]] = copy(default_state)
+            service_status[service["service_name"]] = default_state.copy()
         return service_status
 
     def filter_services(self, service_command):
-        services = copy(self.services)
+        services = self.services.copy()
 
         # Both or one of category and name must be provided with the mutation
         if not service_command["category"] and not service_command["name"]:
-            application_log.warining(
+            application_log.warning(
                 "No service category or service name was provided. No action taken."
             )
             return []
@@ -193,7 +203,7 @@ class MaverickServiceSchema(schemaBase):
 
         # Check to ensure we have a service left over after the filtering
         if len(services) < 1:
-            application_log.warining(
+            application_log.warning(
                 f"No services were selected using service category = {service_command['category']} and service name = {service_command['name']}."
             )
             return []
@@ -321,7 +331,7 @@ class MaverickServiceSchema(schemaBase):
         if cmd:
             try:
                 ret = await asyncio.wait_for(
-                    ProcessRunner(cmd).run(shell=False), self.process_runner_timeout
+                    ProcessRunner(cmd).run(shell=True), self.process_runner_timeout
                 )
                 if ret == 0:
                     return True
@@ -336,7 +346,7 @@ class MaverickServiceSchema(schemaBase):
             application_log.warning(f"Not able to run service command: {cmd}")
             return None
 
-    def emit_subscription_service(self, service_command):
+    def emit_subscription(self, service_command):
         self.subscriptions.emit(
             self.subscription_string + self.service_command_name,
             {self.service_command_name: service_command},
@@ -348,19 +358,31 @@ class MaverickServiceSchema(schemaBase):
         )
 
     async def get_service_status_list(self, root, info, **kwargs):
+        service_command = {}
+
+        service_tasks = []
+        for service in self.services:
+            service_tasks.append(
+                asyncio.create_task(
+                    self._get_service_status(service, service_command.copy())
+                )
+            )
+        foo = await asyncio.gather(*service_tasks, return_exceptions=True)
+        application_log.warning(foo)
+
         service_list = []
         for service in self.services:
-            service_list.append(
-                {
-                    "name": service["service_name"],
-                    "displayName": service["service_display_name"],
-                    "category": service["service_name"],
-                    "displayCategory": service["service_name"],
-                    "enabled": self.service_status[service["service_name"]]["enabled"],
-                    "running": self.service_status[service["service_name"]]["running"],
-                    "updateTime": self.service_status[service["service_name"]][
-                        "last_update"
-                    ],
-                }
-            )
-        return service_list
+            service_status = {
+                "name": service["service_name"],
+                "displayName": service["service_display_name"],
+                "category": service["category_name"],
+                "displayCategory": service["category_display_name"],
+                "enabled": self.service_status[service["service_name"]]["enabled"],
+                "running": self.service_status[service["service_name"]]["running"],
+                "updateTime": self.service_status[service["service_name"]][
+                    "last_update"
+                ],
+            }
+            self.emit_subscription(service_status)
+            service_list.append(service_status)
+        return {"services": service_list}
