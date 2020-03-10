@@ -1,6 +1,7 @@
 import logging
 import copy
 import os
+import pathlib
 
 from maverick_api.modules import schemaBase
 from maverick_api.modules.base.util.process_runner import ProcessRunner
@@ -25,17 +26,20 @@ from tornado.options import options
 class MaverickServiceSchema(schemaBase):
     def __init__(self):
         super().__init__(self)
-        self.name = "MaverickService"
-        self.service_definition_path = options.service_definition_path
+        self.service_command_name = "MaverickService"
+        self.service_command_list_name = self.service_command_name + "List"
+        self.service_definition_path = pathlib.Path(options.service_definition_path).expanduser().resolve()
+        self.meta_info_file = "__init__"
         self.services = self.read_services()
-        self.service_command_defaults = {"name": "", "enabled": None, "running": None}
+        self.service_command_defaults = {"name": "", "category":"", "enabled": None, "running": None}
         self.service_command = copy.deepcopy(self.service_command_defaults)
         self.service_proc = None
 
         self.service_command_type = GraphQLObjectType(
-            self.name,
+            self.service_command_name,
             lambda: {
                 "name": GraphQLField(GraphQLString, description="Service name",),
+                "category": GraphQLField(GraphQLString, description="Service category",),
                 "enabled": GraphQLField(
                     GraphQLBoolean, description="If the service is enabled at boot",
                 ),
@@ -46,8 +50,13 @@ class MaverickServiceSchema(schemaBase):
             description="Maverick service interface",
         )
 
+
+        # self.service_command_list_type = GraphQLObjectType(
+            
+        # )
+
         self.q = {
-            self.name: GraphQLField(
+            self.service_command_name: GraphQLField(
                 self.service_command_type,
                 args={"name": GraphQLArgument(GraphQLNonNull(GraphQLString)),},
                 resolve=self.get_service_status,
@@ -55,7 +64,7 @@ class MaverickServiceSchema(schemaBase):
         }
 
         self.m = {
-            self.name: GraphQLField(
+            self.service_command_name: GraphQLField(
                 self.service_command_type,
                 args=self.get_mutation_args(self.service_command_type),
                 resolve=self.set_service_status,
@@ -63,7 +72,7 @@ class MaverickServiceSchema(schemaBase):
         }
 
         self.s = {
-            self.name: GraphQLField(
+            self.service_command_name: GraphQLField(
                 self.service_command_type,
                 subscribe=self.sub_service_status,
                 resolve=None,
@@ -71,86 +80,126 @@ class MaverickServiceSchema(schemaBase):
         }
 
     def read_services(self):
-        # TODO: finish this
+        services = []
         try:
             service_folders = [
                 f.name for f in os.scandir(self.service_definition_path) if f.is_dir()
             ]
-            for service_folder in service_folders:
-                category = service_folder.split(".")[-1].strip()  # e.g.: dev
+            service_folders.sort()
+            for idx, service_folder in enumerate(service_folders):
+                service_folder_path = self.service_definition_path.joinpath(service_folder)
+                category = service_folder.split(".")[-1].strip().lower()  # e.g.: dev
+                
+                service_files = [
+                    f.name for f in os.scandir(service_folder_path) if f.is_file()
+                ]
+                service_files.sort()
+                sub_idx = 0
+                
+                if self.meta_info_file in service_files:
+                    meta_info = ""
+                    with open(service_folder_path.joinpath(self.meta_info_file), "r+") as fid:
+                        meta_info = fid.read().strip()
+
+                for service_file in [ x for x in service_files if x!= self.meta_info_file]:
+                    with open(service_folder_path.joinpath(service_file), "r+") as fid:
+                        service_info = fid.readlines()
+                        for line in [x for x in service_info if x.strip()]:
+                            line = line.split(",")
+                            service_name = line[0].strip().lower()
+                            display_name = line[1].strip()
+                            services.append({"category_name":category, "category_display_name":meta_info, "command":f"maverick-{service_name}","service_name": service_name, "service_display_name":display_name, "category_index":idx, "service_index":sub_idx})
+                            sub_idx += 1
+
+            for service in services:
+                application_log.debug(f"Adding service: {service}")
+
+            
         except FileNotFoundError:
             application_log.warning(
                 f"Could not find service folder at: {self.service_definition_path}"
             )
 
-        return {
-            "maverick-apsitl@dev": {},
-        }
+        return services
 
     async def set_service_status(self, root, info, **kwargs):
         application_log.debug(f"set_service_status {kwargs}")
 
-        self.service_command["name"] = kwargs.get("name", "").lower()
-        self.service_command["enabled"] = kwargs.get("enabled", None)
-        self.service_command["running"] = kwargs.get("running", None)
+        service_command = {}
+        service_command["name"] = kwargs.get("name", "").lower()
+        service_command["enabled"] = kwargs.get("enabled", None)
+        service_command["category"] = kwargs.get("category", "").lower()
+        service_command["running"] = kwargs.get("running", None)
 
-        services = []
-        if self.service_command["name"] == "all":
-            # select all available services
-            services = self.services.keys()
-        else:
-            # just pick the one service
-            services.append(self.service_command["name"])
+        services = copy(self.services)
+
+        # Both or one of category and name must be provided with the mutation
+        if not service_command["category"] and not service_command["name"]:
+            application_log.warining("No service category or service name was provided. No action taken.")
+            return service_command
+
+        # Filter the avalble services by category, if provided
+        if service_command["category"]:
+            services = [x for x in services if x["category_name"] == service_command["category"]]
+
+        # Filter the avalble services by name, if provided
+        if service_command["name"]:
+            services = [x for x in services if x["service_name"] == service_command["name"]]
+        
+        # Check to ensure we have a service left over after the filtering
+        if len(services) < 1:
+            application_log.warining(f"No services were selected using service category = {service_command['category']} and service name = {service_command['name']}.")
+
 
         for service in services:
             # TODO: refactor duplicated code segments
-            self.service_command["name"] = service
+            service_command["name"] = service["service_name"]
 
-            if self.service_command["enabled"] is None:
+            if service_command["enabled"] is None:
                 pass
-            elif self.service_command["enabled"]:
+            elif service_command["enabled"]:
                 cmd = f"sudo systemctl enable {service}"
                 ret = await self.run_command(cmd)
                 if ret:
-                    self.service_command["enabled"] = True
+                    service_command["enabled"] = True
                 else:
-                    self.service_command["enabled"] = None
+                    service_command["enabled"] = None
                 self.emit_subscription()
 
             else:
                 cmd = f"sudo systemctl disable {service}"
                 ret = await self.run_command(cmd)
                 if ret:
-                    self.service_command["enabled"] = False
+                    service_command["enabled"] = False
                 else:
-                    self.service_command["enabled"] = None
+                    service_command["enabled"] = None
                 self.emit_subscription()
 
-            if self.service_command["running"] is None:
+            if service_command["running"] is None:
                 pass
-            elif self.service_command["running"]:
+            elif service_command["running"]:
                 cmd = f"sudo systemctl start {service}"
                 ret = await self.run_command(cmd)
                 if ret:
-                    self.service_command["running"] = True
+                    service_command["running"] = True
                 else:
-                    self.service_command["running"] = None
+                    service_command["running"] = None
                 self.emit_subscription()
             else:
                 cmd = f"sudo systemctl stop {service}"
                 ret = await self.run_command(cmd)
                 if ret:
-                    self.service_command["running"] = False
+                    service_command["running"] = False
                 else:
-                    self.service_command["running"] = None
+                    service_command["running"] = None
                 self.emit_subscription()
 
             if len(services) == 1:
-                await self._get_service_status()
+                await self._get_service_status(services)
         if len(services) >= 1:
             await self._get_service_status()
 
-        return self.service_command
+        return service_command
 
     async def get_service_status(self, root, info, **kwargs):
         application_log.debug(f"get_service_status {kwargs}")
@@ -159,7 +208,7 @@ class MaverickServiceSchema(schemaBase):
         await self._get_service_status()
         return self.service_command
 
-    async def _get_service_status(self):
+    async def _get_service_status(self, services):
         services = []
         if self.service_command["name"] == "all":
             services = self.services.keys()
@@ -207,10 +256,10 @@ class MaverickServiceSchema(schemaBase):
 
     def emit_subscription(self):
         self.subscriptions.emit(
-            self.subscription_string + self.name, {self.name: self.service_command},
+            self.subscription_string + self.service_command_name, {self.service_command_name: self.service_command},
         )
 
     def sub_service_status(self, root, info):
         return EventEmitterAsyncIterator(
-            self.subscriptions, self.subscription_string + self.name,
+            self.subscriptions, self.subscription_string + self.service_command_name,
         )
