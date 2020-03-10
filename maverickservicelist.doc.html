@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link type="text/css" rel="stylesheet" href="./styles/graphdoc.css" />
-    <title>AuthenticationStatus</title>
+    <title>MaverickServiceList</title>
     <link href="https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700" rel="stylesheet"><link type="text/css" rel="stylesheet" href="./assets/code.css" /><link type="text/css" rel="stylesheet" href="./assets/require-by.css" />
 </head>
 <body class="slds-scrollable--y">
@@ -90,7 +90,7 @@
                 AuthenticationRequest
             </a>
         </li>
-        <li class="slds-is-active" title="AuthenticationStatus">
+        <li  title="AuthenticationStatus">
             <a href="authenticationstatus.doc.html" class="slds-navigation-list--vertical__action slds-text-link--reset slds-truncate">
                 AuthenticationStatus
             </a>
@@ -105,7 +105,7 @@
                 MaverickService
             </a>
         </li>
-        <li  title="MaverickServiceList">
+        <li class="slds-is-active" title="MaverickServiceList">
             <a href="maverickservicelist.doc.html" class="slds-navigation-list--vertical__action slds-text-link--reset slds-truncate">
                 MaverickServiceList
             </a>
@@ -191,7 +191,7 @@
     </div>
     <div class="container">
         <p class="slds-text-title--caps slds-text-color--weak">OBJECT</p>
-        <h1 class="slds-text-heading--large">AuthenticationStatus</h1>
+        <h1 class="slds-text-heading--large">MaverickServiceList</h1>
         <div class="slds-text-body--regular"></div>
     </div>
 </section>
@@ -203,7 +203,7 @@
             </a>
             GraphQL Schema definition
         </h2>
-        <code class="highlight"><ul class="code" style="padding-left:28px"><li><span class="keyword operator ts">type</span> <span class="identifier">AuthenticationStatus</span> {</li><li></li><li><span class="tab"><span class="meta">id</span>: <a class="support type" href="string.doc.html">String</a>! </span></li><li></li><li><span class="tab"><span class="meta">userName</span>: <a class="support type" href="string.doc.html">String</a> </span></li><li></li><li><span class="tab"><span class="meta">password</span>: <a class="support type" href="string.doc.html">String</a> </span></li><li>}</li></ul></code>
+        <code class="highlight"><ul class="code" style="padding-left:28px"><li><span class="keyword operator ts">type</span> <span class="identifier">MaverickServiceList</span> {</li><li></li><li><span class="tab"><span class="meta">services</span>: [<a class="support type" href="maverickservice.doc.html">MaverickService</a>] </span></li><li>}</li></ul></code>
     </div>
 </section>
 <section>
@@ -214,7 +214,7 @@
             </a>
             Require by
         </h2>
-        <ul class="require-by"><li><a href="mutation.doc.html" title="mutation - ">mutation<em></em></a><li><li><a href="query.doc.html" title="query - ">query<em></em></a><li><li><a href="subscription.doc.html" title="subscription - ">subscription<em></em></a><li></ul>
+        <ul class="require-by"><li><a href="query.doc.html" title="query - ">query<em></em></a><li></ul>
     </div>
 </section>
 <footer>
