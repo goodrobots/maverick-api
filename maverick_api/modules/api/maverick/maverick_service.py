@@ -367,8 +367,7 @@ class MaverickServiceSchema(schemaBase):
                     self._get_service_status(service, service_command.copy())
                 )
             )
-        foo = await asyncio.gather(*service_tasks, return_exceptions=True)
-        application_log.warning(foo)
+        await asyncio.gather(*service_tasks, return_exceptions=True)
 
         service_list = []
         for service in self.services:
