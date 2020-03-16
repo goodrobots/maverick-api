@@ -11,3 +11,4 @@ tinydb==3.15.2
 ## maverick
 jsoncomment==0.4.2
 jsondiff==1.2.0
+pystemd
