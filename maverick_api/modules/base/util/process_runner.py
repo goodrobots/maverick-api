@@ -170,7 +170,7 @@ class ProcessRunner(object):
             pass
         if self.strip_output:
             output = self.re_ctrl_format_matcher.sub("", output)
-        application_log.debug(f"{name}:{output}")
+        # application_log.debug(f"{name}:{output}")
         if name == "stdout" and output:
             self.stdout = output
             self.stderror = ""
