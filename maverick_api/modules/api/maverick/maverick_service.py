@@ -5,6 +5,7 @@ import pathlib
 import asyncio
 import time
 import functools
+import tornado.ioloop
 
 from pystemd.dbuslib import DBus
 from pystemd.systemd1 import Unit
@@ -12,7 +13,6 @@ from pystemd.systemd1 import Manager
 
 from maverick_api.modules import schemaBase
 from maverick_api.modules.base.util.process_runner import ProcessRunner
-
 
 # graphql imports
 from graphql import (
@@ -31,21 +31,66 @@ application_log = logging.getLogger("tornado.application")
 from tornado.options import options
 
 
+def process(msg, error=None, userdata=None):
+    msg.process_reply(True)
+    member = msg.headers.get("Member", None)
+    loop = tornado.ioloop.IOLoop.current()
+
+    if member == b"PropertiesChanged":
+        unit_path = msg.headers.get("Path", None)
+        sub_state = msg.body[1].get(b"SubState", None)
+        timestamp_monotonic = msg.body[1].get(b"StateChangeTimestampMonotonic", None)
+        if unit_path and sub_state:
+            application_log.debug(f"{unit_path}:{sub_state}")
+            if unit_path in userdata.services:
+                check_enabled = False
+                userdata.services[unit_path]["running"] = (
+                    True if sub_state == b"running" else False
+                )
+                if userdata.services[unit_path]["enabled"] == None:
+                    check_enabled = True
+                loop.add_callback(
+                    functools.partial(
+                        userdata.call_get_service_status,
+                        [userdata.services[unit_path]],
+                        {},
+                        check_enabled=check_enabled,
+                    )
+                )
+    elif member == b"UnitFilesChanged":
+        application_log.info("An enable / disable event occured")
+        loop.add_callback(
+            functools.partial(
+                userdata.call_get_service_status,
+                [userdata.services[service] for service in userdata.services],
+                {},
+            )
+        )
+    else:
+        pass
+
+
 class MaverickServiceSchema(schemaBase):
     def __init__(self):
         super().__init__(self)
         loop = tornado.ioloop.IOLoop.current()
         self.service_command_name = "MaverickService"
+        self.process_runner_timeout = 1  # seconds
+        self.using_dbus = True
         # self.service_command_category_name = self.service_command_name + "Category"
         self.service_command_list_name = self.service_command_name + "List"
         self.service_definition_path = (
             pathlib.Path(options.service_definition_path).expanduser().resolve()
         )
         self.meta_info_file = "__init__"
-        self.services = self.read_services_dbus()
-        self.process_runner_timeout = 1  # seconds
-        self.stop_event = asyncio.Event()
-        loop.add_callback(functools.partial(self.monitor, self.services))
+        if self.using_dbus:
+            self.services = self.read_services_dbus()
+        else:
+            self.services = self.read_services()
+
+        if self.using_dbus:
+            self.stop_event = asyncio.Event()
+            loop.add_callback(self.monitor)
 
         self.service_command_type = GraphQLObjectType(
             self.service_command_name,
@@ -116,31 +161,30 @@ class MaverickServiceSchema(schemaBase):
         }
 
     def read_services_dbus(self):
-        services = []
+        services = {}
         with Manager() as manager:
             for _unit in manager.Manager.ListUnits():
                 idx = _unit[0].find(b"maverick-")
-                if idx == -1: 
+                if idx == -1:
                     continue
-                services.append({
-                    "unit": Unit(_unit[0]), 
+                services[Unit(_unit[0]).path] = {
+                    "unit": Unit(_unit[0]),
+                    "path": Unit(_unit[0]).path,
                     "category_name": None,
                     "category_display_name": None,
                     "command": _unit[0][0:-8].decode(),
                     "service_name": _unit[0][9:-8].decode(),
                     "service_display_name": _unit[1].decode(),
-                    "category_index": None,
-                    "service_index": None,
-                    "last_update": None,
+                    "last_update": int(time.time()),
                     "enabled": None,
-                    "running": True if _unit[4] == b'running' else False,
-                })
+                    "running": True if _unit[4] == b"running" else False,
+                }
         for service in services:
-            application_log.debug(f"Adding service: {service}")
-
+            application_log.debug(f"Adding service: {services[service]}")
+        return services
 
     def read_services(self):
-        services = []
+        services = {}
         try:
             service_folders = [
                 f.name for f in os.scandir(self.service_definition_path) if f.is_dir()
@@ -174,24 +218,20 @@ class MaverickServiceSchema(schemaBase):
                             line = line.split(",")
                             service_name = line[0].strip().lower()
                             display_name = line[1].strip()
-                            services.append(
-                                {
-                                    "category_name": category,
-                                    "category_display_name": meta_info,
-                                    "command": f"maverick-{service_name}",
-                                    "service_name": service_name,
-                                    "service_display_name": display_name,
-                                    "category_index": idx,
-                                    "service_index": sub_idx,
-                                    "last_update": None,
-                                    "enabled": None,
-                                    "running": None,
-                                }
-                            )
-                            sub_idx += 1
+                            services[f"maverick-{service_name}"] = {
+                                "path": f"maverick-{service_name}",
+                                "category_name": category,
+                                "category_display_name": meta_info,
+                                "command": f"maverick-{service_name}",
+                                "service_name": service_name,
+                                "service_display_name": display_name,
+                                "last_update": None,
+                                "enabled": None,
+                                "running": None,
+                            }
 
             for service in services:
-                application_log.debug(f"Adding service: {service}")
+                application_log.debug(f"Adding service: {services[service]}")
 
         except FileNotFoundError:
             application_log.warning(
@@ -199,58 +239,29 @@ class MaverickServiceSchema(schemaBase):
             )
         return services
 
-    def process(self, msg, error=None, userdata=None):
-        msg.process_reply(True)
-        member = msg.headers.get("Member", None)
-
-        if member == b"PropertiesChanged":
-            unit_path = msg.headers.get("Path", None)
-            sub_state = msg.body[1].get(b"SubState", None)
-            timestamp_monotonic = msg.body[1].get(b"StateChangeTimestampMonotonic", None)
-            if unit_path and sub_state:
-                # TODO: set service property
-                # [service for service in userdata if unit_path[]]
-                application_log.info(sub_state)
-                application_log.info(timestamp_monotonic)
-        elif member == b"UnitFilesChanged":
-            # print("An enable / disable event occured")
-            service_tasks = []
-            service_command = {}
-            for service in userdata:
-                service_tasks.append(
-                    asyncio.create_task(
-                        self._get_service_status(service, copy.deepcopy(service_command))
-                    )
-                )
-            await asyncio.gather(*service_tasks, return_exceptions=True)
-        else:
-            pass
-
-
     def read_callback(self, fd, event, **kwargs):
         kwargs["bus"].process()
 
-
-    async def monitor(self, units):
+    async def monitor(self):
         loop = tornado.ioloop.IOLoop.current()
 
         with DBus() as bus:
-            for service_data in units:
+            for service in self.services:
                 bus.match_signal(
-                    service_data["unit"].destination,
-                    service_data["unit"].path,
+                    self.services[service]["unit"].destination,
+                    self.services[service]["unit"].path,
                     b"org.freedesktop.DBus.Properties",
                     b"PropertiesChanged",
-                    self.process,
-                    self.services,
+                    process,
+                    self,
                 )
             bus.match_signal(
                 b"org.freedesktop.systemd1",
                 None,
                 None,
                 b"UnitFilesChanged",
-                self.process,
-                self.services,
+                process,
+                self,
             )
             loop.add_handler(
                 bus.get_fd(), functools.partial(self.read_callback, bus=bus), loop.READ
@@ -258,7 +269,7 @@ class MaverickServiceSchema(schemaBase):
             await self.stop_event.wait()
 
     def filter_services(self, service_command):
-        services = self.services.copy()
+        services = [self.services[service] for service in self.services]
 
         # Both or one of category and name must be provided with the mutation
         if not service_command["category"] and not service_command["name"]:
@@ -310,9 +321,6 @@ class MaverickServiceSchema(schemaBase):
             )
         await asyncio.gather(*service_tasks, return_exceptions=True)
         return
-    
-    def _set_service_status(self):
-        
 
     async def modify_service(self, service, service_command):
         service_command["name"] = service["service_name"]
@@ -354,7 +362,8 @@ class MaverickServiceSchema(schemaBase):
             else:
                 service_command["running"] = None
 
-        await self._get_service_status(service, service_command)
+        if not self.using_dbus:
+            await self._get_service_status(service, service_command)
 
     async def get_service_status(self, root, info, **kwargs):
         application_log.debug(f"get_service_status {kwargs}")
@@ -367,44 +376,54 @@ class MaverickServiceSchema(schemaBase):
         if not services:
             return
 
+        await self.call_get_service_status(services, service_command)
+
+    async def call_get_service_status(
+        self, services, service_command, check_enabled=True
+    ):
         service_tasks = []
         for service in services:
             service_tasks.append(
                 asyncio.create_task(
-                    self._get_service_status(service, copy.deepcopy(service_command))
+                    self._get_service_status(
+                        service,
+                        copy.deepcopy(service_command),
+                        check_enabled=check_enabled,
+                    )
                 )
             )
         await asyncio.gather(*service_tasks, return_exceptions=True)
-        return
 
-    async def _get_service_status(self, service, service_command):
+    async def _get_service_status(self, service, service_command, check_enabled=True):
         service_command["name"] = service["service_name"]
         service_command["displayName"] = service["service_display_name"]
         service_command["displayCategory"] = service["category_display_name"]
         service_command["category"] = service["category_name"]
+        service_command["running"] = service.get("running", None)
+        service_command["enabled"] = service.get("enabled", None)
 
-        cmd = f"systemctl --no-pager status {service['command']}"
-        ret = await self.run_command(cmd)
-        if ret:
-            service_command["running"] = True
-        else:
-            service_command["running"] = False
+        if not self.using_dbus:
+            cmd = f"systemctl --no-pager status {service['command']}"
+            ret = await self.run_command(cmd)
+            if ret:
+                service_command["running"] = True
+            else:
+                service_command["running"] = False
 
-        cmd = f"systemctl is-enabled {service['command']}"
-        ret = await self.run_command(cmd)
-        if ret:
-            service_command["enabled"] = True
-        else:
-            service_command["enabled"] = False
+            self.services[service["path"]]["running"] = service_command["running"]
+
+        if check_enabled:
+            cmd = f"systemctl is-enabled {service['command']}"
+            ret = await self.run_command(cmd)
+            if ret:
+                service_command["enabled"] = True
+            else:
+                service_command["enabled"] = False
+
+            self.services[service["path"]]["enabled"] = service_command["enabled"]
+
         update_time = int(time.time())
-        self.service_status[service["service_name"]]["enabled"] = service_command[
-            "enabled"
-        ]
-        self.service_status[service["service_name"]]["running"] = service_command[
-            "running"
-        ]
-
-        self.service_status[service["service_name"]]["last_update"] = update_time
+        self.services[service["path"]]["last_update"] = update_time
         service_command["updateTime"] = update_time
         self.emit_subscription(service_command)
 
@@ -439,29 +458,23 @@ class MaverickServiceSchema(schemaBase):
         )
 
     async def get_service_status_list(self, root, info, **kwargs):
-        service_command = {}
 
-        service_tasks = []
-        for service in self.services:
-            service_tasks.append(
-                asyncio.create_task(
-                    self._get_service_status(service, service_command.copy())
-                )
-            )
-        await asyncio.gather(*service_tasks, return_exceptions=True)
+        await self.call_get_service_status(
+            [self.services[service] for service in self.services],
+            {},
+            check_enabled=True,
+        )
 
         service_list = []
         for service in self.services:
             service_status = {
-                "name": service["service_name"],
-                "displayName": service["service_display_name"],
-                "category": service["category_name"],
-                "displayCategory": service["category_display_name"],
-                "enabled": self.service_status[service["service_name"]]["enabled"],
-                "running": self.service_status[service["service_name"]]["running"],
-                "updateTime": self.service_status[service["service_name"]][
-                    "last_update"
-                ],
+                "name": self.services[service]["service_name"],
+                "displayName": self.services[service]["service_display_name"],
+                "category": self.services[service]["category_name"],
+                "displayCategory": self.services[service]["category_display_name"],
+                "enabled": self.services[service]["enabled"],
+                "running": self.services[service]["running"],
+                "updateTime": self.services[service]["last_update"],
             }
             self.emit_subscription(service_status)
             service_list.append(service_status)
