@@ -48,6 +48,9 @@ class schemaBase(object):
         return {
             field: GraphQLObject.fields[field].type for field in GraphQLObject.fields
         }
+    
+    def shutdown(self):
+        pass
 
 
 def api_callback(loop, func, **kwargs):
@@ -172,6 +175,12 @@ def stop_all_modules():
     for module in module_base:
         module_base[module].shutdown()
     return True
+
+def stop_all_schema():
+    if not module_schema:
+        return False
+    for module in module_schema:
+        module_schema[module].shutdown()
 
 
 def get_api_schema():

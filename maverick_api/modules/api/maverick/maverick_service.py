@@ -159,6 +159,11 @@ class MaverickServiceSchema(schemaBase):
                 resolve=None,
             )
         }
+    
+    def shutdown(self):
+        if self.using_dbus:
+            self.stop_event.set()
+
 
     def read_services_dbus(self):
         services = {}
@@ -167,11 +172,16 @@ class MaverickServiceSchema(schemaBase):
                 idx = _unit[0].find(b"maverick-")
                 if idx == -1:
                     continue
-                services[Unit(_unit[0]).path] = {
-                    "unit": Unit(_unit[0]),
-                    "path": Unit(_unit[0]).path,
-                    "category_name": None,
-                    "category_display_name": None,
+                service_name = _unit[0][9:-8].decode()
+                category = None
+                if "@" in service_name:
+                    category = service_name.split("@")[-1].strip()
+                unit = Unit(_unit[0])
+                services[unit.path] = {
+                    "unit": unit,
+                    "path": unit.path,
+                    "category_name": category,
+                    "category_display_name": category,
                     "command": _unit[0][0:-8].decode(),
                     "service_name": _unit[0][9:-8].decode(),
                     "service_display_name": _unit[1].decode(),
@@ -255,6 +265,7 @@ class MaverickServiceSchema(schemaBase):
                     process,
                     self,
                 )
+                
             bus.match_signal(
                 b"org.freedesktop.systemd1",
                 None,

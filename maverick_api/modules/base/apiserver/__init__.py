@@ -23,6 +23,7 @@ from maverick_api.modules import (
     get_api_schema,
     get_module_schema,
     start_all_modules,
+    stop_all_schema,
     stop_all_modules,
 )
 
