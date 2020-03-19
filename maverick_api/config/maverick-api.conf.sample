@@ -1,10 +1,19 @@
 # URL prefix
 app_prefix = 'maverick-api/'
 
-# Secret Key - used to set secure cookie.  KEEP SECRET
+# Secret Key - Used to set secure cookie.  KEEP SECRET
 app_secretkey = 'super_s3cret'
 
-# Database backend - used to select the database backend [tinydb, mongo, sqlite]
+# Disable SSL - Used to avoid loading ssl_keyfile and ssl_certfile - Not safe for deployment
+disable_ssl = True
+
+# SSL keyfile - Path to valid ssl keyfile (not used if disable_ssl is set to True)
+ssl_keyfile = ""
+
+# SSL certfile - Path to valid ssl certfile (not used if disable_ssl is set to True)
+ssl_certfile = ""
+
+# Database backend - Used to select the database backend [tinydb, mongo, sqlite]
 database_backend = "tinydb"
 
 # Base Directory, defaults to directory of maverick_api.py script if not set or None
@@ -33,3 +42,4 @@ module_allow_list = []
 
 # List of modules to deny loading
 module_deny_list = ["mavros"]
+

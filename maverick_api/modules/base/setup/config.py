@@ -59,7 +59,28 @@ class MavConfig(object):
         )
         define("server_port", default=6795, type=int, help="Port to listen on"),
         define(
-            "json_errors", default=True, type=bool, help="Return errors JSON formatted"
+            "disable_ssl",
+            default=True,
+            type=bool,
+            help="Avoid loading ssl_keyfile and ssl_certfile",
+        )
+        define(
+            "ssl_keyfile",
+            default="",
+            type=str,
+            help="Path to valid SSL keyfile (not used if disable_ssl is set to True)",
+        )
+        define(
+            "ssl_certfile",
+            default="",
+            type=str,
+            help="Path to valid SSL certfile (not used if disable_ssl is set to True)",
+        )
+        define(
+            "json_errors",
+            default=True,
+            type=bool,
+            help="Return graphql errors in JSON format",
         )
         define(
             "apirate",
@@ -84,6 +105,9 @@ class MavConfig(object):
             default="~/software/maverick/bin/status.d",
             type=str,
             help="Path to search for the service definition file that is used to populate maverick_service",
+        )
+        define(
+            "use_dbus", default=True, type=bool, help="Use DBUS for service monitoring",
         )
 
     # Parse and load config options

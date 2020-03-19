@@ -48,7 +48,7 @@ class schemaBase(object):
         return {
             field: GraphQLObject.fields[field].type for field in GraphQLObject.fields
         }
-    
+
     def shutdown(self):
         pass
 
@@ -175,6 +175,7 @@ def stop_all_modules():
     for module in module_base:
         module_base[module].shutdown()
     return True
+
 
 def stop_all_schema():
     if not module_schema:
