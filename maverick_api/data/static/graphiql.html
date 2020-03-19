@@ -45,7 +45,7 @@
       var pathFrags = location.pathname.split("/graphiql")
       var basePath = location.origin + pathFrags[0]
       var queryPath = basePath + querySuffix
-      var subscriptionsPath = basePath.replace(/^https?/i, 'ws') + subscriptionsSuffix
+      var subscriptionsPath = basePath.replace(/^https?/i, 'wss') + subscriptionsSuffix
       
       // Collect the URL parameters
       var parameters = {};
