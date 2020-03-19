@@ -121,6 +121,10 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
     def subscriptions(self, subscriptions):
         self.handler_subscriptions[self] = subscriptions
 
+    def get_compression_options(self):
+        # http://www.tornadoweb.org/en/stable/websocket.html#tornado.websocket.WebSocketHandler.get_compression_options
+        return {"compression_level": 1, "mem_level": 9}
+
     def select_subprotocol(self, subprotocols):
         return WS_PROTOCOL
 
@@ -252,6 +256,7 @@ class GraphQLSubscriptionHandler(websocket.WebSocketHandler):
             )
 
     def on_connection_init(self, op_id, payload):
+        self.set_nodelay(True)
         self.remote_ip = self.request.remote_ip
         # application_log.debug(f"Subscription connection init payload: {payload}")
         auth = payload.get("authorization", "")
