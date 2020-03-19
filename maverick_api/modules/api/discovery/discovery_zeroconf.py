@@ -17,8 +17,9 @@ class DiscoveryZeroconfModule(moduleBase):
         self.periodic_callbacks = []
         self.discovered_api_instances = {}
         self.ip_version = IPVersion.V4Only  # IPVersion.All
-        self.secure = False
+        self.secure = not options.disable_ssl
         self.network = f"{socket.getfqdn()}:{options.server_port}"
+        self.zeroconf = None
         desc = {
             "httpEndpoint": f"{self.http_protocol}://{self.network}/graphql",
             "wsEndpoint": f"{self.ws_protocol}://{self.network}/subscriptions",
