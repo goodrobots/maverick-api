@@ -76,7 +76,7 @@ class MaverickServiceSchema(schemaBase):
         loop = tornado.ioloop.IOLoop.current()
         self.service_command_name = "MaverickService"
         self.process_runner_timeout = 1  # seconds
-        self.using_dbus = True
+        self.using_dbus = options.use_dbus
         # self.service_command_category_name = self.service_command_name + "Category"
         self.service_command_list_name = self.service_command_name + "List"
         self.service_definition_path = (
@@ -159,11 +159,10 @@ class MaverickServiceSchema(schemaBase):
                 resolve=None,
             )
         }
-    
+
     def shutdown(self):
         if self.using_dbus:
             self.stop_event.set()
-
 
     def read_services_dbus(self):
         services = {}
@@ -265,7 +264,7 @@ class MaverickServiceSchema(schemaBase):
                     process,
                     self,
                 )
-                
+
             bus.match_signal(
                 b"org.freedesktop.systemd1",
                 None,
