@@ -103,7 +103,7 @@ class ApiServer(object):
                 application_log.error("ssl_certfile option was not provided")
 
             if ssl_keyfile and ssl_certfile:
-                ssl_options = ssl.create_default_context()
+                ssl_options = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
                 ssl_options.check_hostname = False
                 try:
                     ssl_options.load_cert_chain(ssl_certfile, keyfile=ssl_keyfile)
