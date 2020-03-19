@@ -23,6 +23,8 @@ class TornadoQL(tornado.web.Application):
 
         settings = dict(
             debug=options.debug,
+            compress_response=True,
+            websocket_ping_interval=10,
             cookie_secret=options.app_secretkey,
             static_path=os.path.join(options.basedir, "data", "static"),
             xsrf_cookies=False,
