@@ -25,6 +25,8 @@ class DiscoveryZeroconfModule(moduleBase):
             "wsEndpoint": f"{self.ws_protocol}://{self.network}/subscriptions",
             "schemaEndpoint": f"{self.http_protocol}://{self.network}/schema",
             "websocketsOnly": False,
+            "uuid": api_instance_uuid,
+            "service_type": "maverick-api",
         }
         self.service_info = ServiceInfo(
             # TODO: FIXME come up with useful values for the info below
