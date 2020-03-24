@@ -29,19 +29,17 @@ class DiscoveryZeroconfModule(moduleBase):
             "service_type": "maverick-api",
         }
         self.service_info = ServiceInfo(
-            # TODO: FIXME come up with useful values for the info below
             "_http._tcp.local.",
             f"Maverick API {api_instance_uuid}._http._tcp.local.",
             addresses=[socket.inet_aton(options.server_interface)],
             port=options.server_port,
             properties=desc,
-            server=f"{socket.getfqdn()}.",
         )
 
     def start(self):
         try:
             self.zeroconf = Zeroconf(ip_version=self.ip_version)
-            self.zeroconf.register_service(self.service_info)
+            self.zeroconf.register_service(info=self.service_info, cooperating_responders=True)
             self.install_periodic_callbacks()
             self.start_periodic_callbacks()
         except OSError as e:
