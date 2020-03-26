@@ -1,9 +1,11 @@
 import logging
-from uuid import uuid4
+from uuid import uuid5
 import os
 import functools
+import socket
 import time
 
+from tornado.options import options
 import tornado.ioloop
 
 from graphql import (
@@ -21,7 +23,8 @@ from maverick_api.modules import get_schema_timestamp
 
 application_log = logging.getLogger("tornado.application")
 
-api_instance_uuid = str(uuid4())
+# Create a repeatable uuid based on fqdn and port
+api_instance_uuid = str(uuid5(":".join(socket.gethostname(), options.server_port), "maverick-api"))
 
 #################### TODO: REMOVE ME
 def get_script():
