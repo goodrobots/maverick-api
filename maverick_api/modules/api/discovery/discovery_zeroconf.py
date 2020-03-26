@@ -20,6 +20,7 @@ class DiscoveryZeroconfModule(moduleBase):
         self.secure = not options.disable_ssl
         self.network = f"{socket.getfqdn()}:{options.server_port}"
         self.zeroconf = None
+        subdesc = options.name if options.name else "{}:{}".format(socket.gethostname(), options.server_port)
         desc = {
             "httpEndpoint": f"{self.http_protocol}://{self.network}/graphql",
             "wsEndpoint": f"{self.ws_protocol}://{self.network}/subscriptions",
@@ -27,9 +28,8 @@ class DiscoveryZeroconfModule(moduleBase):
             "websocketsOnly": False,
             "uuid": api_instance_uuid,
             "service_type": "maverick-api",
-            "name": options.name,
+            "name": subdesc,
         }
-        subdesc = options.name if options.name else "{}:{}".format(socket.gethostname(), options.server_port)
         self.service_info = ServiceInfo(
             "_api._tcp.local.",
             "maverick-api ({})._api._tcp.local.".format(subdesc),
