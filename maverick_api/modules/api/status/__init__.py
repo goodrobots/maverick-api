@@ -24,7 +24,8 @@ from maverick_api.modules import get_schema_timestamp
 application_log = logging.getLogger("tornado.application")
 
 # Create a repeatable uuid based on fqdn and port
-api_instance_uuid = str(uuid5(":".join(socket.gethostname(), options.server_port), "maverick-api"))
+# api_instance_uuid = str(uuid5(":".join([socket.gethostname(), options.server_port), "maverick-api"))
+api_instance_uuid = uuid4()
 
 #################### TODO: REMOVE ME
 def get_script():
