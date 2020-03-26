@@ -25,6 +25,7 @@ class MavConfig(object):
             type=bool,
             help="Generate graphql schema and exit",
         )
+        define("name", default=None, type=str, help="Descriptive name of -api instance")
         define("app_prefix", default="maverick-api/", type=str, help="URL prefix")
         define("app_secretkey", default="super_s3cret", type=str, help="Secret Key")
         define(

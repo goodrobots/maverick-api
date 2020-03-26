@@ -27,10 +27,12 @@ class DiscoveryZeroconfModule(moduleBase):
             "websocketsOnly": False,
             "uuid": api_instance_uuid,
             "service_type": "maverick-api",
+            "name": options.name,
         }
+        subdesc = options.name if options.name else socket.gethostname()
         self.service_info = ServiceInfo(
-            "_http._tcp.local.",
-            f"Maverick API {api_instance_uuid}._http._tcp.local.",
+            "_api._tcp.local.",
+            "maverick-api ({})._api._tcp.local.".format(subdesc),
             addresses=[socket.inet_aton(options.server_interface)],
             port=options.server_port,
             properties=desc,
