@@ -20,7 +20,7 @@ class DiscoveryZeroconfModule(moduleBase):
         self.secure = not options.disable_ssl
         self.network = f"{socket.getfqdn()}:{options.server_port}"
         self.zeroconf = None
-        subdesc = options.name if options.name else "{}:{}".format(socket.gethostname(), options.server_port)
+        subdesc = "{}:{}".format(socket.gethostname(), options.name if options.name else options.server_port)
         desc = {
             "httpEndpoint": f"{self.http_protocol}://{self.network}/graphql",
             "wsEndpoint": f"{self.ws_protocol}://{self.network}/subscriptions",
@@ -73,7 +73,7 @@ class DiscoveryZeroconfModule(moduleBase):
 
     def scan_for_api_instances(self):
         queried_info = self.zeroconf.get_service_info(
-            "_http._tcp.local.", "Maverick API._http._tcp.local."
+            "_api._tcp.local.", "Maverick API._api._tcp.local."
         )
         # application_log.debug(f"Discovered Maverick API instances: {queried_info}")
 
