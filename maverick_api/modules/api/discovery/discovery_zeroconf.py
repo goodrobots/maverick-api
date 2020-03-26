@@ -29,7 +29,7 @@ class DiscoveryZeroconfModule(moduleBase):
             "service_type": "maverick-api",
             "name": options.name,
         }
-        subdesc = options.name if options.name else socket.gethostname()
+        subdesc = options.name if options.name else "{}:{}".format(socket.gethostname(), options.server_port)
         self.service_info = ServiceInfo(
             "_api._tcp.local.",
             "maverick-api ({})._api._tcp.local.".format(subdesc),
