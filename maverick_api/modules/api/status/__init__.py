@@ -1,5 +1,5 @@
 import logging
-from uuid import uuid5, uuid4
+from uuid import uuid4
 import os
 import functools
 import socket
@@ -25,7 +25,8 @@ application_log = logging.getLogger("tornado.application")
 
 # Create a repeatable uuid based on fqdn and port
 # api_instance_uuid = str(uuid5(":".join([socket.gethostname(), options.server_port), "maverick-api"))
-api_instance_uuid = uuid4()
+api_instance_uuid = str(uuid4())
+application_log.info(f"UUID: {api_instance_uuid}")
 
 #################### TODO: REMOVE ME
 def get_script():
