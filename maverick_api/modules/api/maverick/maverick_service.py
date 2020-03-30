@@ -75,7 +75,7 @@ class MaverickServiceSchema(schemaBase):
         super().__init__(self)
         loop = tornado.ioloop.IOLoop.current()
         self.service_command_name = "MaverickService"
-        self.process_runner_timeout = 1  # seconds
+        self.process_runner_timeout = 5  # seconds
         self.using_dbus = options.use_dbus
         # self.service_command_category_name = self.service_command_name + "Category"
         self.service_command_list_name = self.service_command_name + "List"
