@@ -24,7 +24,7 @@ from maverick_api.modules import get_schema_timestamp
 application_log = logging.getLogger("tornado.application")
 
 # Create a repeatable uuid based on fqdn and port
-api_instance_uuid = str(uuid.uuid5(uuid.NAMESPACE_URL, f"http://{socket.gethostname()}:{options.server_port}"))
+api_instance_uuid = str(uuid.uuid5(uuid.NAMESPACE_URL, f"http://{socket.gethostname()}:{options.server_port_nonssl}"))
 # api_instance_uuid = str(uuid.uuid4())
 application_log.info(f"UUID: {api_instance_uuid}")
 

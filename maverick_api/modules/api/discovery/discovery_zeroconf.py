@@ -18,25 +18,29 @@ class DiscoveryZeroconfModule(moduleBase):
         self.discovered_api_instances = {}
         self.ip_version = IPVersion.V4Only  # IPVersion.All
         self.secure = not options.disable_ssl
-        self.network = f"{socket.getfqdn()}:{options.server_port}"
+        self.network = f"{socket.getfqdn()}"
         self.zeroconf = None
-        subdesc = "{}:{}".format(socket.gethostname(), options.name if options.name else options.server_port)
+        subdesc = "{}:{}".format(socket.gethostname(), options.name if options.name else options.server_port_nonssl)
         desc = {
-            "httpEndpoint": f"{self.http_protocol}://{self.network}/graphql",
-            "wsEndpoint": f"{self.ws_protocol}://{self.network}/subscriptions",
-            "schemaEndpoint": f"{self.http_protocol}://{self.network}/schema",
+            "httpEndpoint": f"http://{socket.getfqdn()}:{options.server_port_nonssl}/graphql",
+            "wsEndpoint": f"ws://{socket.getfqdn()}:{options.server_port_nonssl}/subscriptions",
+            "schemaEndpoint": f"//{socket.getfqdn()}:{options.server_port_nonssl}/schema",
             "websocketsOnly": False,
             "uuid": api_instance_uuid,
             "service_type": "maverick-api",
             "name": subdesc,
         }
+        if self.secure:
+            desc["httpsEndpoint"] = f"https://{socket.getfqdn()}:{options.server_port_ssl}/graphql",
+            desc["wssEndpoint"] = f"wss://{socket.getfqdn()}:{options.server_port_ssl}/subscriptions",
         self.service_info = ServiceInfo(
             "_api._tcp.local.",
             "maverick-api ({})._api._tcp.local.".format(subdesc),
             addresses=[socket.inet_aton(options.server_interface)],
-            port=options.server_port,
             properties=desc,
+            port=int(options.server_port_nonssl)
         )
+        application_log.info("Zeroconf Service Info: {}".format(self.service_info))
 
     def start(self):
         try:
