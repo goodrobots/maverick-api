@@ -31,8 +31,9 @@ class DiscoveryZeroconfModule(moduleBase):
             "name": subdesc,
         }
         if self.secure:
-            desc["httpsEndpoint"] = f"https://{socket.getfqdn()}:{options.server_port_ssl}/graphql",
-            desc["wssEndpoint"] = f"wss://{socket.getfqdn()}:{options.server_port_ssl}/subscriptions",
+            desc["httpsEndpoint"] = f"https://{socket.getfqdn()}:{options.server_port_ssl}/graphql"
+            desc["wssEndpoint"] = f"wss://{socket.getfqdn()}:{options.server_port_ssl}/subscriptions"
+            desc["schemasEndpoint"] = f"https://{socket.getfqdn()}:{options.server_port_ssl}/schema"
         self.service_info = ServiceInfo(
             "_api._tcp.local.",
             "maverick-api ({})._api._tcp.local.".format(subdesc),
