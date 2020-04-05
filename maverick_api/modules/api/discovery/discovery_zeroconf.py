@@ -29,6 +29,7 @@ class DiscoveryZeroconfModule(moduleBase):
             "uuid": api_instance_uuid,
             "service_type": "maverick-api",
             "name": subdesc,
+            "hostname": socket.getfqdn(),
         }
         if self.secure:
             desc["httpsEndpoint"] = f"https://{socket.getfqdn()}:{options.server_port_ssl}/graphql"
