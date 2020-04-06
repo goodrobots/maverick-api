@@ -62,6 +62,12 @@ def refresh_database_lookup(refresh_code):
     return refresh_code
 
 
+def invalidate_user_refresh_tokens(user):
+    # lookup the user
+    # remove refresh tokens from the user database
+    pass
+
+
 def get_latest_refresh_token(current_refresh_token):
     new_refresh_token = None
     # lookup the value in the database for the current token and see if there is a newer one
@@ -137,15 +143,16 @@ class LoginHandler(tornado.web.RequestHandler):
 
     async def post(self):
         # check if the user is already logged in via the presence of an access token
-        #  if one exists, dont check it, just return
+        #  if one exists, don't check it, just return
         auth = self.request.headers.get("Authorization", "")
         if auth:
             self.finish()
 
-        # get the username and password sent via the request
-        # check this against the db. If the user exists,
-        #  get the current refresh token for this user, set the cookie and provide an access token
-        #  otherwise dont allow login
+        # get the username and password sent via the request and
+        #  check this against the db records. If the user exists:
+        #  get the current refresh token for this user, set the cookie
+        #  and provide an access token
+        #  otherwise don't allow login
         username = self.get_argument("user")
         password = self.get_argument("password")
         # TODO return user from DB
@@ -156,6 +163,8 @@ class LoginHandler(tornado.web.RequestHandler):
             and user["password"]
             and bcrypt.hashpw(password, user["password"]) == user["password"]
         ):
+            # passwords match for this user
+            # TODO: get the current refresh token for this user and set it as a secure cookie
             pass
 
         self.finish()
@@ -171,24 +180,37 @@ class LogoutHandler(tornado.web.RequestHandler):
             "Access-Control-Allow-Headers",
             "Origin, X-Requested-With, Content-Type, Accept, Authorization",
         )
-        self.set_header("Access-Control-Allow-Methods", "GET")
+        self.set_header("Access-Control-Allow-Methods", "POST")
 
-    async def get(self):
-        # TODO FIXME
+    async def post(self):
+        # check if the user is already logged in via the presence of an access token
+        auth = self.request.headers.get("Authorization", "")
         # if the access token is valid...
-        # set the secure cookie to a null string so further refresh_token
-        #  attempts will fail, requiring a login
-        # note: the webapp needs to clear the access token in memory
-        # set a logout flag to the current time
-        # and propergate a logout request via local storage (logging out all open tabs)
-        self.set_secure_cookie(
-            "refresh_token",
-            "",
-            secure=True,
-            httponly=True,
-            expires_days=365,
-            path="/refresh_token",
-        )  # we can also set domain="maverick.one"
+        if auth and verify_jwt(auth):
+
+            # check to see if they want to log out all sessions
+            all_sessions = self.get_argument("allSessions", False)
+            if all_sessions:
+                user = None
+                # TODO: get user from access token
+                # TODO: invalidate all refresh tokens stored for this user.
+                invalidate_user_refresh_tokens(user)
+
+            # log the current user out...
+
+            # set the secure cookie to a null string so further refresh_token
+            #  attempts will fail, requiring a login
+            # note: the webapp needs to clear the access token in memory
+            # set a logout flag to the current time
+            # and propergate a logout request via local storage (logging out all open tabs)
+            self.set_secure_cookie(
+                "refresh_token",
+                "",
+                secure=True,
+                httponly=True,
+                expires_days=1,
+                path="/refresh_token",
+            )  # we can also set domain="maverick.one"
         self.finish()
 
 
@@ -208,33 +230,51 @@ class RefreshTokenHandler(tornado.web.RequestHandler):
         send_access_token = False
         set_refresh_cookie = False
         latest_refresh_token = None
+        json_output = None
         current_refresh_token = self.get_secure_cookie(name="refresh_token")
         # if we don't have a refresh token, ask the user to login
         if not current_refresh_token:
-            # some action to make the user login
-            pass
+            # infom the user they need to login
+            json_output = {
+                "accessToken": None,
+                "error": "No refresh token, login required",
+            }
         else:
             if verify_jwt(current_refresh_token):
                 # the refresh token is valid
-                # check to see if there is a newer refresh token that needs to be sent
+                # send an access token
+                send_access_token = True
+                # check to see if there is a newer refresh token that needs to be set
                 latest_refresh_token = get_latest_refresh_token(current_refresh_token)
                 if latest_refresh_token:
                     set_refresh_cookie = True
 
-        if set_refresh_cookie:
-            self.set_secure_cookie(
-                "refresh_token",
-                latest_refresh_token,
-                secure=True,
-                httponly=True,
-                expires_days=365,
-                path="/refresh_token",
-            )  # we can also set domain="maverick.one"
-        if send_access_token:
-            # TODO FIXME
-            # here we would encode the access rights of the user, not a code
-            access_token = create_access_jwt(code="callsignviper")
-            self.write(json.dumps(access_token))
+                if set_refresh_cookie:
+                    self.set_secure_cookie(
+                        "refresh_token",
+                        latest_refresh_token,
+                        secure=True,
+                        httponly=True,
+                        expires_days=365,
+                        path="/refresh_token",
+                    )  # we can also set domain="maverick.one"
+
+                if send_access_token:
+                    # TODO FIXME
+                    # here we would encode the access rights of the user, not a code
+                    # note all data is simply base64 encoded so we cannot encode secrets
+                    access_token = create_access_jwt(code="callsignviper")
+                    json_output = {"accessToken": access_token, "error": None}
+
+            else:
+                # the refresh token was out of date or otherwise invalid
+                # ask the user to login
+                json_output = {
+                    "accessToken": None,
+                    "error": "Refresh token error, login required",
+                }
+
+        self.write(json.dumps(json_output))
         self.finish()
 
 
