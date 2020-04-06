@@ -18,30 +18,47 @@ class DiscoveryZeroconfModule(moduleBase):
         self.discovered_api_instances = {}
         self.ip_version = IPVersion.V4Only  # IPVersion.All
         self.secure = not options.disable_ssl
-        self.network = f"{socket.getfqdn()}:{options.server_port}"
+        self.network = f"{socket.getfqdn()}"
         self.zeroconf = None
+        subdesc = "{}:{}".format(
+            socket.gethostname(),
+            options.name if options.name else options.server_port_nonssl,
+        )
         desc = {
-            "httpEndpoint": f"{self.http_protocol}://{self.network}/graphql",
-            "wsEndpoint": f"{self.ws_protocol}://{self.network}/subscriptions",
-            "schemaEndpoint": f"{self.http_protocol}://{self.network}/schema",
+            "httpEndpoint": f"http://{socket.getfqdn()}:{options.server_port_nonssl}/graphql",
+            "wsEndpoint": f"ws://{socket.getfqdn()}:{options.server_port_nonssl}/subscriptions",
+            "schemaEndpoint": f"//{socket.getfqdn()}:{options.server_port_nonssl}/schema",
             "websocketsOnly": False,
             "uuid": api_instance_uuid,
             "service_type": "maverick-api",
+            "name": subdesc,
+            "hostname": socket.getfqdn(),
         }
+        if self.secure:
+            desc[
+                "httpsEndpoint"
+            ] = f"https://{socket.getfqdn()}:{options.server_port_ssl}/graphql"
+            desc[
+                "wssEndpoint"
+            ] = f"wss://{socket.getfqdn()}:{options.server_port_ssl}/subscriptions"
+            desc[
+                "schemasEndpoint"
+            ] = f"https://{socket.getfqdn()}:{options.server_port_ssl}/schema"
         self.service_info = ServiceInfo(
-            # TODO: FIXME come up with useful values for the info below
-            "_http._tcp.local.",
-            f"Maverick API {api_instance_uuid}._http._tcp.local.",
+            "_api._tcp.local.",
+            "maverick-api ({})._api._tcp.local.".format(subdesc),
             addresses=[socket.inet_aton(options.server_interface)],
-            port=options.server_port,
             properties=desc,
-            server=f"{socket.getfqdn()}.",
+            port=int(options.server_port_nonssl),
         )
+        application_log.info("Zeroconf Service Info: {}".format(self.service_info))
 
     def start(self):
         try:
             self.zeroconf = Zeroconf(ip_version=self.ip_version)
-            self.zeroconf.register_service(self.service_info)
+            self.zeroconf.register_service(
+                info=self.service_info, cooperating_responders=True
+            )
             self.install_periodic_callbacks()
             self.start_periodic_callbacks()
         except OSError as e:
@@ -73,7 +90,7 @@ class DiscoveryZeroconfModule(moduleBase):
 
     def scan_for_api_instances(self):
         queried_info = self.zeroconf.get_service_info(
-            "_http._tcp.local.", "Maverick API._http._tcp.local."
+            "_api._tcp.local.", "Maverick API._api._tcp.local."
         )
         # application_log.debug(f"Discovered Maverick API instances: {queried_info}")
 

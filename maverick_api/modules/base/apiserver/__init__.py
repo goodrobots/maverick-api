@@ -62,16 +62,30 @@ class ApiServer(object):
 
         start_all_modules()
         self.database = MavDatabase()
-        ssl_options = self.get_ssl_options()
 
         application = TornadoQL()
-        self.server = tornado.httpserver.HTTPServer(
-            application, ssl_options=ssl_options
+
+        # Start Non-SSL server
+        self.server = tornado.httpserver.HTTPServer(application)
+        self.server.listen(
+            port=options.server_port_nonssl, address=options.server_interface
         )
-        self.server.listen(port=options.server_port, address=options.server_interface)
         application_log.info(
-            f"Starting Maverick API server: {options.server_interface}:{options.server_port}/{options.app_prefix}"
+            f"Starting Maverick API server: {options.server_interface}:{options.server_port_nonssl}/{options.app_prefix}"
         )
+
+        # Start SSL server, unless disabled
+        if not options.disable_ssl:
+            ssl_options = self.get_ssl_options()
+            self.server = tornado.httpserver.HTTPServer(
+                application, ssl_options=ssl_options
+            )
+            self.server.listen(
+                port=options.server_port_ssl, address=options.server_interface
+            )
+            application_log.info(
+                f"Starting Maverick API server - SSL: {options.server_interface}:{options.server_port_ssl}/{options.app_prefix}"
+            )
 
     def get_ssl_options(self):
         ssl_options = None

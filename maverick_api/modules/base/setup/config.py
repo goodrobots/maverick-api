@@ -25,6 +25,7 @@ class MavConfig(object):
             type=bool,
             help="Generate graphql schema and exit",
         )
+        define("name", default=None, type=str, help="Descriptive name of -api instance")
         define("app_prefix", default="maverick-api/", type=str, help="URL prefix")
         define("app_secretkey", default="super_s3cret", type=str, help="Secret Key")
         define(
@@ -57,7 +58,13 @@ class MavConfig(object):
             type=str,
             help="Interface to listen on: 0.0.0.0 represents all interfaces",
         )
-        define("server_port", default=6795, type=int, help="Port to listen on"),
+        define(
+            "server_port_nonssl",
+            default=6003,
+            type=int,
+            help="Non-SSL Port to listen on",
+        ),
+        define("server_port_ssl", default=6004, type=int, help="SSL Port to listen on"),
         define(
             "disable_ssl",
             default=True,
