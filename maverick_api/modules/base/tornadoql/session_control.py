@@ -4,8 +4,15 @@ import hashlib
 import binascii
 import os
 import logging
+import datetime
+import jwt
+import json
+import bcrypt
+from pathlib import Path
 
 from graphql.error import GraphQLError
+from tornado.options import options
+import tornado.web
 
 application_log = logging.getLogger("tornado.application")
 
@@ -14,6 +21,221 @@ user_records = {
     "bob": {"id": 1234, "authenticated": True, "RBAC": "*", "token": "callsignviper"},
     "jim": {"id": 5678, "authenticated": False, "RBAC": None, "token": None},
 }
+
+user1 = dict(id="1", userName="bob", password="password1")
+user2 = dict(id="2", userName="ben", password="password2")
+auth_data = {user1["id"]: user1, user2["id"]: user2}
+
+private_key = ""
+public_key = ""
+
+with open(
+    Path(options.basedir).joinpath("data", "keys", "private_key.pem"), "r+"
+) as fid:
+    private_key = fid.read()
+
+with open(
+    Path(options.basedir).joinpath("data", "keys", "public_key.pem"), "r+"
+) as fid:
+    public_key = fid.read()
+
+
+def create_refresh_jwt(ttl, code):
+    refresh_jwt = jwt.encode(
+        {
+            "iss": "maverick-api",
+            "aud": "maverick-web",
+            "iat": datetime.utcnow(),
+            "nbf": datetime.utcnow(),
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=ttl),
+            "refresh": code,
+        },
+        private_key,
+        algorithm="RS256",
+    )
+    return refresh_jwt
+
+
+def refresh_database_lookup(refresh_code):
+    # TODO FIXME do database lookup
+    # refresh code could be None.
+    return refresh_code
+
+
+def get_latest_refresh_token(current_refresh_token):
+    new_refresh_token = None
+    # lookup the value in the database for the current token and see if there is a newer one
+    # if there is, return a refresh token with the new value
+    # if database lookup for current value returns new value, create a new jwt with the value
+    current_refresh_code = decode_jwt(current_refresh_token).get("refresh", None)
+    new_refresh_code = refresh_database_lookup(current_refresh_code)
+    if current_refresh_code != new_refresh_code:
+        new_refresh_token = create_refresh_jwt(code=new_refresh_code)
+    return new_refresh_token
+
+
+def create_access_jwt(ttl, code):
+    access_jwt = jwt.encode(
+        {
+            "iss": "maverick-api",
+            "aud": "maverick-web",
+            "iat": datetime.utcnow(),
+            "nbf": datetime.utcnow(),
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=ttl),
+            "access": code,
+        },
+        private_key,
+        algorithm="RS256",
+    )
+    return access_jwt
+
+
+def decode_jwt(jwt_payload):
+    decoded = jwt.decode(
+        jwt_payload,
+        public_key,
+        issuer="maverick-api",
+        audience="maverick-web",
+        leeway=10,
+        algorithms="RS256",
+    )
+    return decoded
+
+
+def verify_jwt(jwt_payload):
+    error = True
+    try:
+        decode_jwt(jwt_payload)
+        error = False
+
+    except jwt.ExpiredSignatureError:
+        # Signature has expired
+        pass
+    except jwt.InvalidIssuerError:
+        # issuer does not match
+        pass
+    except jwt.InvalidAudienceError:
+        # Audience is incorrect
+        pass
+    except jwt.InvalidIssuedAtError:
+        # iat was not correct
+        pass
+    return error
+
+
+class LoginHandler(tornado.web.RequestHandler):
+    """login user with provided credentials"""
+
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Credentials", "true")
+        self.set_header(
+            "Access-Control-Allow-Headers",
+            "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+        )
+        self.set_header("Access-Control-Allow-Methods", "POST")
+
+    async def post(self):
+        # check if the user is already logged in via the presence of an access token
+        #  if one exists, dont check it, just return
+        auth = self.request.headers.get("Authorization", "")
+        if auth:
+            self.finish()
+
+        # get the username and password sent via the request
+        # check this against the db. If the user exists,
+        #  get the current refresh token for this user, set the cookie and provide an access token
+        #  otherwise dont allow login
+        username = self.get_argument("user")
+        password = self.get_argument("password")
+        # TODO return user from DB
+        user = None  # self.application.syncdb["users"].find_one({"user": email})
+
+        if (
+            user
+            and user["password"]
+            and bcrypt.hashpw(password, user["password"]) == user["password"]
+        ):
+            pass
+
+        self.finish()
+
+
+class LogoutHandler(tornado.web.RequestHandler):
+    """logout current user"""
+
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Credentials", "true")
+        self.set_header(
+            "Access-Control-Allow-Headers",
+            "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+        )
+        self.set_header("Access-Control-Allow-Methods", "GET")
+
+    async def get(self):
+        # TODO FIXME
+        # if the access token is valid...
+        # set the secure cookie to a null string so further refresh_token
+        #  attempts will fail, requiring a login
+        # note: the webapp needs to clear the access token in memory
+        # set a logout flag to the current time
+        # and propergate a logout request via local storage (logging out all open tabs)
+        self.set_secure_cookie(
+            "refresh_token",
+            "",
+            secure=True,
+            httponly=True,
+            expires_days=365,
+            path="/refresh_token",
+        )  # we can also set domain="maverick.one"
+        self.finish()
+
+
+class RefreshTokenHandler(tornado.web.RequestHandler):
+    """given a refresh token, provide an access token"""
+
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Credentials", "true")
+        self.set_header(
+            "Access-Control-Allow-Headers",
+            "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+        )
+        self.set_header("Access-Control-Allow-Methods", "GET")
+
+    async def get(self):
+        send_access_token = False
+        set_refresh_cookie = False
+        latest_refresh_token = None
+        current_refresh_token = self.get_secure_cookie(name="refresh_token")
+        # if we don't have a refresh token, ask the user to login
+        if not current_refresh_token:
+            # some action to make the user login
+            pass
+        else:
+            if verify_jwt(current_refresh_token):
+                # the refresh token is valid
+                # check to see if there is a newer refresh token that needs to be sent
+                latest_refresh_token = get_latest_refresh_token(current_refresh_token)
+                if latest_refresh_token:
+                    set_refresh_cookie = True
+
+        if set_refresh_cookie:
+            self.set_secure_cookie(
+                "refresh_token",
+                latest_refresh_token,
+                secure=True,
+                httponly=True,
+                expires_days=365,
+                path="/refresh_token",
+            )  # we can also set domain="maverick.one"
+        if send_access_token:
+            # TODO FIXME
+            # here we would encode the access rights of the user, not a code
+            access_token = create_access_jwt(code="callsignviper")
+            self.write(json.dumps(access_token))
+        self.finish()
 
 
 class GraphQLSession(object):

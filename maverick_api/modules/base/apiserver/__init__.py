@@ -18,6 +18,7 @@ from graphql import (
 
 
 from maverick_api.modules.base.tornadoql.tornadoql import TornadoQL
+from maverick_api.modules.base.database import MavDatabase
 
 from maverick_api.modules import (
     generate_schema,
@@ -35,11 +36,10 @@ class ApiServer(object):
     def __init__(self):
         self.exit = False
         self.server = None
-        self.mavros_connection = None
-        self.mavlink_connection = None
+        self.database = None
 
-        signal.signal(signal.SIGINT, self.exit_gracefully)
-        signal.signal(signal.SIGTERM, self.exit_gracefully)
+        signal.signal(signal.SIGINT, self.handle_signal)
+        signal.signal(signal.SIGTERM, self.handle_signal)
 
     def initialize(self):
         loop = tornado.ioloop.IOLoop.current()
@@ -61,6 +61,7 @@ class ApiServer(object):
             sys.exit(0)
 
         start_all_modules()
+        self.database = MavDatabase()
         ssl_options = self.get_ssl_options()
 
         application = TornadoQL()
@@ -128,17 +129,25 @@ class ApiServer(object):
         tornado.ioloop.IOLoop.current().start()
         # this function blocks at this point until the server
         #  is asked to exit via request_stop()
-        application_log.info("Maverick API server has stopped")
+        self.exit_gracefully()
 
     def request_stop(self):
         # TODO: close all websocket connections (required?)
+        self.exit = True
         ioloop = tornado.ioloop.IOLoop.current()
         ioloop.add_callback(ioloop.stop)
         application_log.info("Stopping Maverick API server")
 
-    def exit_gracefully(self, signum, frame):
-        """called on sigterm"""
-        self.exit = True
+    def exit_gracefully(self):
+        ioloop = tornado.ioloop.IOLoop.current()
         stop_all_modules()
         stop_all_schema()
-        self.request_stop()
+        if self.database:
+            ioloop.run_sync(self.database.shutdown)
+        ioloop.close()
+        application_log.info("Maverick API server has stopped")
+
+    def handle_signal(self, signum, frame):
+        """called on sigterm"""
+        ioloop = tornado.ioloop.IOLoop.current()
+        ioloop.add_callback_from_signal(self.request_stop)

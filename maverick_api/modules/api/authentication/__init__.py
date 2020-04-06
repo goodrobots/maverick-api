@@ -10,7 +10,7 @@ from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
 from maverick_api.modules import schemaBase
 from maverick_api.modules.base.tornadoql.session_control import GraphQLSession
 
-user1 = dict(id="1", userName="sam", password="password1")
+user1 = dict(id="1", userName="bob", password="password1")
 user2 = dict(id="2", userName="ben", password="password2")
 auth_data = {user1["id"]: user1, user2["id"]: user2}
 
@@ -18,6 +18,7 @@ auth_data = {user1["id"]: user1, user2["id"]: user2}
 class AuthenticationSchema(schemaBase):
     def __init__(self):
         super().__init__(self)
+
         self.auth_request_type = GraphQLObjectType(
             "AuthenticationRequest",
             lambda: {
