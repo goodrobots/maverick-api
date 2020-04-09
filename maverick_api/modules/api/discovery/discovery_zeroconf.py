@@ -27,7 +27,7 @@ class DiscoveryZeroconfModule(moduleBase):
         desc = {
             "httpEndpoint": f"http://{socket.getfqdn()}:{options.server_port_nonssl}/graphql",
             "wsEndpoint": f"ws://{socket.getfqdn()}:{options.server_port_nonssl}/subscriptions",
-            "schemaEndpoint": f"//{socket.getfqdn()}:{options.server_port_nonssl}/schema",
+            "schemaEndpoint": f"http://{socket.getfqdn()}:{options.server_port_nonssl}/schema",
             "websocketsOnly": False,
             "uuid": api_instance_uuid,
             "service_type": "maverick-api",
