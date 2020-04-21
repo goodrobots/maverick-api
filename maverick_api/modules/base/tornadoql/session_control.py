@@ -9,15 +9,17 @@ import datetime
 import jwt
 import json
 import bcrypt
-from pathlib import Path
+
+# from pathlib import Path
 
 from graphql.error import GraphQLError
-from tornado.options import options
+
+# from tornado.options import options
 import tornado.web
 
 application_log = logging.getLogger("tornado.application")
 
-secure = False  # TODO: replace with option
+secure = True  # TODO: replace with option
 cookies_allowed = True  # TODO: allow users to disable cookies for the login
 
 
@@ -44,15 +46,15 @@ public_key = ""
 refresh_token_life = datetime.timedelta(days=365)
 access_token_life = datetime.timedelta(minutes=15)
 
-with open(
-    Path(options.basedir).joinpath("data", "keys", "private_key.pem"), "r+"
-) as fid:
-    private_key = fid.read()
+# with open(
+#     Path(options.basedir).joinpath("data", "keys", "private_key.pem"), "r+"
+# ) as fid:
+#     private_key = fid.read()
 
-with open(
-    Path(options.basedir).joinpath("data", "keys", "public_key.pem"), "r+"
-) as fid:
-    public_key = fid.read()
+# with open(
+#     Path(options.basedir).joinpath("data", "keys", "public_key.pem"), "r+"
+# ) as fid:
+#     public_key = fid.read()
 
 
 def create_token_code():
