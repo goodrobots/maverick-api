@@ -18,7 +18,8 @@ from graphql import (
 
 
 from maverick_api.modules.base.tornadoql.tornadoql import TornadoQL
-from maverick_api.modules.base.database import MavDatabase
+
+# from maverick_api.modules.base.database import MavDatabase
 
 from maverick_api.modules import (
     generate_schema,
@@ -34,7 +35,6 @@ application_log = logging.getLogger("tornado.application")
 
 class ApiServer(object):
     def __init__(self):
-        self.exit = False
         self.server = None
         self.database = None
 
@@ -61,15 +61,13 @@ class ApiServer(object):
             sys.exit(0)
 
         start_all_modules()
-        self.database = MavDatabase()
+        self.database = None  # MavDatabase()
 
         application = TornadoQL()
 
         # Start Non-SSL server
-        self.server = tornado.httpserver.HTTPServer(application)
-        self.server.listen(
-            port=options.server_port_nonssl, address=options.server_interface
-        )
+        server = tornado.httpserver.HTTPServer(application)
+        server.listen(port=options.server_port_nonssl, address=options.server_interface)
         application_log.info(
             f"Starting Maverick API server: {options.server_interface}:{options.server_port_nonssl}/{options.app_prefix}"
         )
@@ -77,10 +75,8 @@ class ApiServer(object):
         # Start SSL server, unless disabled
         if not options.disable_ssl:
             ssl_options = self.get_ssl_options()
-            self.server = tornado.httpserver.HTTPServer(
-                application, ssl_options=ssl_options
-            )
-            self.server.listen(
+            server = tornado.httpserver.HTTPServer(application, ssl_options=ssl_options)
+            server.listen(
                 port=options.server_port_ssl, address=options.server_interface
             )
             application_log.info(
@@ -147,7 +143,6 @@ class ApiServer(object):
 
     def request_stop(self):
         # TODO: close all websocket connections (required?)
-        self.exit = True
         ioloop = tornado.ioloop.IOLoop.current()
         ioloop.add_callback(ioloop.stop)
         application_log.info("Stopping Maverick API server")

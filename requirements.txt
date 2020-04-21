@@ -1,15 +1,16 @@
 
 tornado==6.0.4
-graphql-core==3.0.3
+graphql-core==3.1.0
 PyJWT==1.7.1
 bcrypt==3.1.7
+cryptography==2.9
 
 ## database options (choose one)
-tortoise-orm==0.16.1
+# tortoise-orm==0.16.1
 aiosqlite==0.11.0
 
 ## maverick
 jsoncomment==0.4.2
 jsondiff==1.2.0
 pystemd==0.7.0
-zeroconf==0.24.4
+zeroconf==0.25.0
