@@ -20,7 +20,10 @@ class DiscoveryZeroconfModule(moduleBase):
         self.secure = not options.disable_ssl
         self.network = f"{socket.getfqdn()}"
         self.zeroconf = None
-        subdesc = "{}:{}".format(socket.gethostname(), options.name if options.name else options.server_port_nonssl)
+        subdesc = "{}:{}".format(
+            socket.gethostname(),
+            options.name if options.name else options.server_port_nonssl,
+        )
         desc = {
             "httpEndpoint": f"http://{socket.getfqdn()}:{options.server_port_nonssl}/graphql",
             "wsEndpoint": f"ws://{socket.getfqdn()}:{options.server_port_nonssl}/subscriptions",
@@ -32,22 +35,30 @@ class DiscoveryZeroconfModule(moduleBase):
             "hostname": socket.getfqdn(),
         }
         if self.secure:
-            desc["httpsEndpoint"] = f"https://{socket.getfqdn()}:{options.server_port_ssl}/graphql"
-            desc["wssEndpoint"] = f"wss://{socket.getfqdn()}:{options.server_port_ssl}/subscriptions"
-            desc["schemasEndpoint"] = f"https://{socket.getfqdn()}:{options.server_port_ssl}/schema"
+            desc[
+                "httpsEndpoint"
+            ] = f"https://{socket.getfqdn()}:{options.server_port_ssl}/graphql"
+            desc[
+                "wssEndpoint"
+            ] = f"wss://{socket.getfqdn()}:{options.server_port_ssl}/subscriptions"
+            desc[
+                "schemasEndpoint"
+            ] = f"https://{socket.getfqdn()}:{options.server_port_ssl}/schema"
         self.service_info = ServiceInfo(
             "_api._tcp.local.",
             "maverick-api ({})._api._tcp.local.".format(subdesc),
             addresses=[socket.inet_aton(options.server_interface)],
             properties=desc,
-            port=int(options.server_port_nonssl)
+            port=int(options.server_port_nonssl),
         )
         application_log.info("Zeroconf Service Info: {}".format(self.service_info))
 
     def start(self):
         try:
             self.zeroconf = Zeroconf(ip_version=self.ip_version)
-            self.zeroconf.register_service(info=self.service_info, cooperating_responders=True)
+            self.zeroconf.register_service(
+                info=self.service_info, cooperating_responders=True
+            )
             self.install_periodic_callbacks()
             self.start_periodic_callbacks()
         except OSError as e:

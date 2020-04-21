@@ -6,14 +6,13 @@ Samuel Dudley
 Feb 2018
 https://github.com/goodrobots/maverick-api
 """
-__version__ = "0.2"
+__version__ = "1.2.2"
 
-# TODO: setup tests and flake8
 
 from tornado.options import options
 from pathlib import Path, PurePath
 
-from maverick_api.modules.base.database import MavDatabase
+# from maverick_api.modules.base.database import MavDatabase
 from maverick_api.modules.base.setup.config import MavConfig
 from maverick_api.modules.base.setup.logging import MavLogging
 
@@ -31,7 +30,7 @@ if __name__ == "__main__":
     MavLogging()
 
     # Setup database
-    MavDatabase()
+    # MavDatabase()
 
     # Instantiate and start api server
     # Import at this point to allow config settings to take place

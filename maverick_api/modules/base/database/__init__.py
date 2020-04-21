@@ -1,5 +1,11 @@
 import logging
+
+# from pathlib import Path
 from tornado.options import options
+import tornado.ioloop
+from tortoise import Tortoise
+
+# from maverick_api.modules.base.util import functions
 
 application_log = logging.getLogger("tornado.application")
 
@@ -10,12 +16,16 @@ class MavDatabase(object):
     def __init__(self):
         self.backend = options.database_backend
         application_log.info(f"Database backend seleceted: {self.backend}")
+        ioloop = tornado.ioloop.IOLoop.current()
+        ioloop.run_sync(self.init)
 
-        if self.backend == "tinydb":  # lightweight non-async json storage
-            import tinydb  # noqa: F401
-        elif self.backend == "mongo":  # async access to mongo database
-            import motor  # noqa: F401
-        elif self.backend == "sqlite":  # async access to sqlite3 database
-            import aiosqlite  # noqa: F401
-        else:
-            pass
+    async def init(self):
+        # Here we create a SQLite DB using file "db.sqlite3"
+        #  also specify the app name of "models"
+        #  which contain models from "app.models"
+        await Tortoise.init(db_url="sqlite://db.sqlite3", modules={"models": []})
+        # Generate the schema
+        await Tortoise.generate_schemas()
+
+    async def shutdown(self):
+        await Tortoise.close_connections()

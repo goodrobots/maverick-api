@@ -7,6 +7,11 @@ from maverick_api.modules.base.tornadoql.subscription_handler import (
     GraphQLSubscriptionHandler,
 )
 from maverick_api.modules.base.tornadoql.schema_handler import SchemaHandler
+from maverick_api.modules.base.tornadoql.session_control import (
+    LoginHandler,
+    LogoutHandler,
+    RefreshTokenHandler,
+)
 
 import tornado.web
 from tornado.options import options
@@ -19,6 +24,9 @@ class TornadoQL(tornado.web.Application):
             (r"/graphql", GraphQLHandler),
             (r"/graphiql", GraphiQLHandler),
             (r"/schema", SchemaHandler),
+            (r"/login", LoginHandler),
+            (r"/logout", LogoutHandler),
+            (r"/refresh_token", RefreshTokenHandler),
         ]
 
         settings = dict(

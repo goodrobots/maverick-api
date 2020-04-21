@@ -1,0 +1,99 @@
+// These are local config settings.  Because they can include sensitive information like usernames and passwords, this file
+//  is excluded from ever being committed back to git.
+//
+// Any manifest parameter can be added here, what follows is a sampling of common useful settings.
+// More info and settings can be found here:
+// https://goodrobots.github.io/maverick/#/modules/intro
+{
+    // Set passwords
+    // "base::users::mav_password": "", // Set mav user encrypted password here (obtain using: mkpasswd  -m sha-512 -s)
+    // "base::users::root_password": "", // Set root user encrypted password here (obtain as above)
+    "base::users::mav_password": "$6$xq6EVGnLPDit/0n$wPzRss9HjhhPPRQz4xezAnQ8C7Tymx8Aa7jl2CtjTd9KxA1fyqfd5pYacX/7bWll9kQ.Ytj/9rp8YW5cYa/iL.", // boseheadphonesaresilver
+    // Set defaults for wifi.  If set, any wifi interface detected will be automatically activated with these settings.
+    // These setting can be overridden in the per-interface settings.
+    // "wifi_ssid": "MySSID",
+    // "wifi_passtype":     "wpa2",
+    // "wifi_passphrase":   false, // unencrypted wifi passphrase, strongly recommended to use psk below instead
+    // "wifi_psk":  "averylonggeneratedkey", // must be encrypted psk created using 'wpa_passphrase MySSID MyPassphrase'
+    // See https://goodrobots.github.io/maverick/#/modules-network for more info
+    // Note a fallback generic eth0 and wlan0 config is always created in addition to these settings
+    "maverick_analysis::grafana::admin_hash": "93e2aaac76487b067f0ac5ecedbb49814634a2381588dc9f8f2eef1f2cadc3db129f380eefa318079de31916887d8817d7ab",
+    "maverick_analysis::grafana::admin_password": "boseheadphonesaresilver",
+    // "maverick_dev::ardupilot::ardupilot_vehicle": "copter",
+    // "maverick_dev::ardupilot::ardupilot_source": "https://github.com/ardupilot/ardupilot",
+    "maverick_dev::px4": false,
+    // "maverick_dev::vscode_watchers": 524288,
+
+    // "maverick_dev::px4::cross_compile": false,
+    // "maverick_dev::px4::sitl_active": false,
+    // "maverick_dev::px4::mavlink_active": false,
+    // "maverick_dev::px4::rosmaster_active": false,
+    // "maverick_dev::px4::mavros_active": false,
+    // "maverick_dev::px4::api_active": false,
+    // "maverick_dev::apsitl_dev::sitl_active": true,
+    // "maverick_dev::apsitl_dev::mavlink_active": true,
+    // "maverick_dev::apsitl_dev::mavros_active": true,
+    // "maverick_dev::apsitl_dev::rosmaster_active": true,
+    // "maverick_dev::apsitl_dev::api_active": true,
+    // "maverick_ros::ros2": true,
+    // "maverick_desktop::enable": true, // Desktop is disabled by default
+    // "maverick_network::zerotier::libzt": true,
+    // Flight Controller (fc) mavlink setup
+    // "maverick_fc::mavlink_proxy": "mavproxy", // Default mavlink proxy type to use
+    "maverick_fc::mavlink_active": false, // Whether the mavlink proxy is active or not
+    // "maverick_fc::mavlink_input": "/dev/ttyS1", // Input source for mavlink proxy, how the Companion Computer connects to the Flight Controller
+    // "maverick_fc::mavlink_baud": "115200", // Input baud rate for UART connections
+    "maverick_fc::rosmaster_active": false, // Whether ROS master for fc is active or not
+    "maverick_fc::mavros_active": false, // Whether Mavros for fc is active or not - requires fc rosmaster to be active
+    // Dev SITL mavlink setup - note this requires dev environment to be active
+    // "maverick_dev::sitl::mavlink_proxy": "mavlink-router", // Default mavlink proxy type to use
+    // "maverick_dev::sitl::sitl_active": true, // Whether SITL is active or not
+    // "maverick_dev::sitl::mavlink_active": true, // Whether mavlink proxy is active or not
+    // "maverick_dev::sitl::rosmaster_active": false, // Whether ROS master for sitl is active or not
+    // "maverick_dev::sitl::mavros_active": false, // Whether Mavros for sitl is active or not - requires sitl rosmaster to be active
+    // "maverick_mavlink::mavcesium_active": false,
+    // "maverick_dev::ardupilot::armeabi_packages": false, // Set to true to install packages that allow px4 firmware to be compiled and uploaded to fc
+
+    "maverick_ros::module_realsense": true,
+    // "maverick_ros::ros2::installtype": "source",
+    // "maverick_ros::ros2::distribution": "dashing",
+
+    "maverick_vision::visiond::active": false, // Whether visiond is active or not
+    "maverick_vision::visiond::webvision_active": false,
+    // "maverick_vision::vision_landing::active": false, // Whether vision_landing is active or not
+
+    "maverick_web::cloud9::cloud9_password": "boseheadphonesaresilver",
+    "maverick_web::cloud9::cloud9_active": true,
+    "maverick_web::server_fqdn": "dev.maverick.one",
+    // "maverick_web::maverick_api": true,
+    // "maverick_web::maverick_api::rosdistro": "kinetic",
+    "maverick_web::maverick_web": true,
+    "maverick_web::maverick_web::active": true,
+    // "maverick_web::maverick_web::auth_message": "Restricted Access",
+    // "maverick_web::maverick_web::auth_file": "/srv/maverick/data/web/.htpasswd",
+    "maverick_web::nginx::www_root": "/var/www/html",
+    "maverick_web::nginx::downloads": true,
+    "maverick_web::nginx::downloads_dir": "/var/www/html/maverick/downloads",
+    "maverick_web::codeserver": false,
+    "maverick_web::codeserver::active": false,
+    "maverick_web::codeserver::password": "boseheadphonesaresilver",
+
+    "maverick_web::janus::active": false,
+
+    "maverick_dev::apsitl_dev::api_devmode": true,
+    "maverick_dev::apsitl_dev::api_debug": true,
+    "maverick_dev::apsitl_dev::override": true,
+
+    // "maverick_ros::ros1::installtype": "source",
+    // "maverick_ros::ros1::distribution": "melodic",
+    // "maverick_ros::ros2::installtype": "source",
+    // "maverick_ros::ros2::distribution": "dashing",
+
+    // Add classes here
+    "classes": [
+            // "sample_sitl_swarm",
+            "api_py3"
+            // "jenkins"
+            // "maverick_network" // CAUTION: Read what this does before enabling: https://goodrobots.github.io/maverick/#/modules-network
+    ]
+}
