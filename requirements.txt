@@ -7,7 +7,7 @@ cryptography==2.9.2
 
 ## database options (choose one)
 # tortoise-orm==0.16.1
-aiosqlite==0.12.0
+aiosqlite==0.14.0
 
 ## maverick
 jsoncomment==0.4.2
