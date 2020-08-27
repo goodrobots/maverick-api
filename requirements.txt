@@ -3,7 +3,7 @@ tornado==6.0.4
 graphql-core==3.1.0
 PyJWT==1.7.1
 bcrypt==3.1.7
-cryptography==2.9.2
+cryptography==3.1
 
 ## database options (choose one)
 # tortoise-orm==0.16.1
