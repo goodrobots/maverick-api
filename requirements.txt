@@ -12,5 +12,5 @@ aiosqlite==0.12.0
 ## maverick
 jsoncomment==0.4.2
 jsondiff==1.2.0
-pystemd==0.7.0
+pystemd==0.8.0
 zeroconf==0.26.1
