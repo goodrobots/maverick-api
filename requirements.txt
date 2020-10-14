@@ -13,4 +13,4 @@ aiosqlite==0.12.0
 jsoncomment==0.4.2
 jsondiff==1.2.0
 pystemd==0.7.0
-zeroconf==0.26.1
+zeroconf==0.28.6
