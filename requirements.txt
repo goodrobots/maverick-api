@@ -1,5 +1,5 @@
 
-tornado==6.0.4
+tornado==6.1
 graphql-core==3.1.0
 PyJWT==1.7.1
 bcrypt==3.1.7
