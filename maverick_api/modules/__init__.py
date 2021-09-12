@@ -6,7 +6,7 @@ from importlib import import_module
 import time
 
 from graphql import GraphQLField, GraphQLObjectType, GraphQLSchema
-from graphql.pyutils.event_emitter import EventEmitter
+from graphql.pyutils.simple_pub_sub import SimplePubSub
 from tornado.options import options
 import tornado.ioloop
 
@@ -42,7 +42,7 @@ class schemaBase(object):
         self.q = {}
         self.m = {}
         self.s = {}
-        self.subscriptions = EventEmitter()
+        self.subscriptions = SimplePubSub()
 
     def get_mutation_args(self, GraphQLObject):
         return {

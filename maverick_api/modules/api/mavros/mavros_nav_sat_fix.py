@@ -13,7 +13,7 @@ from graphql import (
     GraphQLInt,
     GraphQLFloat,
 )
-from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
+from graphql.pyutils.simple_pub_sub import SimplePubSubIterator
 
 application_log = logging.getLogger("tornado.application")
 
@@ -85,7 +85,7 @@ class NavSatFixSchema(schemaBase):
 
     def sub_nav_sat_fix_message(self, root, info):
         """NavSatFixMessage subscription handler"""
-        return EventEmitterAsyncIterator(
+        return SimplePubSubIterator(
             self.subscriptions,
             "maverick_api.modules.api.mavros.NavSatFixSchema" + "NavSatFix",
         )

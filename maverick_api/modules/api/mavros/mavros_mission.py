@@ -25,7 +25,7 @@ from graphql import (
     GraphQLInputObjectType,
     GraphQLInputField,
 )
-from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
+from graphql.pyutils.simple_pub_sub import SimplePubSubIterator
 
 application_log = logging.getLogger("tornado.application")
 
@@ -259,7 +259,7 @@ class MissionSchema(schemaBase):
 
     def sub_mission(self, root, info):
         """Mission subscription handler"""
-        return EventEmitterAsyncIterator(
+        return SimplePubSubIterator(
             self.subscriptions,
             "maverick_api.modules.api.mavros.MissionSchema" + "Mission",
         )
@@ -383,7 +383,7 @@ class MissionSchema(schemaBase):
 
     def sub_mission_list(self, root, info):
         """Mission list subscription handler"""
-        return EventEmitterAsyncIterator(
+        return SimplePubSubIterator(
             self.subscriptions,
             "maverick_api.modules.api.mavros.MissionSchema" + "MissionList",
         )
@@ -433,7 +433,7 @@ class MissionSchema(schemaBase):
 
     def sub_mission_database(self, root, info):
         """Mission database subscription handler"""
-        return EventEmitterAsyncIterator(
+        return SimplePubSubIterator(
             self.subscriptions,
             "maverick_api.modules.api.mavros.MissionSchema" + "MissionDatabase",
         )

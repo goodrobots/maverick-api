@@ -7,7 +7,7 @@ from rosgraph_msgs.msg import Log
 
 # graphql imports
 from graphql import GraphQLField, GraphQLObjectType, GraphQLString, GraphQLInt
-from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
+from graphql.pyutils.simple_pub_sub import SimplePubSubIterator
 
 application_log = logging.getLogger("tornado.application")
 
@@ -73,7 +73,7 @@ class StatusTextSchema(schemaBase):
 
     def sub_status_text_message(self, root, info):
         """StatusTextMessage subscription handler"""
-        return EventEmitterAsyncIterator(
+        return SimplePubSubIterator(
             self.subscriptions,
             "maverick_api.modules.api.mavros.StatusTextSchema" + "StatusText",
         )

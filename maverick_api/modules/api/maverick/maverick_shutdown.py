@@ -12,7 +12,7 @@ from graphql import (
     GraphQLBoolean,
     GraphQLInt,
 )
-from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
+from graphql.pyutils.simple_pub_sub import SimplePubSubIterator
 
 application_log = logging.getLogger("tornado.application")
 
@@ -99,7 +99,7 @@ class MaverickShutdownSchema(schemaBase):
         return self.shutdown_command
 
     def sub_shutdown_command_status(self, root, info):
-        return EventEmitterAsyncIterator(
+        return SimplePubSubIterator(
             self.subscriptions, self.subscription_string + self.name,
         )
 

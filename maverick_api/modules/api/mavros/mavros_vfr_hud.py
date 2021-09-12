@@ -14,7 +14,7 @@ from graphql import (
     GraphQLInt,
     GraphQLFloat,
 )
-from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
+from graphql.pyutils.simple_sub_pub import SimplePubSubIterator
 
 application_log = logging.getLogger("tornado.application")
 
@@ -88,7 +88,7 @@ class VfrHudSchema(schemaBase):
 
     def sub_vfr_hud_message(self, root, info):
         """VfrHudMessage subscription handler"""
-        return EventEmitterAsyncIterator(
+        return SimplePubSubIterator(
             self.subscriptions,
             "maverick_api.modules.api.mavros.VfrHudSchema" + "VfrHud",
         )

@@ -15,7 +15,7 @@ from graphql import (
     GraphQLString,
     GraphQLInt,
 )
-from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
+from graphql.pyutils.simple_pub_sub import SimplePubSubIterator
 
 from maverick_api.modules import moduleBase
 from maverick_api.modules import schemaBase
@@ -118,7 +118,7 @@ class StatusSchema(schemaBase):
     def sub_report(self, root, info, **kwargs):
         """API status report subscription handler"""
         application_log.info(f"API status report subscription handler {info}")
-        return EventEmitterAsyncIterator(
+        return SimplePubSubIterator(
             self.subscriptions,
             "maverick_api.modules.api.status.StatusSchema" + "Status",
         )

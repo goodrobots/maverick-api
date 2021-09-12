@@ -16,7 +16,7 @@ from graphql import (
     GraphQLString,
     GraphQLInt,
 )
-from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
+from graphql.pyutils.simple_pub_sub import SimplePubSubIterator
 
 application_log = logging.getLogger("tornado.application")
 
@@ -130,7 +130,7 @@ class ModeSchema(schemaBase):
 
     def sub_mode(self, root, info):
         """mode subscription handler"""
-        return EventEmitterAsyncIterator(
+        return SimplePubSubIterator(
             self.subscriptions, "maverick_api.modules.api.mavros.ModeSchema" + "Mode"
         )
 

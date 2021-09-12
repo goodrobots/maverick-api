@@ -14,7 +14,7 @@ from graphql import (
     GraphQLInt,
     GraphQLFloat,
 )
-from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
+from graphql.pyutils.simple_pub_sub import SimplePubSubIterator
 
 application_log = logging.getLogger("tornado.application")
 
@@ -156,7 +156,7 @@ class MaverickShellSchema(schemaBase):
         )
 
     def sub_shell_command_status(self, root, info):
-        return EventEmitterAsyncIterator(
+        return SimplePubSubIterator(
             self.subscriptions, self.subscription_string + self.name,
         )
 

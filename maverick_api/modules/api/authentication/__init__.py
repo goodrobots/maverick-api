@@ -5,7 +5,7 @@ from graphql import (
     GraphQLObjectType,
     GraphQLString,
 )
-from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
+from graphql.pyutils.simple_pub_sub import SimplePubSubIterator
 
 from maverick_api.modules import schemaBase
 from maverick_api.modules.base.tornadoql.session_control import GraphQLSession
@@ -111,4 +111,4 @@ class AuthenticationSchema(schemaBase):
 
     def sub_auth(self, root, info, **kwargs):
         """AuthenticationRequest subscription handler"""
-        return EventEmitterAsyncIterator(self.subscriptions, __name__)
+        return SimplePubSubIterator(self.subscriptions, __name__)

@@ -20,7 +20,7 @@ from graphql import (
     GraphQLString,
     GraphQLInt,
 )
-from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
+from graphql.pyutils.simple_pub_sub import SimplePubSubIterator
 
 application_log = logging.getLogger("tornado.application")
 
@@ -157,7 +157,7 @@ class VehicleInfoSchema(schemaBase):
 
     def sub_vehicle_info(self, root, info):
         """Vehicle info subscription handler"""
-        return EventEmitterAsyncIterator(
+        return SimplePubSubIterator(
             self.subscriptions,
             "maverick_api.modules.api.mavros.VehicleInfoSchema" + "VehicleInfo",
         )
@@ -180,7 +180,7 @@ class VehicleInfoSchema(schemaBase):
 
     def sub_vehicle_info_list(self, root, info):
         """Vehicle info list subscription handler"""
-        return EventEmitterAsyncIterator(
+        return SimplePubSubIterator(
             self.subscriptions,
             "maverick_api.modules.api.mavros.VehicleInfoSchema" + "VehicleInfoList",
         )

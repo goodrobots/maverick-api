@@ -13,7 +13,7 @@ from graphql import (
     GraphQLInt,
     GraphQLFloat,
 )
-from graphql.pyutils.event_emitter import EventEmitterAsyncIterator
+from graphql.pyutils.simple_pub_sub import SimplePubSubIterator
 
 application_log = logging.getLogger("tornado.application")
 
@@ -84,7 +84,7 @@ class PoseStampedSchema(schemaBase):
 
     def sub_pose_stamped_message(self, root, info):
         """PoseStampedMessage subscription handler"""
-        return EventEmitterAsyncIterator(
+        return SimplePubSubIterator(
             self.subscriptions,
             "maverick_api.modules.api.mavros.PoseStampedSchema" + "PoseStamped",
         )
