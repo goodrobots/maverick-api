@@ -110,8 +110,8 @@ class StatusSchema(schemaBase):
             self.status_data["_status_messages"], self.status_data["_status_count"]
         )
         self.subscriptions.emit(
-            "maverick_api.modules.api.status.StatusSchema" + "Status",
-            {"Status": self.status_data},
+            #"maverick_api.modules.api.status.StatusSchema" + "Status",
+            {"Status": self.status_data}
         )
         return self.status_data
 

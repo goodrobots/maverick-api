@@ -1,3 +1,4 @@
+import os
 import logging
 import inspect
 import pkgutil
@@ -112,7 +113,11 @@ def generate_schema():
     module_paths = [api_module_path, custom_module_path]
     # iterate over all available modules under this folder
     for (module_folder_finder, module_name, _) in pkgutil.iter_modules(module_paths):
-        module_folder_name = module_folder_finder.path.name
+        #module_folder_name = module_folder_finder.path.name
+        try:
+            module_folder_name = os.path.basename(module_folder_finder.path)
+        except:
+            module_folder_name = module_folder_finder.path
         # check to see if the module name is in the module deny list to prevent imports
         if options.module_allow_list and module_name in options.module_allow_list:
             application_log.warning(
@@ -125,10 +130,10 @@ def generate_schema():
             )
             continue
         # otherwise, import the module
+        application_log.info(f"Loading module: {module_folder_name}.{module_name}")
         imported_module = import_module(
             f"{__name__}.{module_folder_name}.{module_name}"
         )
-        application_log.info(f"Loading module: {module_folder_name}.{module_name}")
         # search for the schema class
         for i in dir(imported_module):
             attribute = getattr(imported_module, i)
